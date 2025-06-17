@@ -6,7 +6,7 @@
              version="3.0">
     <persistence-unit name="hospitalPU" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-        <class>com.hospital.model.Patient</class>
+        <class>com.hospital.model.model.org.pahappa.Patient</class>
         <class>com.hospital.model.Staff</class>
         <class>com.hospital.model.Appointment</class>
         <class>com.hospital.model.MedicalRecord</class>
