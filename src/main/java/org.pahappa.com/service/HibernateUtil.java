@@ -24,5 +24,9 @@ public class HibernateUtil {
     public static void shutdown() {
         getSessionFactory().close();
     }
+<<<<<<< Updated upstream
+}
+>>>>>>> Stashed changes
+=======
 }
 >>>>>>> Stashed changes

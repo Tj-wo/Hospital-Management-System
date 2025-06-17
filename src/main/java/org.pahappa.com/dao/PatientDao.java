@@ -47,5 +47,9 @@ public class PatientDao {
         tx.commit();
         session.close();
     }
+<<<<<<< Updated upstream
+}
+>>>>>>> Stashed changes
+=======
 }
 >>>>>>> Stashed changes

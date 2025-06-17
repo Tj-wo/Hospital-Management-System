@@ -36,5 +36,9 @@ public class PatientService {
             System.out.println(p);
         }
     }
+<<<<<<< Updated upstream
+}
+>>>>>>> Stashed changes
+=======
 }
 >>>>>>> Stashed changes

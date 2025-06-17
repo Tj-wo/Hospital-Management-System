@@ -1,7 +1,11 @@
 package org.pahappa.com.model;
 
 import javax.persistence.*;
+<<<<<<< Updated upstream
 import java.sql.Date;
+=======
+import java.time.LocalDate;
+>>>>>>> Stashed changes
 
 @Entity
 @Table(name = "patients")
@@ -17,7 +21,11 @@ public class Patient {
     private String lastName;
 
     @Column(nullable = false)
+<<<<<<< Updated upstream
     private Date dateOfBirth;
+=======
+    private LocalDate dateOfBirth;
+>>>>>>> Stashed changes
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -30,7 +38,11 @@ public class Patient {
 
     public Patient() {}
 
+<<<<<<< Updated upstream
     public Patient(String firstName, String lastName, Date dateOfBirth, String email, String phone, String address) {
+=======
+    public Patient(String firstName, String lastName, LocalDate dateOfBirth, String email, String phone, String address) {
+>>>>>>> Stashed changes
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
@@ -45,8 +57,13 @@ public class Patient {
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
+<<<<<<< Updated upstream
     public Date getDateOfBirth() { return dateOfBirth; }
     public void setDateOfBirth(Date dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+=======
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+>>>>>>> Stashed changes
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
