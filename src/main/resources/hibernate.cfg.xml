@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- JDBC Connection Properties -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property> <!-- Updated from com.mysql.jdbc.Driver -->
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hospital_db</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">database</property>
+
+        <!-- Hibernate Properties -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="hibernate.hbm2ddl.auto">update</property> <!-- Creates or updates schema -->
+        <property name="hibernate.show_sql">true</property> <!-- Display SQL in console -->
+        <property name="hibernate.format_sql">true</property> <!-- Format SQL for readability -->
+        <property name="hibernate.use_sql_comments">true</property> <!-- Add comments to SQL -->
+        <property name="hibernate.connection.autocommit">false</property> <!-- Disable autocommit for transactions -->
+
+        <!-- Map annotated classes -->
+        <mapping class="org.pahappa.com.model.Patient"/>
+        <mapping class="org.pahappa.com.model.Staff"/>
+        <mapping class="org.pahappa.com.model.Appointment"/>
+        <mapping class="org.pahappa.com.model.MedicalRecord"/>
+        <mapping class="org.pahappa.com.model.Admission"/>
+    </session-factory>
+</hibernate-configuration>

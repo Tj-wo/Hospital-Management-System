@@ -1,7 +1,7 @@
 package org.pahappa.com.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDate;
+import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 @Table(name = "patients")
@@ -17,7 +17,7 @@ public class Patient {
     private String lastName;
 
     @Column(nullable = false)
-    private LocalDate dateOfBirth;
+    private Date dateOfBirth;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -30,7 +30,7 @@ public class Patient {
 
     public Patient() {}
 
-    public Patient(String firstName, String lastName, LocalDate dateOfBirth, String email, String phone, String address) {
+    public Patient(String firstName, String lastName, Date dateOfBirth, String email, String phone, String address) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
@@ -45,8 +45,8 @@ public class Patient {
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
-    public LocalDate getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public Date getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(Date dateOfBirth) { this.dateOfBirth = dateOfBirth; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }

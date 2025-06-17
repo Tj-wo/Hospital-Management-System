@@ -1,7 +1,7 @@
 package org.pahappa.com.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDate;
+import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 @Table(name = "medical_records")
@@ -25,11 +25,11 @@ public class MedicalRecord {
     private String prescription;
 
     @Column(nullable = false)
-    private LocalDate recordDate;
+    private Date recordDate;
 
     public MedicalRecord() {}
 
-    public MedicalRecord(Patient patient, Staff doctor, String diagnosis, String prescription, LocalDate recordDate) {
+    public MedicalRecord(Patient patient, Staff doctor, String diagnosis, String prescription, Date recordDate) {
         this.patient = patient;
         this.doctor = doctor;
         this.diagnosis = diagnosis;
@@ -47,8 +47,8 @@ public class MedicalRecord {
     public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
     public String getPrescription() { return prescription; }
     public void setPrescription(String prescription) { this.prescription = prescription; }
-    public LocalDate getRecordDate() { return recordDate; }
-    public void setRecordDate(LocalDate recordDate) { this.recordDate = recordDate; }
+    public Date getRecordDate() { return recordDate; }
+    public void setRecordDate(Date recordDate) { this.recordDate = recordDate; }
 
     @Override
     public String toString() {
