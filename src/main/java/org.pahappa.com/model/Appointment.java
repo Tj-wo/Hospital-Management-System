@@ -1,7 +1,7 @@
 package org.pahappa.com.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "appointments")
@@ -19,14 +19,14 @@ public class Appointment {
     private Staff doctor;
 
     @Column(nullable = false)
-    private LocalDateTime appointmentDate;
+    private Timestamp appointmentDate;
 
     @Column(nullable = false)
     private String reason;
 
     public Appointment() {}
 
-    public Appointment(Patient patient, Staff doctor, LocalDateTime appointmentDate, String reason) {
+    public Appointment(Patient patient, Staff doctor, Timestamp appointmentDate, String reason) {
         this.patient = patient;
         this.doctor = doctor;
         this.appointmentDate = appointmentDate;
@@ -39,8 +39,8 @@ public class Appointment {
     public void setPatient(Patient patient) { this.patient = patient; }
     public Staff getDoctor() { return doctor; }
     public void setDoctor(Staff doctor) { this.doctor = doctor; }
-    public LocalDateTime getAppointmentDate() { return appointmentDate; }
-    public void setAppointmentDate(LocalDateTime appointmentDate) { this.appointmentDate = appointmentDate; }
+    public Timestamp getAppointmentDate() { return appointmentDate; }
+    public void setAppointmentDate(Timestamp appointmentDate) { this.appointmentDate = appointmentDate; }
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
 

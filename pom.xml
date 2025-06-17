@@ -14,10 +14,20 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     <hibernate.version>6.6.1.Final</hibernate.version>
     <mysql.version>8.0.33</mysql.version>
     <junit.version>4.13.2</junit.version>
     <slf4j.version>1.7.36</slf4j.version>
+=======
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+>>>>>>> Stashed changes
+=======
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+>>>>>>> Stashed changes
   </properties>
 
   <dependencies>
@@ -31,6 +41,7 @@
 
     <!-- Hibernate Dependencies -->
     <dependency>
+<<<<<<< Updated upstream
       <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>${hibernate.version}</version>
@@ -44,6 +55,30 @@
     </dependency>
 
     <!-- Logging Dependencies -->
+=======
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>3.5.6-Final</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-annotations</artifactId>
+      <version>3.5.6-Final</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.33</version> <!-- Updated from 5.1.6 -->
+    </dependency>
+    <!-- LOGGING DEPENDENCIES -->
+>>>>>>> Stashed changes
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>

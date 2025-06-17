@@ -1,7 +1,7 @@
 package org.pahappa.com.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDate;
+import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 @Table(name = "admissions")
@@ -15,17 +15,17 @@ public class Admission {
     private Patient patient;
 
     @Column(nullable = false)
-    private LocalDate admissionDate;
+    private Date admissionDate;
 
     @Column
-    private LocalDate dischargeDate;
+    private Date dischargeDate;
 
     @Column(nullable = false)
     private String reason;
 
     public Admission() {}
 
-    public Admission(Patient patient, LocalDate admissionDate, String reason) {
+    public Admission(Patient patient, Date admissionDate, String reason) {
         this.patient = patient;
         this.admissionDate = admissionDate;
         this.reason = reason;
@@ -35,10 +35,10 @@ public class Admission {
     public void setId(Long id) { this.id = id; }
     public Patient getPatient() { return patient; }
     public void setPatient(Patient patient) { this.patient = patient; }
-    public LocalDate getAdmissionDate() { return admissionDate; }
-    public void setAdmissionDate(LocalDate admissionDate) { this.admissionDate = admissionDate; }
-    public LocalDate getDischargeDate() { return dischargeDate; }
-    public void setDischargeDate(LocalDate dischargeDate) { this.dischargeDate = dischargeDate; }
+    public Date getAdmissionDate() { return admissionDate; }
+    public void setAdmissionDate(Date admissionDate) { this.admissionDate = admissionDate; }
+    public Date getDischargeDate() { return dischargeDate; }
+    public void setDischargeDate(Date dischargeDate) { this.dischargeDate = dischargeDate; }
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
 

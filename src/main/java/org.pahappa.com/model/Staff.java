@@ -1,6 +1,6 @@
 package org.pahappa.com.model;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "staff")
