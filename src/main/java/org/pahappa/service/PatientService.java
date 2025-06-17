@@ -2,7 +2,7 @@
 =======
 package org.pahappa.com.service;
 
-import org.pahappa.com.dao.PatientDao;
+import org.pahappa.dao.PatientDao;
 import org.pahappa.com.model.Patient;
 import java.util.List;
 

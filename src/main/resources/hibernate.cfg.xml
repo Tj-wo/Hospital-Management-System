@@ -19,10 +19,10 @@
         <property name="hibernate.connection.autocommit">false</property> <!-- Disable autocommit for transactions -->
 
         <!-- Map annotated classes -->
-        <mapping class="org.pahappa.com.model.Patient"/>
-        <mapping class="org.pahappa.com.model.Staff"/>
-        <mapping class="org.pahappa.com.model.Appointment"/>
-        <mapping class="org.pahappa.com.model.MedicalRecord"/>
-        <mapping class="org.pahappa.com.model.Admission"/>
+        <mapping class="org.pahappa.com.model.model.org.pahappa.Patient"/>
+        <mapping class="org.pahappa.model.Staff"/>
+        <mapping class="org.pahappa.model.Appointment"/>
+        <mapping class="org.pahappa.model.MedicalRecord"/>
+        <mapping class="org.pahappa.model.Admission"/>
     </session-factory>
 </hibernate-configuration>

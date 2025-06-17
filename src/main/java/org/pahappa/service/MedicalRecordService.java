@@ -1,4 +1,4 @@
-package org.pahappa.com.service;
+package org.pahappa.service;
 
 public class MedicalRecordService {
 }

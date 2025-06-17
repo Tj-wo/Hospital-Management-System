@@ -1,11 +1,9 @@
-<<<<<<< Updated upstream
-=======
-package org.pahappa.com.dao;
+package org.pahappa.dao;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.pahappa.com.model.Patient;
-import org.pahappa.com.service.HibernateUtil;
+import org.pahappa.model.Patient;
+import org.pahappa.service.HibernateUtil;
 import java.util.List;
 
 public class PatientDao {
@@ -47,9 +45,4 @@ public class PatientDao {
         tx.commit();
         session.close();
     }
-<<<<<<< Updated upstream
 }
->>>>>>> Stashed changes
-=======
-}
->>>>>>> Stashed changes

@@ -1,4 +1,4 @@
-package org.pahappa.com.model;
+package org.pahappa.model;
 
 import javax.persistence.*;
 import java.sql.Date;
