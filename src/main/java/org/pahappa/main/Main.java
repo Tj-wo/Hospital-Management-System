@@ -1,9 +1,9 @@
-package org.pahappa;
+package org.pahappa.main;
 
 import org.pahappa.service.*;
 import java.util.Scanner;
 
-// Main class to run the Hospital Management System console application
+
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
     private static final PatientService patientService = new PatientService();

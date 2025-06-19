@@ -13,20 +13,17 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Scanner;
 
-// Service class to manage medical record operations
 public class MedicalRecordService {
     private static final Scanner scanner = new Scanner(System.in);
     private final MedicalRecordDao medicalRecordDao = new MedicalRecordDao();
     private final PatientService patientService = new PatientService();
     private final StaffService staffService = new StaffService();
 
-    // Add a new medical record
     public void addMedicalRecord(MedicalRecord medicalRecord) {
         validateMedicalRecord(medicalRecord);
         medicalRecordDao.save(medicalRecord);
     }
 
-    // Get a medical record by ID
     public MedicalRecord getMedicalRecord(Long id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
@@ -38,12 +35,10 @@ public class MedicalRecordService {
         return medicalRecord;
     }
 
-    // Get all medical records
     public List<MedicalRecord> getAllMedicalRecords() {
         return medicalRecordDao.getAll();
     }
 
-    // Get medical records by patient ID
     public List<MedicalRecord> getMedicalRecordsByPatientId(Long patientId) {
         if (patientId == null || patientId <= 0) {
             throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
@@ -51,7 +46,6 @@ public class MedicalRecordService {
         return medicalRecordDao.getByPatientId(patientId);
     }
 
-    // Update a medical record
     public void updateMedicalRecord(MedicalRecord medicalRecord) {
         if (medicalRecord.getId() == null) {
             throw new IllegalArgumentException("Medical record ID is required for update");
@@ -60,7 +54,6 @@ public class MedicalRecordService {
         medicalRecordDao.update(medicalRecord);
     }
 
-    // Delete a medical record by ID
     public void deleteMedicalRecord(Long id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
@@ -68,21 +61,45 @@ public class MedicalRecordService {
         medicalRecordDao.delete(id);
     }
 
-    // Interactive method to add a medical record
+    public void viewMedicalRecords() {
+        System.out.println("\n===== MEDICAL RECORDS =====");
+        List<MedicalRecord> records = getAllMedicalRecords();
+        if (records.isEmpty()) {
+            System.out.println("No medical records found.");
+            return;
+        }
+
+        System.out.println("ID  | Patient          | Doctor           | Date       | Diagnosis");
+        System.out.println("----|------------------|------------------|------------|-------------------");
+        records.forEach(r -> System.out.printf(
+                "%-3d | %-16s | %-16s | %-10s | %s%n",
+                r.getId(),
+                truncate(r.getPatient().getFullName(), 16),
+                truncate(r.getDoctor().getFullName(), 16),
+                formatDate(r.getRecordDate()),
+                truncate(r.getDiagnosis(), 20)
+        ));
+    }
+
     public void addMedicalRecordInteractive() {
         try {
-            // Select patient
+            System.out.println("\n===== ADD NEW MEDICAL RECORD =====");
+
+            // Show available patients
+            System.out.println("\n--- Available Patients ---");
             List<Patient> patients = patientService.getAllPatients();
             if (patients.isEmpty()) {
                 System.out.println("No patients available. Add a patient first!");
                 return;
             }
-            System.out.println("\nAvailable Patients:");
-            patients.forEach(p -> System.out.printf("%d: %s%n", p.getId(), p.getFullName()));
-            Long patientId = getLongInput("Enter Patient ID: ");
+            patients.forEach(p -> System.out.printf("ID: %d | Name: %s%n", p.getId(), p.getFullName()));
+
+            // Get patient
+            Long patientId = getLongInput("\nEnter Patient ID: ");
             Patient patient = patientService.getPatient(patientId);
 
-            // Select doctor
+            // Show available doctors
+            System.out.println("\n--- Available Doctors ---");
             List<Staff> doctors = staffService.getAllStaff().stream()
                     .filter(s -> s.getRole() == Role.DOCTOR)
                     .toList();
@@ -90,9 +107,11 @@ public class MedicalRecordService {
                 System.out.println("No doctors available. Add a doctor first!");
                 return;
             }
-            System.out.println("\nAvailable Doctors:");
-            doctors.forEach(d -> System.out.printf("%d: %s %s (%s)%n", d.getId(), d.getFirstName(), d.getLastName(), d.getSpecialty()));
-            Long doctorId = getLongInput("Enter Doctor ID: ");
+            doctors.forEach(d -> System.out.printf("ID: %d | Name: %s | Specialty: %s%n",
+                    d.getId(), d.getFullName(), d.getSpecialty()));
+
+            // Get doctor
+            Long doctorId = getLongInput("\nEnter Doctor ID: ");
             Staff doctor = staffService.getStaff(doctorId);
             if (doctor.getRole() != Role.DOCTOR) {
                 System.out.println("Selected staff is not a doctor!");
@@ -100,7 +119,9 @@ public class MedicalRecordService {
             }
 
             // Get record date
-            String recordDateStr = getRequiredInput("Enter Record Date (" + Constants.DATE_FORMAT + "): ", Constants.ERROR_REQUIRED_FIELD);
+            String recordDateStr = getRequiredInput(
+                    String.format("\nRecord Date (%s): ", Constants.DATE_FORMAT),
+                    Constants.ERROR_REQUIRED_FIELD);
             Date recordDate = parseDate(recordDateStr);
             if (recordDate == null) {
                 System.out.println(Constants.ERROR_INVALID_DATE);
@@ -112,133 +133,143 @@ public class MedicalRecordService {
             }
 
             // Get diagnosis
-            String diagnosis = getRequiredInput("Enter Diagnosis: ", Constants.ERROR_REQUIRED_FIELD);
+            String diagnosis = getRequiredInput("\nDiagnosis: ", Constants.ERROR_REQUIRED_FIELD);
             if (diagnosis.length() > Constants.MAX_DIAGNOSIS_LENGTH) {
                 System.out.println("Diagnosis cannot exceed " + Constants.MAX_DIAGNOSIS_LENGTH + " characters");
                 return;
             }
 
             // Get treatment
-            String treatment = getRequiredInput("Enter Treatment: ", Constants.ERROR_REQUIRED_FIELD);
+            String treatment = getRequiredInput("\nTreatment: ", Constants.ERROR_REQUIRED_FIELD);
             if (treatment.length() > Constants.MAX_TREATMENT_LENGTH) {
                 System.out.println("Treatment cannot exceed " + Constants.MAX_TREATMENT_LENGTH + " characters");
                 return;
             }
 
-            MedicalRecord medicalRecord = new MedicalRecord();
-            medicalRecord.setPatient(patient);
-            medicalRecord.setDoctor(doctor);
-            medicalRecord.setRecordDate(recordDate);
-            medicalRecord.setDiagnosis(diagnosis);
-            medicalRecord.setTreatment(treatment);
-            addMedicalRecord(medicalRecord);
-            System.out.println("Medical record added successfully!");
+            // Create and save record
+            MedicalRecord record = new MedicalRecord();
+            record.setPatient(patient);
+            record.setDoctor(doctor);
+            record.setRecordDate(recordDate);
+            record.setDiagnosis(diagnosis);
+            record.setTreatment(treatment);
+
+            addMedicalRecord(record);
+            System.out.println("\nMedical record added successfully!");
+            System.out.println("New Record ID: " + record.getId());
         } catch (Exception e) {
-            System.out.println("Error adding medical record: " + e.getMessage());
+            System.out.println("\nError adding medical record: " + e.getMessage());
         }
     }
 
-    // Interactive method to update a medical record
     public void updateMedicalRecordInteractive() {
         try {
-            Long id = getLongInput("Enter Medical Record ID to update: ");
-            MedicalRecord medicalRecord = getMedicalRecord(id);
-            System.out.println("Current details:\n" + medicalRecord);
+            System.out.println("\n===== UPDATE MEDICAL RECORD =====");
+
+            // Show all records first
+            viewMedicalRecords();
+
+            // Get record ID to update
+            Long id = getLongInput("\nEnter Medical Record ID to update: ");
+            MedicalRecord record = getMedicalRecord(id);
+
+            // Show current details
+            System.out.println("\n--- Current Medical Record Details ---");
+            System.out.println("1. Patient: " + record.getPatient().getFullName());
+            System.out.println("2. Doctor: " + record.getDoctor().getFullName());
+            System.out.println("3. Record Date: " + formatDate(record.getRecordDate()));
+            System.out.println("4. Diagnosis: " + record.getDiagnosis());
+            System.out.println("5. Treatment: " + record.getTreatment());
+
+            // Get updates
+            System.out.println("\n--- Update Fields (press Enter to skip) ---");
 
             // Update patient
-            List<Patient> patients = patientService.getAllPatients();
-            if (patients.isEmpty()) {
-                System.out.println("No patients available!");
-                return;
-            }
             System.out.println("\nAvailable Patients:");
-            patients.forEach(p -> System.out.printf("%d: %s%n", p.getId(), p.getFullName()));
-            Long patientId = getLongInput("Enter new Patient ID [" + medicalRecord.getPatient().getId() + "]: ");
-            Patient patient = patientService.getPatient(patientId);
+            List<Patient> patients = patientService.getAllPatients();
+            patients.forEach(p -> System.out.printf("ID: %d | Name: %s%n", p.getId(), p.getFullName()));
+            String patientInput = getInputWithDefault(
+                    "Enter new Patient ID [" + record.getPatient().getId() + "]: ",
+                    record.getPatient().getId().toString());
+            if (!patientInput.isEmpty()) {
+                record.setPatient(patientService.getPatient(Long.parseLong(patientInput)));
+            }
 
             // Update doctor
+            System.out.println("\nAvailable Doctors:");
             List<Staff> doctors = staffService.getAllStaff().stream()
                     .filter(s -> s.getRole() == Role.DOCTOR)
                     .toList();
-            if (doctors.isEmpty()) {
-                System.out.println("No doctors available!");
-                return;
-            }
-            System.out.println("\nAvailable Doctors:");
-            doctors.forEach(d -> System.out.printf("%d: %s %s (%s)%n", d.getId(), d.getFirstName(), d.getLastName(), d.getSpecialty()));
-            Long doctorId = getLongInput("Enter new Doctor ID [" + medicalRecord.getDoctor().getId() + "]: ");
-            Staff doctor = staffService.getStaff(doctorId);
-            if (doctor.getRole() != Role.DOCTOR) {
-                System.out.println("Selected staff is not a doctor!");
-                return;
+            doctors.forEach(d -> System.out.printf("ID: %d | Name: %s | Specialty: %s%n",
+                    d.getId(), d.getFullName(), d.getSpecialty()));
+            String doctorInput = getInputWithDefault(
+                    "Enter new Doctor ID [" + record.getDoctor().getId() + "]: ",
+                    record.getDoctor().getId().toString());
+            if (!doctorInput.isEmpty()) {
+                Staff doctor = staffService.getStaff(Long.parseLong(doctorInput));
+                if (doctor.getRole() != Role.DOCTOR) {
+                    System.out.println("Selected staff is not a doctor!");
+                    return;
+                }
+                record.setDoctor(doctor);
             }
 
             // Update record date
-            String recordDateStr = getRequiredInput("Enter new Record Date (" + Constants.DATE_FORMAT + ") [" + medicalRecord.getRecordDate() + "]: ", medicalRecord.getRecordDate().toString());
-            Date recordDate = parseDate(recordDateStr);
-            if (recordDate == null) {
-                System.out.println(Constants.ERROR_INVALID_DATE);
-                return;
-            }
-            if (recordDate.after(new Date(System.currentTimeMillis()))) {
-                System.out.println("Record date cannot be in the future");
-                return;
+            String dateInput = getInputWithDefault(
+                    String.format("Enter new Record Date (%s) [%s]: ",
+                            Constants.DATE_FORMAT, formatDate(record.getRecordDate())),
+                    formatDate(record.getRecordDate()));
+            if (!dateInput.isEmpty()) {
+                Date newDate = parseDate(dateInput);
+                if (newDate != null) record.setRecordDate(newDate);
             }
 
             // Update diagnosis
-            String diagnosis = getRequiredInput("Enter new Diagnosis [" + medicalRecord.getDiagnosis() + "]: ", medicalRecord.getDiagnosis());
-            if (diagnosis.length() > Constants.MAX_DIAGNOSIS_LENGTH) {
-                System.out.println("Diagnosis cannot exceed " + Constants.MAX_DIAGNOSIS_LENGTH + " characters");
-                return;
+            String diagnosis = getInputWithDefault(
+                    "Enter new Diagnosis [" + record.getDiagnosis() + "]: ",
+                    record.getDiagnosis());
+            if (!diagnosis.isEmpty()) {
+                record.setDiagnosis(diagnosis);
             }
 
             // Update treatment
-            String treatment = getRequiredInput("Enter new Treatment [" + medicalRecord.getTreatment() + "]: ", medicalRecord.getTreatment());
-            if (treatment.length() > Constants.MAX_TREATMENT_LENGTH) {
-                System.out.println("Treatment cannot exceed " + Constants.MAX_TREATMENT_LENGTH + " characters");
-                return;
+            String treatment = getInputWithDefault(
+                    "Enter new Treatment [" + record.getTreatment() + "]: ",
+                    record.getTreatment());
+            if (!treatment.isEmpty()) {
+                record.setTreatment(treatment);
             }
 
-            medicalRecord.setPatient(patient);
-            medicalRecord.setDoctor(doctor);
-            medicalRecord.setRecordDate(recordDate);
-            medicalRecord.setDiagnosis(diagnosis);
-            medicalRecord.setTreatment(treatment);
-            updateMedicalRecord(medicalRecord);
-            System.out.println("Medical record updated successfully!");
+            updateMedicalRecord(record);
+            System.out.println("\nMedical record updated successfully!");
         } catch (Exception e) {
-            System.out.println("Error updating medical record: " + e.getMessage());
+            System.out.println("\nError updating medical record: " + e.getMessage());
         }
     }
 
-    // Interactive method to delete a medical record
     public void deleteMedicalRecordInteractive() {
         try {
-            Long id = getLongInput("Enter Medical Record ID to delete: ");
-            MedicalRecord medicalRecord = getMedicalRecord(id);
-            System.out.println("Medical record to delete:\n" + medicalRecord);
-            System.out.print("Are you sure? (y/n): ");
+            System.out.println("\n===== DELETE MEDICAL RECORD =====");
+
+            // Show all records first
+            viewMedicalRecords();
+
+            // Get record ID to delete
+            Long id = getLongInput("\nEnter Medical Record ID to delete: ");
+
+            // Confirm deletion
+            System.out.print("\nAre you sure you want to delete this medical record? (y/n): ");
             if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
                 deleteMedicalRecord(id);
-                System.out.println("Medical record deleted successfully!");
+                System.out.println("\nMedical record deleted successfully!");
+            } else {
+                System.out.println("\nDeletion cancelled.");
             }
         } catch (Exception e) {
-            System.out.println("Error deleting medical record: " + e.getMessage());
+            System.out.println("\nError deleting medical record: " + e.getMessage());
         }
     }
 
-    // Interactive method to view all medical records
-    public void viewMedicalRecords() {
-        List<MedicalRecord> medicalRecords = getAllMedicalRecords();
-        System.out.println("\n===== MEDICAL RECORDS =====");
-        if (medicalRecords.isEmpty()) {
-            System.out.println("No medical records found.");
-        } else {
-            medicalRecords.forEach(System.out::println);
-        }
-    }
-
-    // Validate medical record data
     private void validateMedicalRecord(MedicalRecord medicalRecord) {
         if (medicalRecord == null) {
             throw new IllegalArgumentException("Medical record cannot be null");
@@ -273,18 +304,16 @@ public class MedicalRecordService {
         }
     }
 
-    // Parse date string
-    private Date parseDate(String dateStr) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT);
-            sdf.setLenient(false);
-            return new Date(sdf.parse(dateStr).getTime());
-        } catch (ParseException e) {
-            return null;
-        }
+    private String formatDate(Date date) {
+        if (date == null) return "N/A";
+        return new SimpleDateFormat(Constants.DATE_FORMAT).format(date);
     }
 
-    // Get required input with error message
+    private String truncate(String str, int length) {
+        if (str == null) return "";
+        return str.length() > length ? str.substring(0, length - 3) + "..." : str;
+    }
+
     private String getRequiredInput(String prompt, String errorMessage) {
         String input;
         do {
@@ -297,7 +326,12 @@ public class MedicalRecordService {
         return input;
     }
 
-    // Get a valid Long input
+    private String getInputWithDefault(String prompt, String defaultValue) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+        return input.isEmpty() ? defaultValue : input;
+    }
+
     private Long getLongInput(String prompt) {
         while (true) {
             try {
@@ -306,6 +340,16 @@ public class MedicalRecordService {
             } catch (NumberFormatException e) {
                 System.out.println("Invalid ID format! Please enter a number.");
             }
+        }
+    }
+
+    private Date parseDate(String dateStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT);
+            sdf.setLenient(false);
+            return new Date(sdf.parse(dateStr).getTime());
+        } catch (ParseException e) {
+            return null;
         }
     }
 }

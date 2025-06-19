@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-// Service class to manage patient operations (add, update, delete, view)
 public class PatientService {
     private static final Scanner scanner = new Scanner(System.in);
     private final PatientDao patientDao = new PatientDao();
@@ -56,28 +55,48 @@ public class PatientService {
         patientDao.delete(id);
     }
 
-    // Interactive method to add a patient
+    public void viewPatients() {
+        System.out.println("\n===== PATIENT LIST =====");
+        List<Patient> patients = getAllPatients();
+        if (patients.isEmpty()) {
+            System.out.println("No patients found.");
+        } else {
+            System.out.println("ID  | Name             | Email                     | Date of Birth");
+            System.out.println("----|------------------|---------------------------|--------------");
+            patients.forEach(p -> System.out.printf(
+                    "%-3d | %-16s | %-25s | %s%n",
+                    p.getId(),
+                    truncate(p.getFullName(), 16),
+                    truncate(p.getEmail(), 25),
+                    formatDate(p.getDateOfBirth())));
+        }
+    }
+
     public void addPatientInteractive() {
         try {
-            String firstName = getRequiredInput("Enter First Name: ", Constants.ERROR_REQUIRED_FIELD);
+            System.out.println("\n===== ADD NEW PATIENT =====");
+
+            String firstName = getRequiredInput("First Name: ", Constants.ERROR_REQUIRED_FIELD);
             if (firstName.length() > Constants.MAX_NAME_LENGTH) {
                 System.out.println("First name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
                 return;
             }
 
-            String lastName = getRequiredInput("Enter Last Name: ", Constants.ERROR_REQUIRED_FIELD);
+            String lastName = getRequiredInput("Last Name: ", Constants.ERROR_REQUIRED_FIELD);
             if (lastName.length() > Constants.MAX_NAME_LENGTH) {
                 System.out.println("Last name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
                 return;
             }
 
-            String email = getRequiredInput("Enter Email: ", Constants.ERROR_REQUIRED_FIELD);
+            String email = getRequiredInput("Email: ", Constants.ERROR_REQUIRED_FIELD);
             if (!isValidEmail(email)) {
                 System.out.println(Constants.ERROR_INVALID_EMAIL);
                 return;
             }
 
-            String dateOfBirthStr = getRequiredInput("Enter Date of Birth (" + Constants.DATE_FORMAT + "): ", Constants.ERROR_REQUIRED_FIELD);
+            String dateOfBirthStr = getRequiredInput(
+                    String.format("Date of Birth (%s): ", Constants.DATE_FORMAT),
+                    Constants.ERROR_REQUIRED_FIELD);
             Date dateOfBirth = parseDate(dateOfBirthStr);
             if (dateOfBirth == null) {
                 System.out.println(Constants.ERROR_INVALID_DATE);
@@ -93,84 +112,77 @@ public class PatientService {
             patient.setLastName(lastName);
             patient.setEmail(email);
             patient.setDateOfBirth(dateOfBirth);
+
             addPatient(patient);
-            System.out.println("Patient added successfully!");
+            System.out.println("\nPatient added successfully!");
+            System.out.println("New Patient ID: " + patient.getId());
         } catch (Exception e) {
-            System.out.println("Error adding patient: " + e.getMessage());
+            System.out.println("\nError adding patient: " + e.getMessage());
         }
     }
 
-    // Interactive method to update a patient
     public void updatePatientInteractive() {
         try {
-            Long id = getLongInput("Enter Patient ID to update: ");
+            System.out.println("\n===== UPDATE PATIENT =====");
+
+            // Show all patients
+            viewPatients();
+
+            Long id = getLongInput("\nEnter Patient ID to update: ");
             Patient patient = getPatient(id);
-            System.out.println("Current details:\n" + patient);
 
-            String firstName = getRequiredInput("Enter new First Name [" + patient.getFirstName() + "]: ", patient.getFirstName());
-            if (firstName.length() > Constants.MAX_NAME_LENGTH) {
-                System.out.println("First name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
-                return;
+            // Show current details
+            System.out.println("\n--- Current Patient Details ---");
+            System.out.println("1. First Name: " + patient.getFirstName());
+            System.out.println("2. Last Name: " + patient.getLastName());
+            System.out.println("3. Email: " + patient.getEmail());
+            System.out.println("4. Date of Birth: " + formatDate(patient.getDateOfBirth()));
+
+            // Get updates
+            System.out.println("\n--- Update Fields (press Enter to keep current value) ---");
+            String firstName = getInputWithDefault("New First Name [" + patient.getFirstName() + "]: ", patient.getFirstName());
+            String lastName = getInputWithDefault("New Last Name [" + patient.getLastName() + "]: ", patient.getLastName());
+            String email = getInputWithDefault("New Email [" + patient.getEmail() + "]: ", patient.getEmail());
+            String dobStr = getInputWithDefault(
+                    String.format("New Date of Birth (%s) [%s]: ",
+                            Constants.DATE_FORMAT, formatDate(patient.getDateOfBirth())),
+                    formatDate(patient.getDateOfBirth()));
+
+            // Apply updates
+            if (!firstName.isEmpty()) patient.setFirstName(firstName);
+            if (!lastName.isEmpty()) patient.setLastName(lastName);
+            if (!email.isEmpty()) patient.setEmail(email);
+            if (!dobStr.isEmpty()) {
+                Date dob = parseDate(dobStr);
+                if (dob != null) patient.setDateOfBirth(dob);
             }
 
-            String lastName = getRequiredInput("Enter new Last Name [" + patient.getLastName() + "]: ", patient.getLastName());
-            if (lastName.length() > Constants.MAX_NAME_LENGTH) {
-                System.out.println("Last name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
-                return;
-            }
-
-            String email = getRequiredInput("Enter new Email [" + patient.getEmail() + "]: ", patient.getEmail());
-            if (!isValidEmail(email)) {
-                System.out.println(Constants.ERROR_INVALID_EMAIL);
-                return;
-            }
-
-            String dateOfBirthStr = getRequiredInput("Enter new Date of Birth (" + Constants.DATE_FORMAT + ") [" + new SimpleDateFormat(Constants.DATE_FORMAT).format(patient.getDateOfBirth()) + "]: ", new SimpleDateFormat(Constants.DATE_FORMAT).format(patient.getDateOfBirth()));
-            Date dateOfBirth = parseDate(dateOfBirthStr);
-            if (dateOfBirth == null) {
-                System.out.println(Constants.ERROR_INVALID_DATE);
-                return;
-            }
-            if (dateOfBirth.after(new Date())) {
-                System.out.println("Date of birth cannot be in the future");
-                return;
-            }
-
-            patient.setFirstName(firstName);
-            patient.setLastName(lastName);
-            patient.setEmail(email);
-            patient.setDateOfBirth(dateOfBirth);
             updatePatient(patient);
-            System.out.println("Patient updated successfully!");
+            System.out.println("\nPatient updated successfully!");
         } catch (Exception e) {
-            System.out.println("Error updating patient: " + e.getMessage());
+            System.out.println("\nError updating patient: " + e.getMessage());
         }
     }
 
-    // Interactive method to delete a patient
     public void deletePatientInteractive() {
         try {
-            Long id = getLongInput("Enter Patient ID to delete: ");
-            Patient patient = getPatient(id);
-            System.out.println("Patient to delete:\n" + patient);
-            System.out.print("Are you sure? (y/n): ");
+            System.out.println("\n===== DELETE PATIENT =====");
+
+            // Show all patients
+            viewPatients();
+
+            Long id = getLongInput("\nEnter Patient ID to delete: ");
+
+            // Confirm deletion
+            System.out.print("\nAre you sure you want to delete this patient? (y/n): ");
             if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
                 deletePatient(id);
-                System.out.println("Patient deleted successfully!");
+                System.out.println("\nPatient deleted successfully!");
+            } else {
+                System.out.println("\nDeletion cancelled.");
             }
         } catch (Exception e) {
-            System.out.println("Error deleting patient: " + e.getMessage());
-        }
-    }
-
-    // Interactive method to view all patients
-    public void viewPatients() {
-        List<Patient> patients = getAllPatients();
-        System.out.println("\n===== PATIENT LIST =====");
-        if (patients.isEmpty()) {
-            System.out.println("No patients found.");
-        } else {
-            patients.forEach(System.out::println);
+            System.out.println("\nError deleting patient: " + e.getMessage());
         }
     }
 
@@ -223,6 +235,18 @@ public class PatientService {
         }
     }
 
+    // Helper method to format dates consistently
+    private String formatDate(Date date) {
+        if (date == null) return "N/A";
+        return new SimpleDateFormat(Constants.DATE_FORMAT).format(date);
+    }
+
+    // Helper method to truncate long strings for display
+    private String truncate(String str, int length) {
+        if (str == null) return "";
+        return str.length() > length ? str.substring(0, length - 3) + "..." : str;
+    }
+
     // Get required input with error message
     private String getRequiredInput(String prompt, String errorMessage) {
         String input;
@@ -234,6 +258,13 @@ public class PatientService {
             }
         } while (input.isEmpty());
         return input;
+    }
+
+    // Get input with default value (new method)
+    private String getInputWithDefault(String prompt, String defaultValue) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+        return input.isEmpty() ? defaultValue : input;
     }
 
     // Get a valid Long input

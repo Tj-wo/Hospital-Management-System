@@ -12,18 +12,15 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-// Service class to manage staff operations (add, update, delete, view)
 public class StaffService {
     private static final Scanner scanner = new Scanner(System.in);
     private final StaffDao staffDao = new StaffDao();
 
-    // Add a new staff member
     public void addStaff(Staff staff) {
         validateStaff(staff);
         staffDao.save(staff);
     }
 
-    // Get a staff member by ID
     public Staff getStaff(Long id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
@@ -35,12 +32,10 @@ public class StaffService {
         return staff;
     }
 
-    // Get all staff members
     public List<Staff> getAllStaff() {
         return staffDao.getAll();
     }
 
-    // Update a staff member
     public void updateStaff(Staff staff) {
         if (staff.getId() == null) {
             throw new IllegalArgumentException("Staff ID is required for update");
@@ -49,7 +44,6 @@ public class StaffService {
         staffDao.update(staff);
     }
 
-    // Delete a staff member by ID
     public void deleteStaff(Long id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
@@ -57,28 +51,53 @@ public class StaffService {
         staffDao.delete(id);
     }
 
-    // Interactive method to add a staff member via console
+    public void viewStaff() {
+        System.out.println("\n===== STAFF LIST =====");
+        List<Staff> staffList = getAllStaff();
+        if (staffList.isEmpty()) {
+            System.out.println("No staff members found.");
+            return;
+        }
+
+        System.out.println("ID  | Name             | Role    | Specialty        | Email");
+        System.out.println("----|------------------|---------|------------------|-------------------");
+        staffList.forEach(s -> System.out.printf(
+                "%-3d | %-16s | %-7s | %-16s | %s%n",
+                s.getId(),
+                truncate(s.getFullName(), 16),
+                s.getRole(),
+                truncate(s.getSpecialty() != null ? s.getSpecialty() : "N/A", 16),
+                truncate(s.getEmail(), 20)
+        ));
+    }
+
     public void addStaffInteractive() {
         try {
-            String firstName = getRequiredInput("Enter First Name: ", Constants.ERROR_REQUIRED_FIELD);
+            System.out.println("\n===== ADD NEW STAFF MEMBER =====");
+
+            // Get basic info
+            String firstName = getRequiredInput("First Name: ", Constants.ERROR_REQUIRED_FIELD);
             if (firstName.length() > Constants.MAX_NAME_LENGTH) {
                 System.out.println("First name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
                 return;
             }
 
-            String lastName = getRequiredInput("Enter Last Name: ", Constants.ERROR_REQUIRED_FIELD);
+            String lastName = getRequiredInput("Last Name: ", Constants.ERROR_REQUIRED_FIELD);
             if (lastName.length() > Constants.MAX_NAME_LENGTH) {
                 System.out.println("Last name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
                 return;
             }
 
-            String email = getRequiredInput("Enter Email: ", Constants.ERROR_REQUIRED_FIELD);
+            String email = getRequiredInput("Email: ", Constants.ERROR_REQUIRED_FIELD);
             if (!isValidEmail(email)) {
                 System.out.println(Constants.ERROR_INVALID_EMAIL);
                 return;
             }
 
-            String dateOfBirthStr = getRequiredInput("Enter Date of Birth (" + Constants.DATE_FORMAT + "): ", Constants.ERROR_REQUIRED_FIELD);
+            // Get date of birth
+            String dateOfBirthStr = getRequiredInput(
+                    String.format("Date of Birth (%s): ", Constants.DATE_FORMAT),
+                    Constants.ERROR_REQUIRED_FIELD);
             Date dateOfBirth = parseDate(dateOfBirthStr);
             if (dateOfBirth == null) {
                 System.out.println(Constants.ERROR_INVALID_DATE);
@@ -89,8 +108,9 @@ public class StaffService {
                 return;
             }
 
-            System.out.println("Available Roles: " + List.of(Role.values()));
-            String roleStr = getRequiredInput("Enter Role (DOCTOR/NURSE/ADMIN): ", Constants.ERROR_REQUIRED_FIELD).toUpperCase();
+            // Get role
+            System.out.println("\nAvailable Roles: " + List.of(Role.values()));
+            String roleStr = getRequiredInput("Role (DOCTOR/NURSE/ADMIN): ", Constants.ERROR_REQUIRED_FIELD).toUpperCase();
             Role role;
             try {
                 role = Role.valueOf(roleStr);
@@ -99,16 +119,17 @@ public class StaffService {
                 return;
             }
 
+            // Get specialty if doctor
             String specialty = null;
             if (role == Role.DOCTOR) {
-                specialty = getRequiredInput("Enter Specialty: ", Constants.ERROR_REQUIRED_FIELD);
+                specialty = getRequiredInput("Specialty: ", Constants.ERROR_REQUIRED_FIELD);
                 if (specialty.length() > Constants.MAX_SPECIALTY_LENGTH) {
                     System.out.println("Specialty cannot exceed " + Constants.MAX_SPECIALTY_LENGTH + " characters");
                     return;
                 }
             }
 
-            // Updated constructor call to match Staff.java
+            // Create and save staff
             Staff staff = new Staff();
             staff.setFirstName(firstName);
             staff.setLastName(lastName);
@@ -116,111 +137,110 @@ public class StaffService {
             staff.setDateOfBirth(dateOfBirth);
             staff.setRole(role);
             staff.setSpecialty(specialty);
+
             addStaff(staff);
-            System.out.println("Staff added successfully!");
+            System.out.println("\nStaff member added successfully!");
+            System.out.println("New Staff ID: " + staff.getId());
         } catch (Exception e) {
-            System.out.println("Error adding staff: " + e.getMessage());
+            System.out.println("\nError adding staff: " + e.getMessage());
         }
     }
 
-    // Interactive method to update a staff member
     public void updateStaffInteractive() {
         try {
-            Long id = getLongInput("Enter Staff ID to update: ");
+            System.out.println("\n===== UPDATE STAFF MEMBER =====");
+
+            // Show all staff first
+            viewStaff();
+
+            // Get staff ID to update
+            Long id = getLongInput("\nEnter Staff ID to update: ");
             Staff staff = getStaff(id);
-            System.out.println("Current details:\n" + staff);
 
-            String firstName = getRequiredInput("Enter new First Name [" + staff.getFirstName() + "]: ", staff.getFirstName());
-            if (firstName.length() > Constants.MAX_NAME_LENGTH) {
-                System.out.println("First name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
-                return;
-            }
+            // Show current details
+            System.out.println("\n--- Current Staff Details ---");
+            System.out.println("1. First Name: " + staff.getFirstName());
+            System.out.println("2. Last Name: " + staff.getLastName());
+            System.out.println("3. Email: " + staff.getEmail());
+            System.out.println("4. Date of Birth: " + formatDate(staff.getDateOfBirth()));
+            System.out.println("5. Role: " + staff.getRole());
+            System.out.println("6. Specialty: " + (staff.getSpecialty() != null ? staff.getSpecialty() : "N/A"));
 
-            String lastName = getRequiredInput("Enter new Last Name [" + staff.getLastName() + "]: ", staff.getLastName());
-            if (lastName.length() > Constants.MAX_NAME_LENGTH) {
-                System.out.println("Last name cannot exceed " + Constants.MAX_NAME_LENGTH + " characters");
-                return;
-            }
+            // Get updates
+            System.out.println("\n--- Update Fields (press Enter to skip) ---");
+            String firstName = getInputWithDefault("New First Name [" + staff.getFirstName() + "]: ", staff.getFirstName());
+            String lastName = getInputWithDefault("New Last Name [" + staff.getLastName() + "]: ", staff.getLastName());
+            String email = getInputWithDefault("New Email [" + staff.getEmail() + "]: ", staff.getEmail());
+            String dobStr = getInputWithDefault(
+                    String.format("New Date of Birth (%s) [%s]: ",
+                            Constants.DATE_FORMAT, formatDate(staff.getDateOfBirth())),
+                    formatDate(staff.getDateOfBirth()));
 
-            String email = getRequiredInput("Enter new Email [" + staff.getEmail() + "]: ", staff.getEmail());
-            if (!isValidEmail(email)) {
-                System.out.println(Constants.ERROR_INVALID_EMAIL);
-                return;
-            }
+            // Role update
+            System.out.println("\nAvailable Roles: " + List.of(Role.values()));
+            String roleStr = getInputWithDefault(
+                    "New Role (DOCTOR/NURSE/ADMIN) [" + staff.getRole() + "]: ",
+                    staff.getRole().toString()).toUpperCase();
 
-            String dateOfBirthStr = getRequiredInput("Enter new Date of Birth (" + Constants.DATE_FORMAT + ") [" + new SimpleDateFormat(Constants.DATE_FORMAT).format(staff.getDateOfBirth()) + "]: ", new SimpleDateFormat(Constants.DATE_FORMAT).format(staff.getDateOfBirth()));
-            Date dateOfBirth = parseDate(dateOfBirthStr);
-            if (dateOfBirth == null) {
-                System.out.println(Constants.ERROR_INVALID_DATE);
-                return;
-            }
-            if (dateOfBirth.after(new Date())) {
-                System.out.println("Date of birth cannot be in the future");
-                return;
-            }
-
-            System.out.println("Available Roles: " + List.of(Role.values()));
-            String roleStr = getRequiredInput("Enter new Role (DOCTOR/NURSE/ADMIN) [" + staff.getRole() + "]: ", staff.getRole().toString()).toUpperCase();
-            Role role;
-            try {
-                role = Role.valueOf(roleStr);
-            } catch (IllegalArgumentException e) {
-                System.out.println("Invalid role! Must be DOCTOR, NURSE, or ADMIN");
-                return;
-            }
-
+            // Specialty update
             String specialty = staff.getSpecialty();
-            if (role == Role.DOCTOR) {
-                specialty = getRequiredInput("Enter new Specialty [" + (staff.getSpecialty() != null ? staff.getSpecialty() : "N/A") + "]: ", staff.getSpecialty() != null ? staff.getSpecialty() : "");
-                if (specialty.length() > Constants.MAX_SPECIALTY_LENGTH) {
-                    System.out.println("Specialty cannot exceed " + Constants.MAX_SPECIALTY_LENGTH + " characters");
+            if (roleStr.equalsIgnoreCase("DOCTOR") ||
+                    (!roleStr.isEmpty() && Role.valueOf(roleStr) == Role.DOCTOR)) {
+                specialty = getInputWithDefault(
+                        "New Specialty [" + (staff.getSpecialty() != null ? staff.getSpecialty() : "N/A") + "]: ",
+                        staff.getSpecialty() != null ? staff.getSpecialty() : "");
+            }
+
+            // Apply updates
+            if (!firstName.isEmpty()) staff.setFirstName(firstName);
+            if (!lastName.isEmpty()) staff.setLastName(lastName);
+            if (!email.isEmpty()) staff.setEmail(email);
+            if (!dobStr.isEmpty()) {
+                Date dob = parseDate(dobStr);
+                if (dob != null) staff.setDateOfBirth(dob);
+            }
+            if (!roleStr.isEmpty()) {
+                try {
+                    staff.setRole(Role.valueOf(roleStr));
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid role! Changes not saved.");
                     return;
                 }
-            } else {
-                specialty = null;
+            }
+            if (specialty != null && !specialty.isEmpty()) {
+                staff.setSpecialty(specialty);
             }
 
-            staff.setFirstName(firstName);
-            staff.setLastName(lastName);
-            staff.setEmail(email);
-            staff.setDateOfBirth(dateOfBirth);
-            staff.setRole(role);
-            staff.setSpecialty(specialty);
             updateStaff(staff);
-            System.out.println("Staff updated successfully!");
+            System.out.println("\nStaff member updated successfully!");
         } catch (Exception e) {
-            System.out.println("Error updating staff: " + e.getMessage());
+            System.out.println("\nError updating staff: " + e.getMessage());
         }
     }
 
-    // Interactive method to delete a staff member
     public void deleteStaffInteractive() {
         try {
-            Long id = getLongInput("Enter Staff ID to delete: ");
-            Staff staff = getStaff(id);
-            System.out.println("Staff to delete:\n" + staff);
-            System.out.print("Are you sure? (y/n): ");
+            System.out.println("\n===== DELETE STAFF MEMBER =====");
+
+            // Show all staff first
+            viewStaff();
+
+            // Get staff ID to delete
+            Long id = getLongInput("\nEnter Staff ID to delete: ");
+
+            // Confirm deletion
+            System.out.print("\nAre you sure you want to delete this staff member? (y/n): ");
             if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
                 deleteStaff(id);
-                System.out.println("Staff deleted successfully!");
+                System.out.println("\nStaff member deleted successfully!");
+            } else {
+                System.out.println("\nDeletion cancelled.");
             }
         } catch (Exception e) {
-            System.out.println("Error deleting staff: " + e.getMessage());
+            System.out.println("\nError deleting staff: " + e.getMessage());
         }
     }
 
-    // Interactive method to view all staff
-    public void viewStaff() {
-        List<Staff> staffList = getAllStaff();
-        System.out.println("\n===== STAFF LIST =====");
-        if (staffList.isEmpty()) {
-            System.out.println("No staff found.");
-        } else {
-            staffList.forEach(System.out::println);
-        }
-    }
-
-    // Validate staff data
     private void validateStaff(Staff staff) {
         if (staff == null) {
             throw new IllegalArgumentException("Staff cannot be null");
@@ -264,13 +284,11 @@ public class StaffService {
         }
     }
 
-    // Validate email format
     private boolean isValidEmail(String email) {
         String emailRegex = Constants.EMAIL_REGEX;
         return Pattern.matches(emailRegex, email);
     }
 
-    // Parse date string
     private Date parseDate(String dateStr) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT);
@@ -281,7 +299,16 @@ public class StaffService {
         }
     }
 
-    // Get required input with error message
+    private String formatDate(Date date) {
+        if (date == null) return "N/A";
+        return new SimpleDateFormat(Constants.DATE_FORMAT).format(date);
+    }
+
+    private String truncate(String str, int length) {
+        if (str == null) return "";
+        return str.length() > length ? str.substring(0, length - 3) + "..." : str;
+    }
+
     private String getRequiredInput(String prompt, String errorMessage) {
         String input;
         do {
@@ -294,7 +321,12 @@ public class StaffService {
         return input;
     }
 
-    // Get a valid Long input
+    private String getInputWithDefault(String prompt, String defaultValue) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim();
+        return input.isEmpty() ? defaultValue : input;
+    }
+
     private Long getLongInput(String prompt) {
         while (true) {
             try {
