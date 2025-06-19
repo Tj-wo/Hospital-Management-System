@@ -154,17 +154,6 @@ public class AdmissionService {
             // Get updates
             System.out.println("\n--- Update Fields (press Enter to skip) ---");
 
-            // Update patient
-            System.out.println("\nAvailable Patients:");
-            List<Patient> patients = patientService.getAllPatients();
-            patients.forEach(p -> System.out.printf("ID: %d | Name: %s%n", p.getId(), p.getFullName()));
-            String patientInput = getInputWithDefault(
-                    "Enter new Patient ID [" + admission.getPatient().getId() + "]: ",
-                    admission.getPatient().getId().toString());
-            if (!patientInput.isEmpty()) {
-                admission.setPatient(patientService.getPatient(Long.parseLong(patientInput)));
-            }
-
             // Update admission date
             String admissionDateStr = getInputWithDefault(
                     String.format("Enter new Admission Date (%s) [%s]: ",
@@ -177,7 +166,7 @@ public class AdmissionService {
 
             // Update discharge date
             String dischargeDateStr = getInputWithDefault(
-                    String.format("Enter new Discharge Date (%s) [%s] (optional): ",
+                    String.format("Enter new Discharge Date (%s) [%s]: ",
                             Constants.DATE_FORMAT, formatDate(admission.getDischargeDate())),
                     admission.getDischargeDate() != null ? formatDate(admission.getDischargeDate()) : "");
             if (!dischargeDateStr.isEmpty()) {
@@ -226,7 +215,30 @@ public class AdmissionService {
     }
 
     private void validateAdmission(Admission admission) {
-        // ... (keep existing validation logic)
+        if (admission == null) {
+            throw new IllegalArgumentException("Admission cannot be null");
+        }
+        if (admission.getPatient() == null) {
+            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Patient)");
+        }
+        if (admission.getAdmissionDate() == null) {
+            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Admission Date)");
+        }
+        if (admission.getReason() == null || admission.getReason().trim().isEmpty()) {
+            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Reason)");
+        }
+
+        if (admission.getReason().length() > Constants.MAX_REASON_LENGTH) {
+            throw new IllegalArgumentException(Constants.ERROR_REASON_TOO_LONG);
+        }
+
+        if (admission.getAdmissionDate().after(new Date(System.currentTimeMillis()))) {
+            throw new IllegalArgumentException(Constants.ERROR_FUTURE_ADMISSION_DATE);
+        }
+
+        if (admission.getDischargeDate() != null && admission.getDischargeDate().before(admission.getAdmissionDate())) {
+            throw new IllegalArgumentException(Constants.ERROR_DISCHARGE_BEFORE_ADMISSION);
+        }
     }
 
     private String formatDate(Date date) {

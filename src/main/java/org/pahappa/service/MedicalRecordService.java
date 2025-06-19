@@ -184,16 +184,6 @@ public class MedicalRecordService {
             // Get updates
             System.out.println("\n--- Update Fields (press Enter to skip) ---");
 
-            // Update patient
-            System.out.println("\nAvailable Patients:");
-            List<Patient> patients = patientService.getAllPatients();
-            patients.forEach(p -> System.out.printf("ID: %d | Name: %s%n", p.getId(), p.getFullName()));
-            String patientInput = getInputWithDefault(
-                    "Enter new Patient ID [" + record.getPatient().getId() + "]: ",
-                    record.getPatient().getId().toString());
-            if (!patientInput.isEmpty()) {
-                record.setPatient(patientService.getPatient(Long.parseLong(patientInput)));
-            }
 
             // Update doctor
             System.out.println("\nAvailable Doctors:");
@@ -203,7 +193,7 @@ public class MedicalRecordService {
             doctors.forEach(d -> System.out.printf("ID: %d | Name: %s | Specialty: %s%n",
                     d.getId(), d.getFullName(), d.getSpecialty()));
             String doctorInput = getInputWithDefault(
-                    "Enter new Doctor ID [" + record.getDoctor().getId() + "]: ",
+                    "Enter Doctor ID : ",
                     record.getDoctor().getId().toString());
             if (!doctorInput.isEmpty()) {
                 Staff doctor = staffService.getStaff(Long.parseLong(doctorInput));
