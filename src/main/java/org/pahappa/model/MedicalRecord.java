@@ -3,6 +3,7 @@ package org.pahappa.model;
 import javax.persistence.*;
 import java.sql.Date;
 
+// Entity class representing a medical record
 @Entity
 @Table(name = "medical_records")
 public class MedicalRecord {
@@ -19,39 +20,76 @@ public class MedicalRecord {
     private Staff doctor;
 
     @Column(nullable = false)
-    private String diagnosis;
-
-    @Column
-    private String prescription;
-
-    @Column(nullable = false)
     private Date recordDate;
 
-    public MedicalRecord() {}
+    @Column(nullable = false)
+    private String diagnosis;
 
-    public MedicalRecord(Patient patient, Staff doctor, String diagnosis, String prescription, Date recordDate) {
+    @Column(nullable = false)
+    private String treatment;
+
+    // No-arg constructor for Hibernate
+    public MedicalRecord() {
+    }
+
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
         this.patient = patient;
+    }
+
+    public Staff getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Staff doctor) {
         this.doctor = doctor;
-        this.diagnosis = diagnosis;
-        this.prescription = prescription;
+    }
+
+    public Date getRecordDate() {
+        return recordDate;
+    }
+
+    public void setRecordDate(Date recordDate) {
         this.recordDate = recordDate;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
-    public Staff getDoctor() { return doctor; }
-    public void setDoctor(Staff doctor) { this.doctor = doctor; }
-    public String getDiagnosis() { return diagnosis; }
-    public void setDiagnosis(String diagnosis) { this.diagnosis = diagnosis; }
-    public String getPrescription() { return prescription; }
-    public void setPrescription(String prescription) { this.prescription = prescription; }
-    public Date getRecordDate() { return recordDate; }
-    public void setRecordDate(Date recordDate) { this.recordDate = recordDate; }
+    public String getDiagnosis() {
+        return diagnosis;
+    }
+
+    public void setDiagnosis(String diagnosis) {
+        this.diagnosis = diagnosis;
+    }
+
+    public String getTreatment() {
+        return treatment;
+    }
+
+    public void setTreatment(String treatment) {
+        this.treatment = treatment;
+    }
 
     @Override
     public String toString() {
-        return "MedicalRecord{id=" + id + ", patient=" + patient.getFirstName() + ", diagnosis=" + diagnosis + "}";
+        return "MedicalRecord{" +
+                "id=" + id +
+                ", patient=" + patient.getFullName() +
+                ", doctor=" + doctor.getFullName() +
+                ", recordDate=" + recordDate +
+                ", diagnosis='" + diagnosis + '\'' +
+                ", treatment='" + treatment + '\'' +
+                '}';
     }
 }

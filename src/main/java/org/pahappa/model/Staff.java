@@ -1,7 +1,10 @@
 package org.pahappa.model;
 
+import org.pahappa.utils.Role;
 import javax.persistence.*;
+import java.util.Date;
 
+// Entity class representing a staff member
 @Entity
 @Table(name = "staff")
 public class Staff {
@@ -15,40 +18,95 @@ public class Staff {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false)
-    private String role;
-
-    @Column
-    private String specialty;
-
     @Column(nullable = false, unique = true)
     private String email;
 
-    public Staff() {}
+    @Column(nullable = false)
+    @Temporal(TemporalType.DATE)
+    private Date dateOfBirth;
 
-    public Staff(String firstName, String lastName, String role, String specialty, String email) {
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    private String specialty;
+
+    // No-arg constructor for Hibernate
+    public Staff() {
+    }
+
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
         this.lastName = lastName;
-        this.role = role;
-        this.specialty = specialty;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-    public String getSpecialty() { return specialty; }
-    public void setSpecialty(String specialty) { this.specialty = specialty; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public String getSpecialty() {
+        return specialty;
+    }
+
+    public void setSpecialty(String specialty) {
+        this.specialty = specialty;
+    }
+
+    // Full name helper method
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 
     @Override
     public String toString() {
-        return "Staff{id=" + id + ", name=" + firstName + " " + lastName + ", role=" + role + ", specialty=" + specialty + "}";
+        return "Staff{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", role=" + role +
+                ", specialty='" + (specialty != null ? specialty : "N/A") + '\'' +
+                '}';
     }
 }
