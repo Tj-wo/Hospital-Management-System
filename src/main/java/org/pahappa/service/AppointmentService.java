@@ -1,187 +1,145 @@
 package org.pahappa.service;
 
+import org.hibernate.Session;
 import org.pahappa.dao.AppointmentDao;
-import org.pahappa.model.Appointment;
-import org.pahappa.model.Patient;
-import org.pahappa.model.Staff;
+import org.pahappa.model.*;
+import org.pahappa.session.SessionManager;
+import org.pahappa.utils.AppointmentStatus;
 import org.pahappa.utils.Constants;
 import org.pahappa.utils.Role;
-import org.hibernate.Session;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+
 public class AppointmentService {
     private static final Scanner scanner = new Scanner(System.in);
     private final AppointmentDao appointmentDao = new AppointmentDao();
     private final PatientService patientService = new PatientService();
     private final StaffService staffService = new StaffService();
 
-    // Schedule a new appointment
+    // --- Core Business Logic Methods ---
+
     public void scheduleAppointment(Appointment appointment) {
-        validateAppointment(appointment);
+        validateAppointment(appointment, null); // Pass null for new appointments
+        appointment.setStatus(AppointmentStatus.SCHEDULED); // Ensure default status is set
         appointmentDao.save(appointment);
     }
 
-    // Get an appointment by ID
-    public Appointment getAppointment(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
-        }
-        Appointment appointment = appointmentDao.getById(id);
-        if (appointment == null) {
-            throw new IllegalArgumentException("Appointment not found with ID: " + id);
-        }
-        return appointment;
-    }
-
-    // Get all appointments
-    public List<Appointment> getAllAppointments() {
-        return appointmentDao.getAll();
-    }
-
-    // Update an appointment
-    public void updateAppointment(Appointment appointment) {
-        if (appointment.getId() == null) {
-            throw new IllegalArgumentException("Appointment ID is required for update");
-        }
-        validateAppointment(appointment);
+    public void updateAppointment(Appointment appointment, Long appointmentIdToIgnore) {
+        validateAppointment(appointment, appointmentIdToIgnore); // Pass the ID to ignore during validation
         appointmentDao.update(appointment);
     }
 
-    // Delete an appointment by ID
-    public void deleteAppointment(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException(Constants.ERROR_INVALID_ID);
-        }
+    public void deleteAppointment(Long id){
+        // Note: For a real system, changing status to CANCELLED is often better than deleting.
+        // For this project, a hard delete is acceptable as per the flow.
         appointmentDao.delete(id);
     }
 
-    // New validation methods
-    private boolean isDoctorAvailable(Staff doctor, Timestamp appointmentTime) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "FROM Appointment WHERE doctor = :doctor AND appointmentDate = :appointmentTime";
-            List<Appointment> existing = session.createQuery(hql, Appointment.class)
-                    .setParameter("doctor", doctor)
-                    .setParameter("appointmentTime", appointmentTime)
-                    .list();
-            return existing.isEmpty();
+    // --- Interactive and View Methods ---
+
+    /**
+     * Displays appointments based on the logged-in user's role, now including the status.
+     */
+    public void viewAppointments() {
+        User currentUser = SessionManager.getCurrentUser();
+        List<Appointment> appointments;
+        System.out.println("\n===== APPOINTMENT LIST =====");
+
+        switch (currentUser.getRole()) {
+            case PATIENT:
+                appointments = appointmentDao.findByPatientId(currentUser.getPatient().getId());
+                break;
+            case DOCTOR:
+                appointments = appointmentDao.findByDoctorId(currentUser.getStaff().getId());
+                break;
+            case ADMIN:
+            case RECEPTIONIST:
+                appointments = appointmentDao.getAll();
+                break;
+            default:
+                System.out.println("You do not have permission to view appointments.");
+                return;
+        }
+
+        if (appointments.isEmpty()) {
+            System.out.println("No appointments found.");
+        } else {
+            System.out.println("ID  | Patient          | Doctor           | Date/Time         | Status                  | Reason");
+            System.out.println("----|------------------|------------------|-------------------|-------------------------|-------------------");
+            appointments.forEach(a -> System.out.printf(
+                    "%-3d | %-16s | %-16s | %-17s | %-23s | %s%n",
+                    a.getId(),
+                    truncate(a.getPatient().getFullName(), 16),
+                    truncate(a.getDoctor().getFullName(), 16),
+                    formatTimestamp(a.getAppointmentDate()),
+                    a.getStatus(),
+                    truncate(a.getReason(), 20)));
         }
     }
 
-    private boolean isValidAppointmentTime(Timestamp appointmentTime) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(appointmentTime);
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-
-        // Only allow appointments on the hour or half-hour
-        if (minute != 0 && minute != 30) {
-            return false;
-        }
-
-        return hour >= 8 && hour <= 17; // 8am to 5pm
-    }
-
-    // Updated validation method
-    private void validateAppointment(Appointment appointment) {
-        if (appointment == null) {
-            throw new IllegalArgumentException("Appointment cannot be null");
-        }
-        if (appointment.getPatient() == null) {
-            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Patient)");
-        }
-        if (appointment.getDoctor() == null) {
-            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Doctor)");
-        }
-        if (appointment.getAppointmentDate() == null) {
-            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Appointment Date)");
-        }
-        if (appointment.getReason() == null || appointment.getReason().trim().isEmpty()) {
-            throw new IllegalArgumentException(Constants.ERROR_REQUIRED_FIELD + " (Reason)");
-        }
-
-        if (appointment.getDoctor().getRole() != Role.DOCTOR) {
-            throw new IllegalArgumentException(Constants.ERROR_INVALID_DOCTOR);
-        }
-        if (appointment.getReason().length() > Constants.MAX_REASON_LENGTH) {
-            throw new IllegalArgumentException(Constants.ERROR_REASON_TOO_LONG);
-        }
-        if (appointment.getAppointmentDate().before(new Timestamp(System.currentTimeMillis()))) {
-            throw new IllegalArgumentException(Constants.ERROR_PAST_APPOINTMENT);
-        }
-        if (!isDoctorAvailable(appointment.getDoctor(), appointment.getAppointmentDate())) {
-            throw new IllegalArgumentException("Doctor is already booked at this time");
-        }
-        if (!isValidAppointmentTime(appointment.getAppointmentDate())) {
-            throw new IllegalArgumentException("Appointments must be at :00 or :30 during 8am-5pm");
-        }
-
-        // Ensure appointment is at least 15 minutes from now
-        long diff = appointment.getAppointmentDate().getTime() - System.currentTimeMillis();
-        if (diff < (15 * 60 * 1000)) {
-            throw new IllegalArgumentException("Appointments must be scheduled at least 15 minutes in advance");
-        }
-    }
-
-    // Updated interactive methods
+    /**
+     * Interactive flow for scheduling a NEW appointment.
+     */
     public void scheduleAppointmentInteractive() {
+        User currentUser = SessionManager.getCurrentUser();
+        Role role = currentUser.getRole();
+
         try {
-            System.out.println("\n===== SCHEDULE NEW APPOINTMENT =====");
+            System.out.println("\n===== SCHEDULE NEW APPOINTPOINTMENT =====");
+            Patient patient;
 
-            // Show available patients
-            System.out.println("\n--- Available Patients ---");
-            List<Patient> patients = patientService.getAllPatients();
-            if (patients.isEmpty()) {
-                System.out.println("No patients available. Add a patient first!");
+            if (role == Role.PATIENT) {
+                patient = currentUser.getPatient();
+                System.out.println("Scheduling appointment for yourself: " + patient.getFullName());
+            } else if (role == Role.ADMIN || role == Role.RECEPTIONIST || role == Role.DOCTOR) {
+                patientService.viewPatients();
+                patient = null;
+                while (patient == null) {
+                    Long patientId = getLongInput("\nEnter Patient ID: ");
+                    try {
+                        patient = patientService.getPatient(patientId);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Error: " + e.getMessage() + ". Please try again.");
+                    }
+                }
+            } else {
+                System.out.println("Access Denied.");
                 return;
             }
-            patients.forEach(p -> System.out.printf("ID: %d | Name: %s | Email: %s%n",
-                    p.getId(), p.getFullName(), p.getEmail()));
 
-            Long patientId = getLongInput("\nEnter Patient ID: ");
-            Patient patient = patientService.getPatient(patientId);
-
-            // Show available doctors
             System.out.println("\n--- Available Doctors ---");
-            List<Staff> doctors = staffService.getAllStaff().stream()
-                    .filter(s -> s.getRole() == Role.DOCTOR)
-                    .toList();
-            if (doctors.isEmpty()) {
-                System.out.println("No doctors available. Add a doctor first!");
-                return;
-            }
-            doctors.forEach(d -> System.out.printf("ID: %d | Name: %s | Specialty: %s%n",
-                    d.getId(), d.getFullName(), d.getSpecialty()));
-
-            Long doctorId = getLongInput("\nEnter Doctor ID: ");
-            Staff doctor = staffService.getStaff(doctorId);
-            if (doctor.getRole() != Role.DOCTOR) {
-                System.out.println(Constants.ERROR_INVALID_DOCTOR);
-                return;
-            }
-
-            // Get appointment time
-            String dateStr = getRequiredInput(String.format(
-                            "\nEnter Appointment Date (%s): ", Constants.TIMESTAMP_FORMAT),
-                    Constants.ERROR_REQUIRED_FIELD);
-            Timestamp appointmentDate = parseTimestamp(dateStr);
-            if (appointmentDate == null) {
-                System.out.println(Constants.ERROR_INVALID_TIMESTAMP);
-                return;
+            staffService.getStaffByRole(Role.DOCTOR).forEach(d -> System.out.printf("ID: %d | Name: %s | Specialty: %s%n", d.getId(), d.getFullName(), d.getSpecialty()));
+            Staff doctor = null;
+            while (doctor == null) {
+                Long doctorId = getLongInput("\nEnter Doctor ID: ");
+                try {
+                    Staff selectedStaff = staffService.getStaff(doctorId);
+                    if (selectedStaff.getRole() != Role.DOCTOR) {
+                        System.out.println("Error: The selected staff member is not a doctor.");
+                    } else {
+                        doctor = selectedStaff;
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Error: " + e.getMessage() + ". Please try again.");
+                }
             }
 
-            // Get reason
-            String reason = getRequiredInput("\nEnter Reason: ", Constants.ERROR_REQUIRED_FIELD);
-            if (reason.length() > Constants.MAX_REASON_LENGTH) {
-                System.out.println(Constants.ERROR_REASON_TOO_LONG);
-                return;
+            Timestamp appointmentDate = null;
+            while (appointmentDate == null) {
+                String dateStr = getRequiredInput(String.format("\nEnter Appointment Date & Time (%s): ", Constants.TIMESTAMP_FORMAT), Constants.ERROR_REQUIRED_FIELD);
+                appointmentDate = parseTimestamp(dateStr);
+                if (appointmentDate == null) {
+                    System.out.println(String.format("Invalid format. Please use: %s", Constants.TIMESTAMP_FORMAT));
+                }
             }
 
-            // Create and validate appointment
+            String reason = getRequiredInput("\nEnter Reason for Appointment: ", Constants.ERROR_REQUIRED_FIELD);
+
             Appointment appointment = new Appointment();
             appointment.setPatient(patient);
             appointment.setDoctor(doctor);
@@ -190,154 +148,181 @@ public class AppointmentService {
 
             scheduleAppointment(appointment);
             System.out.println("\nAppointment scheduled successfully!");
+
         } catch (Exception e) {
-            System.out.println("\nError scheduling appointment: " + e.getMessage());
+            System.err.println("\nError scheduling appointment: " + e.getMessage());
         }
     }
 
-    public void updateAppointmentInteractive() {
-        try {
-            System.out.println("\n===== UPDATE APPOINTMENT =====");
+    /**
+     * Interactive flow for a DOCTOR to update the status of an appointment.
+     */
+    public void updateAppointmentStatusInteractive() {
+        if (SessionManager.getCurrentUser().getRole() != Role.DOCTOR) {
+            System.out.println("Access Denied: Only doctors can update appointment statuses.");
+            return;
+        }
 
-            // Show all appointments
-            System.out.println("\n--- Current Appointments ---");
-            List<Appointment> appointments = getAllAppointments();
-            if (appointments.isEmpty()) {
-                System.out.println("No appointments available!");
+        try {
+            viewAppointments();
+            Long id = getLongInput("\nEnter Appointment ID to update status: ");
+            Appointment appointment = appointmentDao.getById(id);
+            if (appointment == null) {
+                System.out.println("Appointment not found.");
                 return;
             }
-            appointments.forEach(a -> System.out.printf(
-                    "ID: %d | Patient: %s | Doctor: %s | Time: %s | Reason: %s%n",
-                    a.getId(), a.getPatient().getFullName(), a.getDoctor().getFullName(),
-                    formatTimestamp(a.getAppointmentDate()), a.getReason()));
 
-            Long id = getLongInput("\nEnter Appointment ID to update: ");
-            Appointment appointment = getAppointment(id);
+            System.out.println("Current status: " + appointment.getStatus());
+            System.out.println("Available statuses: " + Arrays.toString(AppointmentStatus.values()));
 
-            // Show current details
-            System.out.println("\n--- Current Appointment Details ---");
-            System.out.println("1. Patient: " + appointment.getPatient().getFullName());
-            System.out.println("2. Doctor: " + appointment.getDoctor().getFullName());
-            System.out.println("3. Appointment Time: " + formatTimestamp(appointment.getAppointmentDate()));
-            System.out.println("4. Reason: " + appointment.getReason());
-
-            // Get updates
-            System.out.println("\n--- Update Fields (press Enter to keep current value) ---");
-
-            // Update patient
-            System.out.println("\nAvailable Patients:");
-            List<Patient> patients = patientService.getAllPatients();
-            patients.forEach(p -> System.out.printf("ID: %d | Name: %s%n", p.getId(), p.getFullName()));
-            String patientInput = getInputWithDefault(
-                    "Enter new Patient ID [" + appointment.getPatient().getId() + "]: ",
-                    appointment.getPatient().getId().toString());
-            if (!patientInput.isEmpty()) {
-                appointment.setPatient(patientService.getPatient(Long.parseLong(patientInput)));
-            }
-
-            // Update doctor
-            System.out.println("\nAvailable Doctors:");
-            List<Staff> doctors = staffService.getAllStaff().stream()
-                    .filter(s -> s.getRole() == Role.DOCTOR)
-                    .toList();
-            doctors.forEach(d -> System.out.printf("ID: %d | Name: %s | Specialty: %s%n",
-                    d.getId(), d.getFullName(), d.getSpecialty()));
-            String doctorInput = getInputWithDefault(
-                    "Enter new Doctor ID [" + appointment.getDoctor().getId() + "]: ",
-                    appointment.getDoctor().getId().toString());
-            if (!doctorInput.isEmpty()) {
-                Staff doctor = staffService.getStaff(Long.parseLong(doctorInput));
-                if (doctor.getRole() != Role.DOCTOR) {
-                    System.out.println(Constants.ERROR_INVALID_DOCTOR);
-                    return;
-                }
-                appointment.setDoctor(doctor);
-            }
-
-            // Update time
-            String timeInput = getInputWithDefault(
-                    String.format("Enter new Appointment Time (%s) [%s]: ",
-                            Constants.TIMESTAMP_FORMAT, formatTimestamp(appointment.getAppointmentDate())),
-                    formatTimestamp(appointment.getAppointmentDate()));
-            if (!timeInput.isEmpty()) {
-                Timestamp newTime = parseTimestamp(timeInput);
-                if (newTime != null) {
-                    appointment.setAppointmentDate(newTime);
+            AppointmentStatus newStatus = null;
+            while (newStatus == null) {
+                String statusStr = getRequiredInput("Enter new status: ", "Status cannot be empty.").toUpperCase();
+                try {
+                    newStatus = AppointmentStatus.valueOf(statusStr);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Invalid status. Please choose from the available list.");
                 }
             }
 
-            // Update reason
-            String reason = getInputWithDefault(
-                    "Enter new Reason [" + appointment.getReason() + "]: ",
-                    appointment.getReason());
-            if (!reason.isEmpty()) {
-                appointment.setReason(reason);
-            }
+            appointment.setStatus(newStatus);
+            appointmentDao.update(appointment);
+            System.out.println("Appointment status updated successfully!");
 
-            updateAppointment(appointment);
-            System.out.println("\nAppointment updated successfully!");
         } catch (Exception e) {
-            System.out.println("\nError updating appointment: " + e.getMessage());
+            System.err.println("Error updating status: " + e.getMessage());
         }
     }
 
-    public void deleteAppointmentInteractive() {
+    /**
+     * Interactive flow for rescheduling or cancelling an appointment.
+     */
+    public void rescheduleOrCancelAppointmentInteractive() {
         try {
-            System.out.println("\n===== DELETE APPOINTMENT =====");
-
-            // Show all appointments
-            System.out.println("\n--- Current Appointments ---");
-            List<Appointment> appointments = getAllAppointments();
-            if (appointments.isEmpty()) {
-                System.out.println("No appointments available!");
+            viewAppointments();
+            Long id = getLongInput("\nEnter Appointment ID to reschedule or cancel: ");
+            Appointment appointment = appointmentDao.getById(id);
+            if (appointment == null) {
+                System.out.println("Appointment not found.");
                 return;
             }
-            appointments.forEach(a -> System.out.printf(
-                    "ID: %d | Patient: %s | Doctor: %s | Time: %s%n",
-                    a.getId(), a.getPatient().getFullName(), a.getDoctor().getFullName(),
-                    formatTimestamp(a.getAppointmentDate())));
 
-            Long id = getLongInput("\nEnter Appointment ID to delete: ");
+            User currentUser = SessionManager.getCurrentUser();
+            if (currentUser.getRole() == Role.PATIENT && !appointment.getPatient().getId().equals(currentUser.getPatient().getId())) {
+                System.out.println("Access Denied: You can only manage your own appointments.");
+                return;
+            }
 
-            // Confirm deletion
-            System.out.print("\nAre you sure you want to delete this appointment? (y/n): ");
-            if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
-                deleteAppointment(id);
-                System.out.println("\nAppointment deleted successfully!");
+            System.out.println("\nWhat would you like to do?");
+            System.out.println("1. Reschedule (change time/reason)");
+            System.out.println("2. Cancel Appointment");
+            System.out.print("Choice: ");
+            String choice = scanner.nextLine().trim();
+
+            if ("1".equals(choice)) {
+                System.out.println("\n--- Rescheduling Appointment (press Enter to keep current value) ---");
+
+                Timestamp newTime = null;
+                while (newTime == null) {
+                    String timeInput = getInputWithDefault(String.format("New Date/Time [%s]: ", formatTimestamp(appointment.getAppointmentDate())), formatTimestamp(appointment.getAppointmentDate()));
+                    newTime = parseTimestamp(timeInput);
+                    if (newTime == null) {
+                        System.out.println("Invalid date format. Please try again.");
+                    }
+                }
+
+                String newReason = getInputWithDefault(String.format("New Reason [%s]: ", appointment.getReason()), appointment.getReason());
+
+                appointment.setAppointmentDate(newTime);
+                appointment.setReason(newReason);
+
+                updateAppointment(appointment, appointment.getId());
+                System.out.println("Appointment rescheduled successfully!");
+
+            } else if ("2".equals(choice)) {
+                if (currentUser.getRole() == Role.PATIENT) {
+                    appointment.setStatus(AppointmentStatus.CANCELLED_BY_PATIENT);
+                } else {
+                    appointment.setStatus(AppointmentStatus.CANCELLED_BY_DOCTOR);
+                }
+                appointmentDao.update(appointment);
+                System.out.println("Appointment has been cancelled.");
             } else {
-                System.out.println("\nDeletion cancelled.");
+                System.out.println("Invalid choice.");
             }
         } catch (Exception e) {
-            System.out.println("\nError deleting appointment: " + e.getMessage());
+            System.err.println("Error managing appointment: " + e.getMessage());
         }
     }
 
-    public void viewAppointments() {
-        System.out.println("\n===== APPOINTMENT LIST =====");
-        List<Appointment> appointments = getAllAppointments();
-        if (appointments.isEmpty()) {
-            System.out.println("No appointments found.");
-        } else {
-            System.out.println("ID  | Patient          | Doctor           | Date/Time         | Reason");
-            System.out.println("----|------------------|------------------|-------------------|-------------------");
-            appointments.forEach(a -> System.out.printf(
-                    "%-3d | %-16s | %-16s | %-17s | %s%n",
-                    a.getId(),
-                    truncate(a.getPatient().getFullName(), 16),
-                    truncate(a.getDoctor().getFullName(), 16),
-                    formatTimestamp(a.getAppointmentDate()),
-                    truncate(a.getReason(), 20)));
+    // --- Validation and Helper Methods ---
+
+    /**
+     * Validates an appointment, ignoring a specific ID for availability checks (for updates).
+     */
+    private void validateAppointment(Appointment appointment, Long idToIgnore) {
+        if (appointment == null) throw new IllegalArgumentException("Appointment cannot be null");
+        if (appointment.getPatient() == null) throw new IllegalArgumentException("Patient is required");
+        if (appointment.getDoctor() == null) throw new IllegalArgumentException("Doctor is required");
+        if (appointment.getDoctor().getRole() != Role.DOCTOR) throw new IllegalArgumentException("Assigned staff must be a DOCTOR");
+        if (appointment.getAppointmentDate() == null) throw new IllegalArgumentException("Appointment date is required");
+        if (appointment.getAppointmentDate().before(new Timestamp(System.currentTimeMillis()))) throw new IllegalArgumentException("Appointment cannot be in the past.");
+        if (!isDoctorAvailable(appointment.getDoctor(), appointment.getAppointmentDate(), idToIgnore)) {
+            throw new IllegalArgumentException("Doctor is already booked at this time for another 'SCHEDULED' appointment.");
         }
     }
 
-    private String formatTimestamp(Timestamp timestamp) {
-        if (timestamp == null) return "N/A";
-        return new SimpleDateFormat(Constants.TIMESTAMP_FORMAT).format(timestamp);
+    /**
+     * Checks if a doctor has another 'SCHEDULED' appointment at a specific time, optionally ignoring an ID.
+     */
+    private boolean isDoctorAvailable(Staff doctor, Timestamp appointmentTime, Long idToIgnore) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "FROM Appointment WHERE doctor = :doctor AND appointmentDate = :appointmentTime AND status = 'SCHEDULED'";
+
+            if (idToIgnore != null) {
+                hql += " AND id != :idToIgnore";
+            }
+
+            var query = session.createQuery(hql, Appointment.class)
+                    .setParameter("doctor", doctor)
+                    .setParameter("appointmentTime", appointmentTime);
+
+            if (idToIgnore != null) {
+                query.setParameter("idToIgnore", idToIgnore);
+            }
+
+            return query.list().isEmpty();
+        }
     }
 
-    private String truncate(String str, int length) {
+    private String formatTimestamp(Timestamp ts) {
+        return ts == null ? "N/A" : new SimpleDateFormat(Constants.TIMESTAMP_FORMAT).format(ts);
+    }
+
+    private Timestamp parseTimestamp(String str) {
+        if (str == null || str.trim().isEmpty()) return null;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(Constants.TIMESTAMP_FORMAT);
+            sdf.setLenient(false);
+            return new Timestamp(sdf.parse(str).getTime());
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    private String truncate(String str, int len) {
         if (str == null) return "";
-        return str.length() > length ? str.substring(0, length - 3) + "..." : str;
+        return str.length() > len ? str.substring(0, len - 3) + "..." : str;
+    }
+
+    private String getRequiredInput(String prompt, String errorMessage) {
+        String input;
+        do {
+            System.out.print(prompt);
+            input = scanner.nextLine().trim();
+            if (input.isEmpty()) System.out.println(errorMessage);
+        } while (input.isEmpty());
+        return input;
     }
 
     private String getInputWithDefault(String prompt, String defaultValue) {
@@ -346,38 +331,13 @@ public class AppointmentService {
         return input.isEmpty() ? defaultValue : input;
     }
 
-    // Parse timestamp string
-    private Timestamp parseTimestamp(String dateStr) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(Constants.TIMESTAMP_FORMAT);
-            sdf.setLenient(false);
-            return new Timestamp(sdf.parse(dateStr).getTime());
-        } catch (ParseException e) {
-            return null;
-        }
-    }
-
-    // Get required input with error message
-    private String getRequiredInput(String prompt, String errorMessage) {
-        String input;
-        do {
-            System.out.print(prompt);
-            input = scanner.nextLine().trim();
-            if (input.isEmpty()) {
-                System.out.println(errorMessage);
-            }
-        } while (input.isEmpty());
-        return input;
-    }
-
-    // Get a valid Long input
     private Long getLongInput(String prompt) {
         while (true) {
             try {
                 System.out.print(prompt);
                 return Long.parseLong(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                System.out.println("Invalid ID format! Please enter a number.");
+                System.out.println("Invalid ID. Please enter a number.");
             }
         }
     }

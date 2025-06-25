@@ -6,19 +6,24 @@ import org.pahappa.service.HibernateUtil;
 
 import java.util.List;
 
-// DAO class for MedicalRecord entity, handling database operations
 public class MedicalRecordDao extends BaseDao<MedicalRecord, Long> {
 
-    // Constructor to initialize BaseDao with MedicalRecord class
     public MedicalRecordDao() {
         super(MedicalRecord.class);
     }
 
-    // Get all medical records for a specific patient
     public List<MedicalRecord> getByPatientId(Long patientId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from MedicalRecord where patient.id = :patientId", MedicalRecord.class)
+            return session.createQuery("from MedicalRecord where patient.id = :patientId order by recordDate desc", MedicalRecord.class)
                     .setParameter("patientId", patientId)
+                    .list();
+        }
+    }
+
+    public List<MedicalRecord> getByDoctorId(Long doctorId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from MedicalRecord where doctor.id = :doctorId order by recordDate desc", MedicalRecord.class)
+                    .setParameter("doctorId", doctorId)
                     .list();
         }
     }
