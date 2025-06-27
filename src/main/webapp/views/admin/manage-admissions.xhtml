@@ -1,0 +1,38 @@
+<ui:composition template="/templates/main-template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="title">Manage All Admissions</ui:define>
+
+    <ui:define name="content">
+        <h:form id="admissionForm">
+            <div class="card">
+                <p:growl id="messages" showDetail="true"/>
+                <p:dataTable id="admissionTable" var="admission" value="#{adminAdmissionBean.admissions}" paginator="true" rows="10">
+                    <f:facet name="header">All Hospital Admissions</f:facet>
+                    <p:column headerText="Patient"><h:outputText value="#{admission.patient.fullName}"/></p:column>
+                    <p:column headerText="Assigned Nurse"><h:outputText value="#{admission.nurse.fullName}"/></p:column>
+                    <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}">
+                        <h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText>
+                    </p:column>
+                    <p:column headerText="Discharge Date" sortBy="#{admission.dischargeDate}">
+                        <h:outputText value="#{admission.dischargeDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText>
+                    </p:column>
+                    <p:column headerText="Ward"><h:outputText value="#{admission.ward} - #{admission.wardNumber}"/></p:column>
+                    <p:column headerText="Actions" style="width:6rem; text-align:center">
+                        <p:commandButton icon="pi pi-sign-out" action="#{adminAdmissionBean.dischargePatient}" update="admissionTable messages"
+                                         styleClass="rounded-button ui-button-success" title="Discharge Patient"
+                                         rendered="#{admission.dischargeDate == null}">
+                            <f:setPropertyActionListener value="#{admission}" target="#{adminAdmissionBean.selectedAdmission}"/>
+                            <p:confirm header="Confirmation" message="Discharge #{admission.patient.fullName}?" icon="pi pi-question-circle"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+            <p:confirmDialog global="true"><p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/><p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/></p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -3,7 +3,6 @@ package org.pahappa.dao;
 import org.hibernate.Session;
 import org.pahappa.model.MedicalRecord;
 import org.pahappa.service.HibernateUtil;
-
 import java.util.List;
 
 public class MedicalRecordDao extends BaseDao<MedicalRecord, Long> {
@@ -14,7 +13,8 @@ public class MedicalRecordDao extends BaseDao<MedicalRecord, Long> {
 
     public List<MedicalRecord> getByPatientId(Long patientId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from MedicalRecord where patient.id = :patientId order by recordDate desc", MedicalRecord.class)
+            String hql = "FROM MedicalRecord WHERE patient.id = :patientId AND deleted = false ORDER BY recordDate DESC";
+            return session.createQuery(hql, MedicalRecord.class)
                     .setParameter("patientId", patientId)
                     .list();
         }
@@ -22,7 +22,8 @@ public class MedicalRecordDao extends BaseDao<MedicalRecord, Long> {
 
     public List<MedicalRecord> getByDoctorId(Long doctorId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from MedicalRecord where doctor.id = :doctorId order by recordDate desc", MedicalRecord.class)
+            String hql = "FROM MedicalRecord WHERE doctor.id = :doctorId AND deleted = false ORDER BY recordDate DESC";
+            return session.createQuery(hql, MedicalRecord.class)
                     .setParameter("doctorId", doctorId)
                     .list();
         }

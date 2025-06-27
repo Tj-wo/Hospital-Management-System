@@ -1,0 +1,92 @@
+<ui:composition template="/templates/main-template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/fsl/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="title">Manage Staff</ui:define>
+
+    <ui:define name="content">
+        <h:form id="staffForm">
+            <div class="card">
+                <p:growl id="messages" showDetail="true" life="6000" />
+
+                <p:dataTable id="staffTable" var="staff" value="#{staffBean.staffList}" paginator="true" rows="10"
+                             paginatorPosition="bottom" emptyMessage="No staff members found.">
+                    <f:facet name="header">
+                        <div class="ui-g">
+                            <div class="ui-g-6" style="text-align: left;">
+                                <span style="font-size: 1.2em;">Staff Members</span>
+                            </div>
+                            <div class="ui-g-6" style="text-align: right;">
+                                <p:commandButton value="New Staff" icon="pi pi-plus"
+                                                 actionListener="#{staffBean.prepareNewStaff}"
+                                                 oncomplete="PF('staffDialog').show()"
+                                                 update=":dialogForm" process="@this"
+                                                 styleClass="ui-button-outlined"/>
+                            </div>
+                        </div>
+                    </f:facet>
+
+                    <p:column headerText="Name" sortBy="#{staff.fullName}"><h:outputText value="#{staff.fullName}"/></p:column>
+                    <p:column headerText="Role" sortBy="#{staff.role}">
+                        <p:tag value="#{staff.role}" severity="#{staff.role == 'DOCTOR' ? 'info' : staff.role == 'NURSE' ? 'success' : 'warning'}"/>
+                    </p:column>
+                    <p:column headerText="Email (Username)" sortBy="#{staff.email}"><h:outputText value="#{staff.email}"/></p:column>
+                    <p:column headerText="Specialty" sortBy="#{staff.specialty}"><h:outputText value="#{staff.specialty != null ? staff.specialty : 'N/A'}"/></p:column>
+                    <p:column headerText="Actions" style="width:6rem; text-align:center">
+                        <p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger"
+                                         actionListener="#{staffBean.deleteStaff}" update="staffForm">
+                            <f:setPropertyActionListener value="#{staff}" target="#{staffBean.selectedStaff}"/>
+                            <p:confirm header="Confirmation" message="Delete #{staff.fullName}?" icon="pi pi-exclamation-triangle"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+        <p:dialog header="Add New Staff Member" widgetVar="staffDialog" modal="true" width="500" resizable="false">
+            <h:form id="dialogForm">
+                <p:panelGrid columns="2" layout="grid" styleClass="ui-panelgrid-blank form-grid">
+                    <p:outputLabel for="firstName" value="First Name:"/>
+                    <p:inputText id="firstName" value="#{staffBean.newStaff.firstName}" required="true"/>
+
+                    <p:outputLabel for="lastName" value="Last Name:"/>
+                    <p:inputText id="lastName" value="#{staffBean.newStaff.lastName}" required="true"/>
+
+                    <p:outputLabel for="email" value="Email:"/>
+                    <p:inputText id="email" value="#{staffBean.newStaff.email}" required="true"/>
+
+                    <p:outputLabel for="dob" value="Date of Birth:"/>
+                    <p:calendar id="dob" value="#{staffBean.newStaff.dateOfBirth}" pattern="yyyy-MM-dd" required="true" showIcon="true"/>
+
+                    <p:outputLabel for="role" value="Role:"/>
+                    <p:selectOneMenu id="role" value="#{staffBean.newStaff.role}" required="true">
+                        <f:selectItem itemLabel="Select Role" itemValue="#{null}" noSelectionOption="true"/>
+                        <f:selectItems value="#{staffBean.roles}" var="r" itemLabel="#{r}" itemValue="#{r}"/>
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="specialty" value="Specialty (if Doctor):"/>
+                    <p:inputText id="specialty" value="#{staffBean.newStaff.specialty}"/>
+
+                    <p:outputLabel for="password" value="Password:"/>
+                    <p:password id="password" value="#{staffBean.password}" required="true" feedback="true" match="confirmPassword"/>
+
+                    <p:outputLabel for="confirmPassword" value="Confirm Password:"/>
+                    <p:password id="confirmPassword" required="true"/>
+                </p:panelGrid>
+
+                <div class="dialog-footer">
+                    <p:commandButton value="Save" icon="pi pi-check" actionListener="#{staffBean.addStaff}"/>
+                    <p:commandButton value="Cancel" icon="pi pi-times" type="button" onclick="PF('staffDialog').hide()" styleClass="ui-button-secondary"/>
+                </div>
+            </h:form>
+        </p:dialog>
+
+        <p:confirmDialog global="true">
+            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/>
+            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+        </p:confirmDialog>
+    </ui:define>
+</ui:composition>

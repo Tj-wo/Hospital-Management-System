@@ -1,0 +1,46 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <p:panelMenu style="width:100%;">
+        <!-- Common Dashboard Link -->
+        <p:menuitem value="Dashboard" outcome="index" icon="pi pi-home"/>
+
+        <!-- =================== ADMIN MENU =================== -->
+        <p:submenu label="Admin Controls" rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
+            <p:menuitem value="Manage Staff" outcome="manage-staff" icon="pi pi-users"/>
+            <p:menuitem value="Manage Patients" outcome="manage-patients" icon="pi pi-user-plus"/>
+            <p:menuitem value="Appointments" outcome="manage-appointments" icon="pi pi-calendar"/>
+            <p:menuitem value="Admissions" outcome="manage-admissions" icon="pi pi-building"/>
+            <p:menuitem value="Medical Records" outcome="manage-medical-records" icon="pi pi-file-edit"/>
+        </p:submenu>
+
+        <!-- =================== DOCTOR MENU =================== -->
+        <p:submenu label="Doctor Menu" rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
+            <p:menuitem value="My Appointments" outcome="doctor-appointments" icon="pi pi-calendar-check"/>
+            <p:menuitem value="Medical Records" outcome="doctor-medical-records" icon="pi pi-file-edit"/>
+            <p:menuitem value="Admissions" outcome="doctor-admissions" icon="pi pi-building"/>
+        </p:submenu>
+
+        <!-- =================== NURSE MENU =================== -->
+        <p:submenu label="Nurse Menu" rendered="#{loginBean.loggedInUser.role == 'NURSE'}">
+            <p:menuitem value="My Assigned Patients" outcome="nurse-admissions" icon="pi pi-th-large"/>
+            <p:menuitem value="Update Patient Records" outcome="nurse-update-records" icon="pi pi-pencil"/>
+        </p:submenu>
+
+        <!-- =================== RECEPTIONIST MENU =================== -->
+        <p:submenu label="Receptionist Menu" rendered="#{loginBean.loggedInUser.role == 'RECEPTIONIST'}">
+            <p:menuitem value="Register New Patient" outcome="receptionist-register-patient" icon="pi pi-user-plus"/>
+            <p:menuitem value="Manage Appointments" outcome="receptionist-appointments" icon="pi pi-calendar"/>
+        </p:submenu>
+
+        <!-- =================== PATIENT MENU =================== -->
+        <p:submenu label="Patient Portal" rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
+            <p:menuitem value="My Appointments" outcome="patient-appointments" icon="pi pi-calendar"/>
+            <p:menuitem value="My Medical Records" outcome="patient-medical-records" icon="pi pi-file"/>
+            <p:menuitem value="My Admissions" outcome="patient-admissions" icon="pi pi-building"/>
+        </p:submenu>
+
+    </p:panelMenu>
+</ui:composition>

@@ -7,10 +7,7 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "appointments")
-public class Appointment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Appointment extends BaseModel {
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
@@ -36,8 +33,6 @@ public class Appointment {
     }
 
     // Getters and setters (add for status)
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public Patient getPatient() { return patient; }
     public void setPatient(Patient patient) { this.patient = patient; }
     public Staff getDoctor() { return doctor; }
@@ -52,7 +47,6 @@ public class Appointment {
     @Override
     public String toString() {
         return "Appointment{" +
-                "id=" + id +
                 ", patient=" + (patient != null ? patient.getFullName() : "N/A") +
                 ", doctor=" + (doctor != null ? doctor.getFullName() : "N/A") +
                 ", appointmentDate=" + appointmentDate +

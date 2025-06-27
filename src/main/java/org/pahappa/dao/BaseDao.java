@@ -2,81 +2,82 @@ package org.pahappa.dao;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.pahappa.model.BaseModel;
 import org.pahappa.service.HibernateUtil;
-
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.List;
 
-// Base class for all DAOs, providing common database operations like save, get, update, delete
-public abstract class BaseDao<T, ID extends Serializable> implements GenericDao<T, ID> {
+public abstract class BaseDao<T extends BaseModel, ID extends Serializable> implements GenericDao<T, ID> {
     private final Class<T> entityClass;
 
-    // Constructor to set the entity class (e.g., Patient.class, Staff.class)
     protected BaseDao(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
 
     @Override
     public void save(T entity) {
-        // Open a session to interact with the database
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            try {
-                session.save(entity); // Save the entity to the database
-                tx.commit(); // Commit the transaction
-            } catch (Exception e) {
-                tx.rollback(); // Undo changes if error occurs
-                throw new RuntimeException("Failed to save " + entityClass.getSimpleName() + ": " + e.getMessage());
-            }
+            tx = session.beginTransaction();
+            session.saveOrUpdate(entity);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw new RuntimeException("Failed to save/update " + entityClass.getSimpleName(), e);
         }
     }
 
     @Override
     public T getById(ID id) {
-        // Open a session to retrieve an entity by its ID
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.get(entityClass, id); // Fetch entity from database
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> query = builder.createQuery(entityClass);
+            Root<T> root = query.from(entityClass);
+            query.select(root).where(
+                    builder.and(
+                            builder.equal(root.get("id"), id),
+                            builder.equal(root.get("deleted"), false)
+                    )
+            );
+            return session.createQuery(query).uniqueResultOptional().orElse(null);
         }
     }
 
     @Override
     public List<T> getAll() {
-        // Open a session to retrieve all entities of this type
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from " + entityClass.getSimpleName(), entityClass).list();
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> query = builder.createQuery(entityClass);
+            Root<T> root = query.from(entityClass);
+            query.select(root).where(builder.equal(root.get("deleted"), false));
+            return session.createQuery(query).list();
         }
     }
 
     @Override
     public void update(T entity) {
-        // Open a session to update an entity
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            try {
-                session.update(entity); // Update the entity in the database
-                tx.commit();
-            } catch (Exception e) {
-                tx.rollback();
-                throw new RuntimeException("Failed to update " + entityClass.getSimpleName() + ": " + e.getMessage());
-            }
-        }
+        this.save(entity);
     }
 
     @Override
     public void delete(ID id) {
-        // Open a session to delete an entity by its ID
+        Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction tx = session.beginTransaction();
-            try {
-                T entity = session.get(entityClass, id);
-                if (entity != null) {
-                    session.delete(entity); // Delete the entity
-                }
-                tx.commit();
-            } catch (Exception e) {
-                tx.rollback();
-                throw new RuntimeException("Failed to delete " + entityClass.getSimpleName() + ": " + e.getMessage());
+            tx = session.beginTransaction();
+            // We must use session.get() here because our custom getById() filters out deleted items.
+            // We need to be able to retrieve an item to "undelete" it if needed in the future.
+            T entity = session.get(entityClass, id);
+            if (entity != null) {
+                entity.setDeleted(true);
+                session.update(entity);
             }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw new RuntimeException("Failed to soft-delete " + entityClass.getSimpleName(), e);
         }
     }
 }

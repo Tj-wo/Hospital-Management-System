@@ -1,9 +1,10 @@
 package org.pahappa.dao;
 
+import org.pahappa.model.BaseModel;
 import java.io.Serializable;
 import java.util.List;
 
-public interface GenericDao<T, ID extends Serializable> {
+public interface GenericDao<T extends BaseModel, ID extends Serializable> {
     void save(T entity);
     T getById(ID id);
     List<T> getAll();
