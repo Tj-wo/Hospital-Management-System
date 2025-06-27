@@ -3,8 +3,8 @@ package org.pahappa.dao;
 import org.hibernate.Session;
 import org.pahappa.model.User;
 import org.pahappa.service.HibernateUtil;
-
 import javax.persistence.NoResultException;
+
 
 public class UserDao extends BaseDao<User, Long> {
     public UserDao() {
@@ -13,11 +13,12 @@ public class UserDao extends BaseDao<User, Long> {
 
     public User findByUsername(String username) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from User where username = :username", User.class)
+            String hql = "FROM User WHERE username = :username AND deleted = false";
+            return session.createQuery(hql, User.class)
                     .setParameter("username", username)
-                    .getSingleResult();
+                    .uniqueResult();
         } catch (NoResultException e) {
-            return null; // Return null if no user is found
+            return null;
         }
     }
 }

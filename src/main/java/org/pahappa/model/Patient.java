@@ -3,13 +3,9 @@ package org.pahappa.model;
 import javax.persistence.*;
 import java.util.Date;
 
-// Entity class representing a patient
 @Entity
 @Table(name = "patients")
-public class Patient {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Patient extends BaseModel {
 
     @Column(nullable = false)
     private String firstName;
@@ -24,17 +20,12 @@ public class Patient {
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 
-    // Link to the User account
     @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     private User user;
 
-    // No-arg constructor for Hibernate
-    public Patient() {
-    }
+    public Patient() {}
 
     // Getters and setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
@@ -50,7 +41,6 @@ public class Patient {
     @Override
     public String toString() {
         return "Patient{" +
-                "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
@@ -58,3 +48,4 @@ public class Patient {
                 '}';
     }
 }
+

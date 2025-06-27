@@ -2,8 +2,10 @@ package org.pahappa.service;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import javax.enterprise.context.ApplicationScoped;
 
 // Utility class to manage Hibernate SessionFactory
+@ApplicationScoped
 public class HibernateUtil {
     private static final SessionFactory sessionFactory = buildSessionFactory();
 

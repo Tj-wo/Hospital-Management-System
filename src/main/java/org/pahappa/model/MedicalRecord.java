@@ -6,10 +6,7 @@ import java.sql.Date;
 // Entity class representing a medical record
 @Entity
 @Table(name = "medical_records")
-public class MedicalRecord {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class MedicalRecord extends BaseModel {
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
@@ -33,13 +30,6 @@ public class MedicalRecord {
     }
 
     // Getters and setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Patient getPatient() {
         return patient;
@@ -84,7 +74,6 @@ public class MedicalRecord {
     @Override
     public String toString() {
         return "MedicalRecord{" +
-                "id=" + id +
                 ", patient=" + patient.getFullName() +
                 ", doctor=" + doctor.getFullName() +
                 ", recordDate=" + recordDate +

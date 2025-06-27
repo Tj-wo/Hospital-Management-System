@@ -1,0 +1,44 @@
+<ui:composition template="/templates/main-template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="title">My Assigned Patients</ui:define>
+
+    <ui:define name="content">
+        <h:form id="form">
+            <div class="card">
+                <p:dataTable id="admissionTable" var="admission" value="#{nurseAdmissionBean.assignedAdmissions}"
+                             paginator="true" rows="10" emptyMessage="No patients are currently assigned to you.">
+                    <f:facet name="header">My Assigned Patient Admissions</f:facet>
+
+                    <p:column headerText="Patient Name" sortBy="#{admission.patient.fullName}">
+                        <h:outputText value="#{admission.patient.fullName}"/>
+                    </p:column>
+
+                    <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}">
+                        <h:outputText value="#{admission.admissionDate}">
+                            <f:convertDateTime pattern="yyyy-MM-dd"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <!-- THIS IS THE CORRECTED LINE -->
+                    <p:column headerText="Ward &amp; Bed" sortBy="#{admission.ward}">
+                        <h:outputText value="#{admission.ward} - #{admission.wardNumber}"/>
+                    </p:column>
+
+                    <p:column headerText="Reason for Admission">
+                        <h:outputText value="#{admission.reason}"/>
+                    </p:column>
+
+                    <p:column headerText="Status">
+                        <p:tag value="Admitted" severity="success" rendered="#{admission.dischargeDate == null}"/>
+                        <p:tag value="Discharged" severity="warning" rendered="#{admission.dischargeDate != null}"/>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

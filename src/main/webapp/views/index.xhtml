@@ -1,0 +1,29 @@
+<ui:composition template="/templates/main-template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="title">Dashboard</ui:define>
+
+    <ui:define name="content">
+        <div class="card">
+            <h1>Dashboard</h1>
+            <p>Welcome to the Hospital Management System, #{loginBean.loggedInUser.username}.</p>
+            <p>Your assigned role is: <strong>#{loginBean.loggedInUser.role}</strong>.</p>
+            <p>Please use the menu on the left to navigate to your desired section.</p>
+
+            <p:divider/>
+
+            <!-- You could add summary panels here later -->
+            <p:panel header="System Status" rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
+                <p>This is where admin-specific summary charts or statistics would go.</p>
+            </p:panel>
+
+            <p:panel header="Today's Appointments" rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
+                <p>This is where a doctor could see a quick summary of today's schedule.</p>
+            </p:panel>
+        </div>
+    </ui:define>
+
+</ui:composition>

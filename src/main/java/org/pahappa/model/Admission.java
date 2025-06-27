@@ -6,10 +6,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "admissions")
-public class Admission {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Admission extends BaseModel {
 
     @ManyToOne
     private Patient patient;
@@ -27,8 +24,6 @@ public class Admission {
     public Admission() {}
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public Patient getPatient() { return patient; }
     public void setPatient(Patient patient) { this.patient = patient; }
     public Staff getNurse() { return nurse; }
@@ -47,7 +42,6 @@ public class Admission {
     @Override
     public String toString() {
         return "Admission{" +
-                "id=" + id +
                 ", patient=" + (patient != null ? patient.getFullName() : "N/A") +
                 ", nurse=" + (nurse != null ? nurse.getFullName() : "N/A") +
                 ", ward='" + ward + '\'' +

@@ -4,13 +4,10 @@ import org.pahappa.utils.Role;
 import javax.persistence.*;
 import java.util.Date;
 
-// Entity class representing a staff member
+
 @Entity
 @Table(name = "staff")
-public class Staff {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Staff extends BaseModel {
 
     @Column(nullable = false)
     private String firstName;
@@ -31,17 +28,12 @@ public class Staff {
 
     private String specialty;
 
-    // Link to the User account
     @OneToOne(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true)
     private User user;
 
-    // No-arg constructor for Hibernate
-    public Staff() {
-    }
+    public Staff() {}
 
     // Getters and setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
@@ -61,7 +53,6 @@ public class Staff {
     @Override
     public String toString() {
         return "Staff{" +
-                "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +

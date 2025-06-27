@@ -1,0 +1,39 @@
+<ui:composition template="/templates/main-template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/fsl/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+    <ui:define name="title">My Appointments</ui:define>
+
+    <ui:define name="content">
+        <h:form id="form">
+            <div class="card">
+                <p:growl id="messages" showDetail="true" closable="true"/>
+                <!-- ... toolbar and dataTable ... -->
+            </div>
+
+            <p:dialog header="Book New Appointment" widgetVar="bookDialog" modal="true" width="500" resizable="false">
+                <p:outputPanel id="bookDialogContent">
+                    <p:panelGrid columns="2" layout="grid" styleClass="ui-panelgrid-blank form-grid">
+                        <!-- ... dialog fields ... -->
+                    </p:panelGrid>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    <!-- CORRECTED BUTTON -->
+                    <p:commandButton value="Book Appointment" icon="pi pi-check"
+                                     actionListener="#{patientAppointmentBean.bookAppointment}"
+                                     update="form:messages form:appointmentTable bookDialogContent"
+                                     oncomplete="if (args &amp;&amp; args.bookingSuccess) { PF('bookDialog').hide(); }"/>
+                    <p:commandButton value="Cancel" icon="pi pi-times" type="button" onclick="PF('bookDialog').hide()" styleClass="ui-button-secondary"/>
+                </f:facet>
+            </p:dialog>
+
+            <p:confirmDialog global="true">
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/>
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
