@@ -1,8 +1,8 @@
-package org.pahappa.presentation.doctor;
+package org.pahappa.controller.doctor;
 
 import org.pahappa.model.MedicalRecord;
 import org.pahappa.model.Patient;
-import org.pahappa.presentation.LoginBean;
+import org.pahappa.controller.LoginBean;
 import org.pahappa.service.MedicalRecordService;
 import org.pahappa.service.PatientService;
 import javax.annotation.PostConstruct;

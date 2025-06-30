@@ -1,4 +1,4 @@
-package org.pahappa.presentation.receptionist;
+package org.pahappa.controller.receptionist;
 
 import org.pahappa.model.Appointment;
 import org.pahappa.model.Patient;

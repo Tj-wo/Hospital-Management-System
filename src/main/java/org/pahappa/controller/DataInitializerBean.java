@@ -1,4 +1,4 @@
-package org.pahappa.presentation;
+package org.pahappa.controller;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.pahappa.dao.UserDao;

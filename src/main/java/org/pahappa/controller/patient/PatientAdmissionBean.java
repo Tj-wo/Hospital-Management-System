@@ -1,8 +1,8 @@
-package org.pahappa.presentation.patient;
+package org.pahappa.controller.patient;
 
-import org.pahappa.model.MedicalRecord;
-import org.pahappa.presentation.LoginBean;
-import org.pahappa.service.MedicalRecordService;
+import org.pahappa.model.Admission;
+import org.pahappa.controller.LoginBean;
+import org.pahappa.service.AdmissionService;
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
@@ -10,23 +10,23 @@ import javax.inject.Named;
 import java.io.Serializable;
 import java.util.List;
 
-@Named("patientMedicalRecordBean")
+@Named("patientAdmissionBean")
 @ViewScoped
-public class PatientMedicalRecordBean implements Serializable {
+public class PatientAdmissionBean implements Serializable {
 
     @Inject
-    private MedicalRecordService medicalRecordService;
+    private AdmissionService admissionService;
 
     @Inject
     private LoginBean loginBean;
 
-    private List<MedicalRecord> records;
+    private List<Admission> admissions;
 
     @PostConstruct
     public void init() {
         if (isPatientLoggedIn()) {
             long patientId = loginBean.getLoggedInUser().getPatient().getId();
-            records = medicalRecordService.getRecordsForPatient(patientId);
+            admissions = admissionService.getAdmissionsForPatient(patientId);
         }
     }
 
@@ -37,7 +37,7 @@ public class PatientMedicalRecordBean implements Serializable {
     }
 
     // --- Getter ---
-    public List<MedicalRecord> getRecords() {
-        return records;
+    public List<Admission> getAdmissions() {
+        return admissions;
     }
 }
