@@ -1,3 +1,4 @@
+
 package org.pahappa.service;
 
 import org.pahappa.model.MedicalRecord;
@@ -9,4 +10,8 @@ public interface MedicalRecordService {
     MedicalRecord getMedicalRecordById(Long id);
     List<MedicalRecord> getAllMedicalRecords();
     List<MedicalRecord> getRecordsForPatient(Long patientId);
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
