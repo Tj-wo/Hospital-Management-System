@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<h:head>
+    <title>Dashboard - Hospital Management System</title>
+    <h:outputStylesheet name="css/style.css"/>
+</h:head>
+
+<h:body>
+    <h:form id="dashboardForm">
+        <div class="card">
+            <h2>Welcome, #{loginBean.loggedInUser.username}!</h2>
+            <p>Your role: <strong>#{loginBean.loggedInUser.role}</strong></p>
+            <p:divider/>
+
+            <!-- Admin Dashboard -->
+            <p:panel header="System Overview" rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
+                <div class="p-grid p-align-center">
+                    <div class="p-col">
+                        <p:panel header="Total Patients">
+                            <h:outputText value="#{dashboardBean.totalPatients}"/>
+                        </p:panel>
+                    </div>
+                    <div class="p-col">
+                        <p:panel header="Total Appointments">
+                            <h:outputText value="#{dashboardBean.totalAppointments}"/>
+                        </p:panel>
+                    </div>
+                    <div class="p-col">
+                        <p:panel header="Active Staff">
+                            <h:outputText value="#{dashboardBean.totalStaff}"/>
+                        </p:panel>
+                    </div>
+                </div>
+            </p:panel>
+
+            <!-- Doctor Dashboard -->
+            <p:panel header="Today's Appointments" rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
+                <p:dataTable var="appt" value="#{dashboardBean.todaysAppointments}" rows="5" paginator="true">
+                    <p:column headerText="Patient"><h:outputText value="#{appt.patient.fullName}"/></p:column>
+                    <p:column headerText="Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="HH:mm"/></h:outputText></p:column>
+                    <p:column headerText="Status"><p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : 'success'}"/></p:column>
+                </p:dataTable>
+            </p:panel>
+
+            <!-- Patient Dashboard -->
+            <p:panel header="Upcoming Appointments" rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
+                <p:dataTable var="appt" value="#{dashboardBean.upcomingAppointments}" rows="5" paginator="true">
+                    <p:column headerText="Doctor"><h:outputText value="#{appt.doctor.fullName}"/></p:column>
+                    <p:column headerText="Date"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText></p:column>
+                    <p:column headerText="Status"><p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : 'success'}"/></p:column>
+                </p:dataTable>
+            </p:panel>
+        </div>
+    </h:form>
+</h:body>
+</html>
