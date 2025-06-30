@@ -6,7 +6,7 @@
 
 <h:head>
     <title>Login - Hospital Management System</title>
-    <h:outputStylesheet name="css/style.css" />
+    <h:outputStylesheet name="css/style.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </h:head>
 
@@ -15,53 +15,38 @@
         <div class="login-card">
             <h:form id="loginForm">
                 <p:panel header="Hospital Management System" styleClass="login-panel">
-                    <p:growl id="messages" showDetail="true" closable="true" sticky="false"/>
+                    <p:growl id="messages" showDetail="true" closable="true"/>
 
                     <div class="login-fields">
-                        <!-- Username Field -->
                         <div class="p-field">
-                            <p:outputLabel for="username" value="Username" />
-                            <p:inputText id="username"
-                                         value="#{loginBean.username}"
-                                         required="true"
+                            <p:outputLabel for="username" value="Username"/>
+                            <p:inputText id="username" value="#{loginBean.username}" required="true"
                                          requiredMessage="Username is required"
                                          placeholder="Enter your email"
                                          styleClass="login-input"/>
                         </div>
 
-                        <!-- Password Field -->
                         <div class="p-field">
-                            <p:outputLabel for="password" value="Password" />
-                            <p:password id="password"
-                                        value="#{loginBean.password}"
-                                        required="true"
+                            <p:outputLabel for="password" value="Password"/>
+                            <p:password id="password" value="#{loginBean.password}" required="true"
                                         requiredMessage="Password is required"
                                         placeholder="Enter your password"
-                                        toggleMask="true"
-                                        feedback="false"
+                                        toggleMask="true" feedback="false"
                                         styleClass="login-input"/>
                         </div>
 
-                        <!-- Login Button -->
                         <div class="login-actions">
-                            <p:commandButton value="Login"
-                                             action="#{loginBean.login}"
-                                             ajax="false"
-                                             styleClass="login-button"
-                                             icon="pi pi-sign-in"/>
+                            <p:commandButton value="Login" action="#{loginBean.login}" ajax="false"
+                                             icon="pi pi-sign-in" styleClass="login-button"/>
                         </div>
                     </div>
 
-                    <!-- Divider -->
                     <p:divider layout="horizontal" style="margin: 1.5rem 0;">
                         <span class="divider-text">OR</span>
                     </p:divider>
 
-                    <!-- Registration Link -->
                     <div class="registration-link">
-                        <p:link outcome="register"
-                                value="Create Patient Account"
-                                styleClass="register-link"/>
+                        <p:link outcome="register" value="Create Patient Account" styleClass="register-link"/>
                     </div>
                 </p:panel>
             </h:form>
