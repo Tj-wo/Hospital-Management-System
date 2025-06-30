@@ -1,49 +1,54 @@
-<ui:composition template="/templates/main-template.xhtml"
-                xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
-                xmlns:f="http://xmlns.jcp.org/jsf/core"
-                xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <title>My Appointments</title>
+</h:head>
+<h:body>
+    <h:form id="form">
+        <div class="card">
+            <p:growl id="messages" showDetail="true"/>
+            <p:dataTable id="appointmentTable" var="appt" value="#{doctorAppointmentBean.appointments}" paginator="true" rows="10"
+                         emptyMessage="No appointments found.">
+                <f:facet name="header">My Scheduled Appointments</f:facet>
+                <p:column headerText="Patient" sortBy="#{appt.patient.fullName}">
+                    <h:outputText value="#{appt.patient.fullName}"/>
+                </p:column>
+                <p:column headerText="Date &amp; Time" sortBy="#{appt.appointmentDate}">
+                    <h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText>
+                </p:column>
+                <p:column headerText="Reason">
+                    <h:outputText value="#{appt.reason}"/>
+                </p:column>
+                <p:column headerText="Status" sortBy="#{appt.status}">
+                    <p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : appt.status == 'COMPLETED' ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="Update Status" style="width:8rem; text-align:center">
+                    <p:commandButton icon="pi pi-pencil" oncomplete="PF('statusDialog').show()" update=":form:statusDialog"
+                                     styleClass="rounded-button ui-button-info" title="Update Status">
+                        <f:setPropertyActionListener value="#{appt}" target="#{doctorAppointmentBean.selectedAppointment}"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+        </div>
 
-    <ui:define name="title">My Appointments</ui:define>
-
-    <ui:define name="content">
-        <h:form id="form">
-            <div class="card">
-                <p:growl id="messages" showDetail="true"/>
-                <p:dataTable id="appointmentTable" var="appt" value="#{doctorAppointmentBean.appointments}" paginator="true" rows="10"
-                             emptyMessage="No appointments found.">
-                    <f:facet name="header">My Scheduled Appointments</f:facet>
-                    <p:column headerText="Patient" sortBy="#{appt.patient.fullName}"><h:outputText value="#{appt.patient.fullName}"/></p:column>
-                    <p:column headerText="Date &amp; Time" sortBy="#{appt.appointmentDate}">
-                        <h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText>
-                    </p:column>
-                    <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
-                    <p:column headerText="Status" sortBy="#{appt.status}">
-                        <p:tag severity="#{appt.status == 'SCHEDULED' ? 'info' : appt.status == 'COMPLETED' ? 'success' : 'danger'}" value="#{appt.status}"/>
-                    </p:column>
-                    <p:column headerText="Update Status" style="width:8rem; text-align:center">
-                        <p:commandButton icon="pi pi-pencil" oncomplete="PF('statusDialog').show()" update=":form:statusDialog"
-                                         styleClass="rounded-button ui-button-info" title="Update Status">
-                            <f:setPropertyActionListener value="#{appt}" target="#{doctorAppointmentBean.selectedAppointment}"/>
-                        </p:commandButton>
-                    </p:column>
-                </p:dataTable>
-            </div>
-
-            <p:dialog header="Update Status for #{doctorAppointmentBean.selectedAppointment.patient.fullName}'s Appointment" widgetVar="statusDialog" modal="true" resizable="false">
-                <p:panelGrid columns="2" style="margin-bottom:10px;" id="statusDialog">
-                    <p:outputLabel for="status" value="New Status:"/>
-                    <p:selectOneMenu id="status" value="#{doctorAppointmentBean.newStatus}" required="true">
-                        <f:selectItem itemLabel="Select Status" itemValue="#{null}"/>
-                        <f:selectItems value="#{doctorAppointmentBean.appointmentStatuses}" var="s" itemLabel="#{s}" itemValue="#{s}"/>
-                    </p:selectOneMenu>
-                </p:panelGrid>
-                <f:facet name="footer">
-                    <p:commandButton value="Save" icon="pi pi-check" action="#{doctorAppointmentBean.updateStatus}" update="appointmentTable messages" oncomplete="if (!args.validationFailed) PF('statusDialog').hide();"/>
-                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('statusDialog').hide()" styleClass="ui-button-secondary"/>
-                </f:facet>
-            </p:dialog>
-        </h:form>
-    </ui:define>
-</ui:composition>
+        <p:dialog header="Update Status for #{doctorAppointmentBean.selectedAppointment.patient.fullName}'s Appointment"
+                  widgetVar="statusDialog" modal="true" resizable="false">
+            <p:panelGrid columns="2" style="margin-bottom:10px;" id="statusDialog">
+                <p:outputLabel for="status" value="New Status:"/>
+                <p:selectOneMenu id="status" value="#{doctorAppointmentBean.newStatus}" required="true">
+                    <f:selectItem itemLabel="Select Status" itemValue="#{null}"/>
+                    <f:selectItems value="#{doctorAppointmentBean.appointmentStatuses}" var="s" itemLabel="#{s}" itemValue="#{s}"/>
+                </p:selectOneMenu>
+            </p:panelGrid>
+            <f:facet name="footer">
+                <p:commandButton value="Save" icon="pi pi-check" action="#{doctorAppointmentBean.updateStatus}"
+                                 update="appointmentTable messages" oncomplete="if (!args.validationFailed) PF('statusDialog').hide();"/>
+                <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('statusDialog').hide()" styleClass="ui-button-secondary"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</h:body>
+</html>
