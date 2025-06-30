@@ -1,102 +1,55 @@
-<ui:composition template="/templates/main-template.xhtml"
-                xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
-                xmlns:f="http://xmlns.jcp.org/jsf/core"
-                xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <title>Manage Appointments</title>
+</h:head>
+<h:body>
+    <h:form id="appointmentForm">
+        <div class="card">
+            <p:growl id="messages" showDetail="true"/>
+            <p:commandButton value="New Appointment" icon="pi pi-plus"
+                             actionListener="#{receptionistAppointmentBean.prepareNewAppointment}"
+                             oncomplete="PF('appointmentDialog').show()" update=":form:dialogPanel"/>
+            <p:dataTable id="appointmentTable" var="appt" value="#{receptionistAppointmentBean.appointments}" paginator="true" rows="10">
+                <f:facet name="header">All Appointments</f:facet>
+                <p:column headerText="Patient"><h:outputText value="#{appt.patient.fullName}"/></p:column>
+                <p:column headerText="Doctor"><h:outputText value="#{appt.doctor.fullName}"/></p:column>
+                <p:column headerText="Date &amp; Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText></p:column>
+                <p:column headerText="Status"><p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : appt.status == 'COMPLETED' ? 'success' : 'danger'}"/></p:column>
+            </p:dataTable>
+        </div>
 
-    <ui:define name="title">Manage All Appointments</ui:define>
-
-    <ui:define name="content">
-        <h:form id="form">
-            <div class="card">
-                <p:growl id="messages" showDetail="true" closable="true"/>
-
-                <p:toolbar>
-                    <p:toolbarGroup>
-                        <p:commandButton value="New Appointment" icon="pi pi-plus"
-                                         oncomplete="PF('scheduleDialog').show()" update=":form:scheduleDialogContent"
-                                         styleClass="ui-button-success"/>
-                    </p:toolbarGroup>
-                </p:toolbar>
-
-                <p:dataTable id="apptTable" var="appt" value="#{receptionistAppointmentBean.allAppointments}" paginator="true" rows="10"
-                             emptyMessage="No appointments found in the system.">
-                    <f:facet name="header">All Hospital Appointments</f:facet>
-                    <p:column headerText="Patient" sortBy="#{appt.patient.fullName}"><h:outputText value="#{appt.patient.fullName}"/></p:column>
-                    <p:column headerText="Doctor" sortBy="#{appt.doctor.fullName}"><h:outputText value="#{appt.doctor.fullName}"/></p:column>
-                    <p:column headerText="Date &amp; Time" sortBy="#{appt.appointmentDate}"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText></p:column>
-                    <p:column headerText="Status" sortBy="#{appt.status}"><p:tag severity="#{appt.status == 'SCHEDULED' ? 'info' : appt.status == 'COMPLETED' ? 'success' : 'danger'}" value="#{appt.status}"/></p:column>
-                    <p:column headerText="Actions" style="width:10rem; text-align:center">
-                        <p:commandButton icon="pi pi-pencil" oncomplete="PF('rescheduleDialog').show()" update=":form:rescheduleDialogContent"
-                                         styleClass="rounded-button ui-button-info" title="Reschedule">
-                            <f:setPropertyActionListener value="#{appt}" target="#{receptionistAppointmentBean.selectedAppointment}"/>
-                        </p:commandButton>
-                        <p:commandButton icon="pi pi-times" action="#{receptionistAppointmentBean.cancelAppointment}" update="apptTable messages"
-                                         styleClass="rounded-button ui-button-danger" title="Cancel"
-                                         rendered="#{appt.status == 'SCHEDULED'}">
-                            <f:setPropertyActionListener value="#{appt}" target="#{receptionistAppointmentBean.selectedAppointment}"/>
-                            <p:confirm header="Confirmation" message="Cancel this appointment?" icon="pi pi-exclamation-triangle"/>
-                        </p:commandButton>
-                    </p:column>
-                </p:dataTable>
-            </div>
-
-            <!-- Dialog for Scheduling a New Appointment -->
-            <p:dialog header="Schedule New Appointment" widgetVar="scheduleDialog" modal="true" width="500">
-                <p:panelGrid id="scheduleDialogContent" columns="2" style="margin-bottom:10px;">
-                    <p:outputLabel for="patient" value="Select Patient:"/>
-                    <p:selectOneMenu id="patient" value="#{receptionistAppointmentBean.newAppointment.patient}" converter="omnifaces.SelectItemsConverter" required="true" filter="true">
-                        <f:selectItem itemLabel="-- Select Patient --" noSelectionOption="true"/>
-                        <f:selectItems value="#{receptionistAppointmentBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/>
+        <p:dialog header="New Appointment" widgetVar="appointmentDialog" modal="true" resizable="false">
+            <p:outputPanel id="dialogPanel">
+                <h:panelGrid columns="2" cellpadding="5">
+                    <p:outputLabel for="patient" value="Patient:"/>
+                    <p:selectOneMenu id="patient" value="#{receptionistAppointmentBean.newAppointment.patient}" converter="omnifaces.SelectItemsConverter" filter="true">
+                        <f:selectItem itemLabel="-- Select --" noSelectionOption="true"/>
+                        <f:selectItems value="#{receptionistAppointmentBean.patients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/>
                     </p:selectOneMenu>
 
-                    <p:outputLabel for="doctor" value="Select Doctor:"/>
-                    <p:selectOneMenu id="doctor" value="#{receptionistAppointmentBean.newAppointment.doctor}" converter="omnifaces.SelectItemsConverter" required="true" filter="true">
-                        <f:selectItem itemLabel="-- Select Doctor --" noSelectionOption="true"/>
-                        <f:selectItems value="#{receptionistAppointmentBean.allDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName} - #{d.specialty}"/>
+                    <p:outputLabel for="doctor" value="Doctor:"/>
+                    <p:selectOneMenu id="doctor" value="#{receptionistAppointmentBean.newAppointment.doctor}" converter="omnifaces.SelectItemsConverter" filter="true">
+                        <f:selectItem itemLabel="-- Select --" noSelectionOption="true"/>
+                        <f:selectItems value="#{receptionistAppointmentBean.doctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName}"/>
                     </p:selectOneMenu>
 
-                    <p:outputLabel for="apptDate" value="Date &amp; Time:"/>
-                    <p:calendar id="apptDate" value="#{receptionistAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd HH:mm" required="true" mindate="#{now}"/>
+                    <p:outputLabel for="datetime" value="Date &amp; Time:"/>
+                    <p:calendar id="datetime" value="#{receptionistAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd HH:mm" showTime="true" />
 
                     <p:outputLabel for="reason" value="Reason:"/>
-                    <p:inputTextarea id="reason" value="#{receptionistAppointmentBean.newAppointment.reason}" required="true" rows="3" style="width:95%"/>
-                </p:panelGrid>
-                <f:facet name="footer">
-                    <p:commandButton value="Schedule" icon="pi pi-check" action="#{receptionistAppointmentBean.scheduleAppointment}" update="apptTable messages scheduleDialogContent" oncomplete="if (!args.validationFailed) PF('scheduleDialog').hide();"/>
-                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('scheduleDialog').hide()" styleClass="ui-button-secondary"/>
-                </f:facet>
-            </p:dialog>
-
-            <!-- Dialog for Rescheduling an Existing Appointment -->
-            <p:dialog header="Reschedule Appointment" widgetVar="rescheduleDialog" modal="true" width="500">
-                <p:outputPanel id="rescheduleDialogContent">
-                    <p:panelGrid columns="2" style="margin-bottom:10px;" rendered="#{not empty receptionistAppointmentBean.selectedAppointment}">
-                        <h:outputText value="Patient:" style="font-weight:bold;"/>
-                        <h:outputText value="#{receptionistAppointmentBean.selectedAppointment.patient.fullName}"/>
-
-                        <p:outputLabel for="reschedDoctor" value="Change Doctor:"/>
-                        <p:selectOneMenu id="reschedDoctor" value="#{receptionistAppointmentBean.selectedAppointment.doctor}" converter="omnifaces.SelectItemsConverter">
-                            <f:selectItems value="#{receptionistAppointmentBean.allDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName} - #{d.specialty}"/>
-                        </p:selectOneMenu>
-
-                        <p:outputLabel for="reschedDate" value="New Date &amp; Time:"/>
-                        <p:calendar id="reschedDate" value="#{receptionistAppointmentBean.selectedAppointment.appointmentDate}" pattern="yyyy-MM-dd HH:mm" mindate="#{now}"/>
-
-                        <p:outputLabel for="reschedReason" value="Update Reason:"/>
-                        <p:inputTextarea id="reschedReason" value="#{receptionistAppointmentBean.selectedAppointment.reason}" rows="3" style="width:95%"/>
-                    </p:panelGrid>
-                </p:outputPanel>
-                <f:facet name="footer">
-                    <p:commandButton value="Save Changes" icon="pi pi-check" action="#{receptionistAppointmentBean.updateAppointment}" update="apptTable messages" oncomplete="PF('rescheduleDialog').hide();"/>
-                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('rescheduleDialog').hide()" styleClass="ui-button-secondary"/>
-                </f:facet>
-            </p:dialog>
-
-            <p:confirmDialog global="true">
-                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/><p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
-            </p:confirmDialog>
-        </h:form>
-    </ui:define>
-</ui:composition>
+                    <p:inputTextarea id="reason" value="#{receptionistAppointmentBean.newAppointment.reason}" rows="3"/>
+                </h:panelGrid>
+            </p:outputPanel>
+            <f:facet name="footer">
+                <p:commandButton value="Book" icon="pi pi-check" action="#{receptionistAppointmentBean.bookAppointment}"
+                                 update="appointmentTable messages dialogPanel" oncomplete="if (!args.validationFailed) PF('appointmentDialog').hide();"/>
+                <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('appointmentDialog').hide()" styleClass="ui-button-secondary"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</h:body>
+</html>
