@@ -1,3 +1,4 @@
+
 package org.pahappa.service;
 
 import org.pahappa.model.Patient;
@@ -9,4 +10,12 @@ public interface PatientService {
     Patient getPatient(Long id);
     List<Patient> getAllPatients();
     void deletePatient(Long id);
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
+=======
+}
+>>>>>>> Stashed changes
