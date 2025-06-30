@@ -1,52 +1,270 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+      xmlns:f="http://java.sun.com/jsf/core">
 
 <h:head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title><ui:insert name="title">Hospital Management System</ui:insert></title>
-    <h:outputStylesheet name="css/style.css" />
+    <title>Hospital Management System</title>
+    <h:outputStylesheet name="css/modern-style.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 </h:head>
 
 <h:body>
-    <div class="layout-wrapper">
-        <!-- Top Bar: Rendered only if user is logged in -->
+    <div class="app-layout">
+        <!-- Top Navigation Bar -->
         <p:outputPanel rendered="#{loginBean.isLoggedIn()}">
-            <div class="layout-topbar">
-                <div class="topbar-left">
-                    <h2>HMS Portal</h2>
+            <nav class="top-navbar">
+                <div class="navbar-content">
+                    <div class="navbar-left">
+                        <button class="sidebar-toggle" onclick="toggleSidebar()">
+                            <i class="pi pi-bars"></i>
+                        </button>
+                        <div class="brand">
+                            <i class="pi pi-heart brand-icon"></i>
+                            <span class="brand-text">HMS Portal</span>
+                        </div>
+                    </div>
+
+                    <div class="navbar-right">
+                        <div class="navbar-actions">
+                            <!-- Notifications -->
+                            <div class="navbar-item">
+                                <button class="icon-btn" title="Notifications">
+                                    <i class="pi pi-bell"></i>
+                                    <span class="badge">3</span>
+                                </button>
+                            </div>
+
+                            <!-- Messages -->
+                            <div class="navbar-item">
+                                <button class="icon-btn" title="Messages">
+                                    <i class="pi pi-envelope"></i>
+                                    <span class="badge">5</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- User Menu -->
+                        <div class="user-menu">
+                            <h:form>
+                                <p:menuButton value="#{loginBean.loggedInUser.username}"
+                                              styleClass="user-menu-btn">
+                                    <p:menuitem value="Profile" icon="pi pi-user"
+                                                onclick="showProfileDialog()"/>
+                                    <p:menuitem value="Settings" icon="pi pi-cog"
+                                                onclick="showSettingsDialog()"/>
+                                    <p:separator/>
+                                    <p:menuitem value="Logout" icon="pi pi-sign-out"
+                                                action="#{loginBean.logout}" ajax="false"/>
+                                </p:menuButton>
+                            </h:form>
+                        </div>
+                    </div>
                 </div>
-                <div class="topbar-right">
-                    <h:form>
-                    <span style="margin-right: 15px; vertical-align: middle;">
-                        Welcome, <strong>#{loginBean.loggedInUser.username}</strong>
-                    </span>
-                        <p:commandButton value="Logout" action="#{loginBean.logout}" styleClass="ui-button-danger" icon="pi pi-sign-out" ajax="false"/>
-                    </h:form>
-                </div>
-            </div>
+            </nav>
         </p:outputPanel>
 
-        <!-- Main Layout with Sidebar -->
-        <div class="layout-main">
-            <!-- Sidebar: Rendered only if user is logged in -->
-            <p:outputPanel rendered="#{loginBean.isLoggedIn()}">
-                <div class="layout-sidebar">
+        <!-- Sidebar Navigation -->
+        <p:outputPanel rendered="#{loginBean.isLoggedIn()}">
+            <aside class="sidebar" id="mainSidebar">
+                <div class="sidebar-content">
                     <h:form>
-                        <ui:include src="/templates/_menu.xhtml"/>
+                        <div class="nav-section">
+                            <div class="nav-header">
+                                <span>Main</span>
+                            </div>
+                            <p:commandLink styleClass="nav-item" outcome="dashboard">
+                                <i class="pi pi-home nav-icon"></i>
+                                <span>Dashboard</span>
+                            </p:commandLink>
+                        </div>
+
+                        <!-- Admin Navigation -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
+                            <div class="nav-section">
+                                <div class="nav-header">
+                                    <span>Administration</span>
+                                </div>
+                                <p:commandLink styleClass="nav-item" outcome="manage-staff">
+                                    <i class="pi pi-users nav-icon"></i>
+                                    <span>Staff Management</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="manage-patients">
+                                    <i class="pi pi-user-plus nav-icon"></i>
+                                    <span>Patient Management</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="manage-appointments">
+                                    <i class="pi pi-calendar nav-icon"></i>
+                                    <span>Appointments</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="manage-admissions">
+                                    <i class="pi pi-building nav-icon"></i>
+                                    <span>Admissions</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="manage-medical-records">
+                                    <i class="pi pi-file-edit nav-icon"></i>
+                                    <span>Medical Records</span>
+                                </p:commandLink>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- Doctor Navigation -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
+                            <div class="nav-section">
+                                <div class="nav-header">
+                                    <span>Doctor Portal</span>
+                                </div>
+                                <p:commandLink styleClass="nav-item" outcome="doctor-appointments">
+                                    <i class="pi pi-calendar-check nav-icon"></i>
+                                    <span>My Appointments</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="doctor-medical-records">
+                                    <i class="pi pi-file-edit nav-icon"></i>
+                                    <span>Medical Records</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="doctor-admissions">
+                                    <i class="pi pi-building nav-icon"></i>
+                                    <span>Patient Admissions</span>
+                                </p:commandLink>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- Nurse Navigation -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'NURSE'}">
+                            <div class="nav-section">
+                                <div class="nav-header">
+                                    <span>Nurse Portal</span>
+                                </div>
+                                <p:commandLink styleClass="nav-item" outcome="nurse-admissions">
+                                    <i class="pi pi-th-large nav-icon"></i>
+                                    <span>Assigned Patients</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="nurse-update-records">
+                                    <i class="pi pi-pencil nav-icon"></i>
+                                    <span>Update Records</span>
+                                </p:commandLink>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- Receptionist Navigation -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'RECEPTIONIST'}">
+                            <div class="nav-section">
+                                <div class="nav-header">
+                                    <span>Reception</span>
+                                </div>
+                                <p:commandLink styleClass="nav-item" outcome="receptionist-register-patient">
+                                    <i class="pi pi-user-plus nav-icon"></i>
+                                    <span>Register Patient</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="receptionist-appointments">
+                                    <i class="pi pi-calendar nav-icon"></i>
+                                    <span>Appointments</span>
+                                </p:commandLink>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- Patient Navigation -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
+                            <div class="nav-section">
+                                <div class="nav-header">
+                                    <span>Patient Portal</span>
+                                </div>
+                                <p:commandLink styleClass="nav-item" outcome="patient-appointments">
+                                    <i class="pi pi-calendar nav-icon"></i>
+                                    <span>My Appointments</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="patient-medical-records">
+                                    <i class="pi pi-file nav-icon"></i>
+                                    <span>Medical Records</span>
+                                </p:commandLink>
+                                <p:commandLink styleClass="nav-item" outcome="patient-admissions">
+                                    <i class="pi pi-building nav-icon"></i>
+                                    <span>My Admissions</span>
+                                </p:commandLink>
+                            </div>
+                        </p:outputPanel>
                     </h:form>
                 </div>
-            </p:outputPanel>
+            </aside>
+        </p:outputPanel>
 
-            <div class="layout-main-content">
-                <ui:insert name="content">
-                    <!-- Page-specific content will be inserted here -->
-                </ui:insert>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <!-- Page content will be inserted here -->
+                <h:outputText value="Replace this with page content"/>
             </div>
-        </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Hospital Management System. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#" onclick="showHelpDialog()">Help</a>
+                    <a href="#" onclick="showSupportDialog()">Support</a>
+                    <a href="#" onclick="showPrivacyDialog()">Privacy</a>
+                </div>
+            </div>
+        </footer>
     </div>
+
+    <!-- JavaScript for Layout Functionality -->
+    <script>
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed');
+        }
+
+        // Auto-collapse sidebar on mobile
+        function checkScreenSize() {
+            const sidebar = document.getElementById('mainSidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('mobile-hidden');
+                mainContent.classList.add('mobile-full');
+            } else {
+                sidebar.classList.remove('mobile-hidden');
+                mainContent.classList.remove('mobile-full');
+            }
+        }
+
+        // Initialize on load and resize
+        window.addEventListener('load', checkScreenSize);
+        window.addEventListener('resize', checkScreenSize);
+
+        // Profile dialog placeholder
+        function showProfileDialog() {
+            alert('Profile dialog would open here');
+        }
+
+        // Settings dialog placeholder
+        function showSettingsDialog() {
+            alert('Settings dialog would open here');
+        }
+
+        // Help dialog placeholder
+        function showHelpDialog() {
+            alert('Help dialog would open here');
+        }
+
+        // Support dialog placeholder
+        function showSupportDialog() {
+            alert('Support dialog would open here');
+        }
+
+        // Privacy dialog placeholder
+        function showPrivacyDialog() {
+            alert('Privacy policy would open here');
+        }
+    </script>
 </h:body>
 </html>
