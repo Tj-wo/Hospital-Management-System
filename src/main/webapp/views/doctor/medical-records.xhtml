@@ -1,58 +1,76 @@
-<ui:composition template="/templates/main-template.xhtml"
-                xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
-                xmlns:f="http://xmlns.jcp.org/jsf/core"
-                xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <title>Manage Admissions</title>
+</h:head>
+<h:body>
+    <h:form id="form">
+        <div class="card">
+            <p:growl id="messages" showDetail="true"/>
+            <p:toolbar>
+                <p:toolbarGroup>
+                    <p:commandButton value="Admit Patient" icon="pi pi-plus"
+                                     oncomplete="PF('admissionDialog').show()"
+                                     update=":form:admissionDialogContent"/>
+                </p:toolbarGroup>
+            </p:toolbar>
+            <p:dataTable id="admissionTable" var="admission" value="#{doctorAdmissionBean.admissions}" paginator="true" rows="10">
+                <f:facet name="header">All Hospital Admissions</f:facet>
+                <p:column headerText="Patient"><h:outputText value="#{admission.patient.fullName}"/></p:column>
+                <p:column headerText="Assigned Nurse"><h:outputText value="#{admission.nurse.fullName}"/></p:column>
+                <p:column headerText="Admission Date"><h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                <p:column headerText="Discharge Date">
+                    <p:tag value="Admitted" severity="success" rendered="#{admission.dischargeDate == null}"/>
+                    <h:outputText value="#{admission.dischargeDate}" rendered="#{admission.dischargeDate != null}">
+                        <f:convertDateTime pattern="yyyy-MM-dd"/>
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="Ward"><h:outputText value="#{admission.ward} - #{admission.wardNumber}"/></p:column>
+                <p:column headerText="Actions" style="width:6rem; text-align:center">
+                    <p:commandButton icon="pi pi-sign-out" action="#{doctorAdmissionBean.dischargePatient}" update="admissionTable messages"
+                                     styleClass="rounded-button ui-button-success" title="Discharge Patient"
+                                     rendered="#{admission.dischargeDate == null}">
+                        <f:setPropertyActionListener value="#{admission}" target="#{doctorAdmissionBean.selectedAdmission}"/>
+                        <p:confirm header="Confirmation" message="Discharge #{admission.patient.fullName}?" icon="pi pi-question-circle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+        </div>
 
-    <ui:define name="title">Manage Medical Records</ui:define>
+        <p:dialog header="Admit New Patient" widgetVar="admissionDialog" modal="true" width="500">
+            <p:panelGrid id="admissionDialogContent" columns="2" style="margin-bottom:10px;">
+                <p:outputLabel for="patient" value="Select Patient:"/>
+                <p:selectOneMenu id="patient" value="#{doctorAdmissionBean.newAdmission.patient}" converter="omnifaces.SelectItemsConverter" required="true" filter="true">
+                    <f:selectItem itemLabel="-- Select --" noSelectionOption="true"/>
+                    <f:selectItems value="#{doctorAdmissionBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/>
+                </p:selectOneMenu>
 
-    <ui:define name="content">
-        <h:form id="form">
-            <div class="card">
-                <p:growl id="messages" showDetail="true" />
+                <p:outputLabel for="ward" value="Ward:"/>
+                <p:inputText id="ward" value="#{doctorAdmissionBean.newAdmission.ward}" required="true"/>
 
-                <p:panel header="Select Patient">
-                    <p:selectOneMenu id="patientSelect" value="#{doctorMedicalRecordBean.selectedPatient}" converter="omnifaces.SelectItemsConverter"
-                                     filter="true" filterMatchMode="contains">
-                        <f:selectItem itemLabel="--- Select a Patient ---" itemValue="#{null}" noSelectionOption="true"/>
-                        <f:selectItems value="#{doctorMedicalRecordBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName} (ID: #{p.id})"/>
-                        <p:ajax listener="#{doctorMedicalRecordBean.onPatientChange}" update="recordsPanel"/>
-                    </p:selectOneMenu>
-                </p:panel>
+                <p:outputLabel for="wardNumber" value="Ward/Bed Number:"/>
+                <p:inputText id="wardNumber" value="#{doctorAdmissionBean.newAdmission.wardNumber}" required="true"/>
 
-                <p:outputPanel id="recordsPanel" style="margin-top: 1.5rem;">
-                    <p:panel header="Medical History for: #{doctorMedicalRecordBean.selectedPatient.fullName}" rendered="#{not empty doctorMedicalRecordBean.selectedPatient}">
-                        <p:toolbar>
-                            <p:toolbarGroup>
-                                <p:commandButton value="New Record" icon="pi pi-plus" oncomplete="PF('recordDialog').show()"
-                                                 update=":form:recordDialogContent" disabled="#{empty doctorMedicalRecordBean.selectedPatient}"/>
-                            </p:toolbarGroup>
-                        </p:toolbar>
+                <p:outputLabel for="reason" value="Reason for Admission:"/>
+                <p:inputTextarea id="reason" value="#{doctorAdmissionBean.newAdmission.reason}" required="true" rows="4"/>
+            </p:panelGrid>
+            <f:facet name="footer">
+                <p:commandButton value="Admit" icon="pi pi-check"
+                                 action="#{doctorAdmissionBean.admitPatient}"
+                                 update="admissionTable messages admissionDialogContent"
+                                 oncomplete="if (!args.validationFailed) PF('admissionDialog').hide();"/>
+                <p:commandButton value="Cancel" icon="pi pi-times"
+                                 onclick="PF('admissionDialog').hide()" styleClass="ui-button-secondary"/>
+            </f:facet>
+        </p:dialog>
 
-                        <p:dataTable var="record" value="#{doctorMedicalRecordBean.selectedPatientRecords}" emptyMessage="No medical records found for this patient.">
-                            <p:column headerText="Record Date" sortBy="#{record.recordDate}"><h:outputText value="#{record.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
-                            <p:column headerText="Attending Doctor"><h:outputText value="#{record.doctor.fullName}"/></p:column>
-                            <p:column headerText="Diagnosis"><h:outputText value="#{record.diagnosis}"/></p:column>
-                            <p:column headerText="Treatment"><h:outputText value="#{record.treatment}"/></p:column>
-                        </p:dataTable>
-                    </p:panel>
-                </p:outputPanel>
-
-                <p:dialog header="Add New Medical Record" widgetVar="recordDialog" modal="true" width="600" resizable="false">
-                    <h:panelGrid id="recordDialogContent" columns="1" style="width:100%;">
-                        <p:outputLabel for="diagnosis" value="Diagnosis:"/>
-                        <p:inputTextarea id="diagnosis" value="#{doctorMedicalRecordBean.newRecord.diagnosis}" rows="5" required="true" style="width:100%;"/>
-
-                        <p:outputLabel for="treatment" value="Treatment Plan:"/>
-                        <p:inputTextarea id="treatment" value="#{doctorMedicalRecordBean.newRecord.treatment}" rows="5" required="true" style="width:100%;"/>
-                    </h:panelGrid>
-                    <f:facet name="footer">
-                        <p:commandButton value="Save Record" icon="pi pi-check" action="#{doctorMedicalRecordBean.addRecord}" update="recordsPanel messages recordDialogContent" oncomplete="if (!args.validationFailed) PF('recordDialog').hide();"/>
-                        <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('recordDialog').hide()" styleClass="ui-button-secondary"/>
-                    </f:facet>
-                </p:dialog>
-            </div>
-        </h:form>
-    </ui:define>
-</ui:composition>
+        <p:confirmDialog global="true">
+            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/>
+            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+        </p:confirmDialog>
+    </h:form>
+</h:body>
+</html>
