@@ -13,4 +13,8 @@ public interface StaffService {
     Staff getStaff(Long id);
     List<Staff> getAllStaff();
     List<Staff> getStaffByRole(Role role);
+    long countDoctors();
+    long countNurses();
+    long countReceptionists();
+
 }

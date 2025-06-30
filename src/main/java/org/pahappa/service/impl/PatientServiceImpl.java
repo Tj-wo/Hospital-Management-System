@@ -54,6 +54,11 @@ public class PatientServiceImpl implements PatientService {
         patientDao.delete(id);
     }
 
+    @Override
+    public long countPatients() {
+        return patientDao.getAll().size(); // Or better: implement patientDao.count()
+    }
+
     private void validatePatient(Patient patient) {
         if (patient == null) throw new IllegalArgumentException("Patient object cannot be null.");
         if (patient.getFirstName() == null || patient.getFirstName().trim().isEmpty() || patient.getFirstName().length() > Constants.MAX_NAME_LENGTH) {

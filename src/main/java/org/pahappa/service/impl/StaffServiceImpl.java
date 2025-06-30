@@ -78,6 +78,21 @@ public class StaffServiceImpl implements StaffService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public long countDoctors() {
+        return getStaffByRole(Role.DOCTOR).size();
+    }
+
+    @Override
+    public long countNurses() {
+        return getStaffByRole(Role.NURSE).size();
+    }
+
+    @Override
+    public long countReceptionists() {
+        return getStaffByRole(Role.RECEPTIONIST).size();
+    }
+
     private void validateStaff(Staff staff) {
         if (staff == null) throw new IllegalArgumentException("Staff object cannot be null.");
         if (staff.getFirstName() == null || staff.getFirstName().trim().isEmpty()) throw new IllegalArgumentException("First Name is required.");

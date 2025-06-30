@@ -86,6 +86,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentDao.findByPatientId(patient.getId());
     }
 
+    @Override
+    public long countAppointments() {
+        return appointmentDao.getAll().size();
+    }
+
     private void validateAppointment(Appointment appointment, Long idToIgnore) {
         if (appointment == null) throw new IllegalArgumentException("Appointment object cannot be null.");
         if (appointment.getPatient() == null) throw new IllegalArgumentException("Patient is required for the appointment.");

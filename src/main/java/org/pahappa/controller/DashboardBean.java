@@ -32,8 +32,9 @@ public class DashboardBean implements Serializable {
     @PostConstruct
     public void init() {
         totalPatients = patientService.countPatients();
-        totalDoctors = StaffService.countDoctors();
+        totalDoctors = doctorService.countDoctors();
         totalAppointments = appointmentService.countAppointments();
+
     }
 
     // Getters and setters
