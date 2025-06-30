@@ -1,8 +1,8 @@
-package org.pahappa.presentation.nurse;
+package org.pahappa.controller.nurse;
 
 import org.pahappa.model.Admission;
 import org.pahappa.model.MedicalRecord;
-import org.pahappa.presentation.LoginBean;
+import org.pahappa.controller.LoginBean;
 import org.pahappa.service.AdmissionService;
 import org.pahappa.service.MedicalRecordService;
 import javax.annotation.PostConstruct;

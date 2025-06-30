@@ -1,4 +1,4 @@
-package org.pahappa.presentation.doctor;
+package org.pahappa.controller.doctor;
 
 import org.pahappa.model.Admission;
 import org.pahappa.model.Patient;

@@ -1,4 +1,4 @@
-package org.pahappa.presentation.admin;
+package org.pahappa.controller.admin;
 
 import org.pahappa.model.MedicalRecord;
 import org.pahappa.service.MedicalRecordService;

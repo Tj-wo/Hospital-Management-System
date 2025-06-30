@@ -1,8 +1,8 @@
-package org.pahappa.presentation.patient;
+package org.pahappa.controller.patient;
 
 import org.pahappa.model.Appointment;
 import org.pahappa.model.Staff;
-import org.pahappa.presentation.LoginBean;
+import org.pahappa.controller.LoginBean;
 import org.pahappa.service.AppointmentService;
 import org.pahappa.service.StaffService;
 import org.pahappa.utils.Role;
