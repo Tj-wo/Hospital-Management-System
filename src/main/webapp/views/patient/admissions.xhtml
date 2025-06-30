@@ -1,40 +1,36 @@
-<ui:composition template="/templates/main-template.xhtml"
-                xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
-                xmlns:f="http://xmlns.jcp.org/jsf/core"
-                xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Patient Admission</title>
+</h:head>
+<h:body>
+    <h:form>
+        <p:panel header="Admit Patient">
+            <p:messages id="msgs" showDetail="true" closable="true" />
 
-    <ui:define name="title">My Admission History</ui:define>
+            <p:outputLabel for="patient" value="Select Patient:" />
+            <p:selectOneMenu id="patient" value="#{admissionBean.patientId}">
+                <f:selectItem itemLabel="-- Select Patient --" itemValue="" />
+                <f:selectItems value="#{admissionBean.patients}" var="p"
+                               itemLabel="#{p.fullName}" itemValue="#{p.id}" />
+            </p:selectOneMenu>
 
-    <ui:define name="content">
-        <h:form>
-            <div class="card">
-                <p:dataTable var="admission" value="#{patientAdmissionBean.admissions}" paginator="true" rows="10"
-                             emptyMessage="You have no admission records.">
-                    <f:facet name="header">My Admission History</f:facet>
+            <p:outputLabel for="reason" value="Admission Reason:" />
+            <p:inputTextarea id="reason" value="#{admissionBean.admissionReason}" autoResize="false" />
 
-                    <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}">
-                        <h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText>
-                    </p:column>
+            <p:outputLabel for="department" value="Department:" />
+            <p:selectOneMenu id="department" value="#{admissionBean.department}">
+                <f:selectItem itemLabel="-- Select Department --" itemValue="" />
+                <f:selectItems value="#{admissionBean.departments}" />
+            </p:selectOneMenu>
 
-                    <p:column headerText="Discharge Date" sortBy="#{admission.dischargeDate}">
-                        <h:outputText value="#{admission.dischargeDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText>
-                    </p:column>
+            <p:outputLabel for="admitDate" value="Admission Date:" />
+            <p:calendar id="admitDate" value="#{admissionBean.admissionDate}" pattern="MM/dd/yyyy" showButtonPanel="true" />
 
-                    <p:column headerText="Assigned Nurse" sortBy="#{admission.nurse.fullName}">
-                        <h:outputText value="#{admission.nurse.fullName}"/>
-                    </p:column>
-
-                    <p:column headerText="Ward &amp; Bed">
-                        <h:outputText value="#{admission.ward} - #{admission.wardNumber}"/>
-                    </p:column>
-
-                    <p:column headerText="Reason for Admission">
-                        <h:outputText value="#{admission.reason}"/>
-                    </p:column>
-                </p:dataTable>
-            </div>
-        </h:form>
-    </ui:define>
-</ui:composition>
+            <p:commandButton value="Admit Patient" action="#{admissionBean.admitPatient}" update="msgs" icon="pi pi-check" />
+        </p:panel>
+    </h:form>
+</h:body>
+</html>
