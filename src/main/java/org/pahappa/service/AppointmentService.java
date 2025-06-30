@@ -1,4 +1,3 @@
-
 package org.pahappa.service;
 
 import org.pahappa.model.Appointment;
@@ -15,12 +14,4 @@ public interface AppointmentService {
     List<Appointment> getAppointmentsForDoctor(long doctorId);
     List<Appointment> getAppointmentsForPatient(long patientId);
     void updateAppointmentStatus(Long appointmentId, AppointmentStatus newStatus);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes
-=======
-}
->>>>>>> Stashed changes
