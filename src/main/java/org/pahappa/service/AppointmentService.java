@@ -16,4 +16,6 @@ public interface AppointmentService {
     List<Appointment> getAppointmentsForPatient(long patientId);
     void updateAppointmentStatus(Long appointmentId, AppointmentStatus newStatus);
     List<Appointment> getAppointmentsByPatient(Patient patient);
+    long countAppointments();
+
 }
