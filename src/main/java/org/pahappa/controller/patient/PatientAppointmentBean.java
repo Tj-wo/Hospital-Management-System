@@ -1,101 +1,120 @@
 package org.pahappa.controller.patient;
 
 import org.pahappa.model.Appointment;
-import org.pahappa.model.Staff;
-import org.pahappa.controller.LoginBean;
 import org.pahappa.service.AppointmentService;
-import org.pahappa.service.StaffService;
-import org.pahappa.utils.Role;
 import org.primefaces.PrimeFaces;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.RequestScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
-import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.Serializable;
 import java.util.List;
 
 @Named("patientAppointmentBean")
-@ViewScoped
+@RequestScoped
 public class PatientAppointmentBean implements Serializable {
 
-    @Inject
-    private AppointmentService appointmentService;
-
-    @Inject
-    private StaffService staffService;
-
-    @Inject
-    private LoginBean loginBean;
-
     private List<Appointment> appointments;
-    private List<Staff> doctors;
-    private Appointment newAppointment = new Appointment();
+    private Appointment newAppointment;
     private Appointment selectedAppointment;
+
+    @Inject
+    private AppointmentService appointmentService;  // Inject interface, not impl
+
+    @Inject
+    private org.pahappa.controller.LoginBean loginBean;
 
     @PostConstruct
     public void init() {
-        if (isPatientLoggedIn()) {
-            loadAppointments();
-            this.doctors = staffService.getStaffByRole(Role.DOCTOR);
-        }
+        newAppointment = new Appointment();
+        loadAppointments();
     }
 
-    private void loadAppointments() {
-        long patientId = loginBean.getLoggedInUser().getPatient().getId();
-        appointments = appointmentService.getAppointmentsForPatient(patientId);
+    public void loadAppointments() {
+        appointments = appointmentService.getAppointmentsByPatient(
+                loginBean.getLoggedInUser().getPatient()
+        );
     }
 
-    public void bookAppointment() {
+    public void prepareNewAppointment() {
+        newAppointment = new Appointment();
+    }
+
+    public void saveAppointment() {
         boolean success = false;
         try {
             newAppointment.setPatient(loginBean.getLoggedInUser().getPatient());
-            appointmentService.scheduleAppointment(newAppointment);
+
+            if (newAppointment.getId() == null) {
+                appointmentService.scheduleAppointment(newAppointment);
+                addMessage(FacesMessage.SEVERITY_INFO, "Booked", "Appointment scheduled.");
+            } else {
+                appointmentService.updateAppointment(newAppointment);
+                addMessage(FacesMessage.SEVERITY_INFO, "Updated", "Appointment rescheduled.");
+            }
 
             loadAppointments();
-            newAppointment = new Appointment(); // Reset the form
-
-            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Your appointment has been booked.");
+            newAppointment = new Appointment();
             success = true;
-
         } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Booking Failed", e.getMessage());
+            addMessage(FacesMessage.SEVERITY_ERROR, "Failed", e.getMessage());
         }
-
-        // Use a callback parameter to conditionally close the dialog from the view.
-        // This ensures the dialog stays open if there's a validation error.
         PrimeFaces.current().ajax().addCallbackParam("bookingSuccess", success);
     }
 
+    public void selectForEdit(Appointment appt) {
+        newAppointment = new Appointment();
+        newAppointment.setId(appt.getId());
+        newAppointment.setPatient(appt.getPatient());
+        newAppointment.setDoctor(appt.getDoctor());
+        newAppointment.setAppointmentDate(appt.getAppointmentDate());
+        newAppointment.setReason(appt.getReason());
+    }
+
     public void cancelAppointment() {
-        if (selectedAppointment != null) {
-            try {
+        try {
+            if (selectedAppointment != null && selectedAppointment.getId() != null) {
+                // Assuming patient cancels the appointment, set true as second param
                 appointmentService.cancelAppointment(selectedAppointment.getId(), true);
+                addMessage(FacesMessage.SEVERITY_INFO, "Cancelled", "Appointment cancelled.");
                 loadAppointments();
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Your appointment has been cancelled.");
-            } catch (Exception e) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Cancellation Failed", e.getMessage());
+            } else {
+                addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No appointment selected to cancel.");
             }
+        } catch (Exception e) {
+            addMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage());
         }
     }
 
-    private boolean isPatientLoggedIn() {
-        return loginBean != null && loginBean.isLoggedIn() &&
-                loginBean.getLoggedInUser().getPatient() != null &&
-                loginBean.getLoggedInUser().getRole() == Role.PATIENT;
+    private void addMessage(FacesMessage.Severity severity, String title, String detail) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, detail));
     }
 
-    private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
+    // Getters and setters
+    public List<Appointment> getAppointments() {
+        return appointments;
     }
 
-    // --- Getters and Setters ---
-    public List<Appointment> getAppointments() { return appointments; }
-    public Appointment getNewAppointment() { return newAppointment; }
-    public void setNewAppointment(Appointment newAppointment) { this.newAppointment = newAppointment; }
-    public List<Staff> getDoctors() { return doctors; }
-    public Appointment getSelectedAppointment() { return selectedAppointment; }
-    public void setSelectedAppointment(Appointment selectedAppointment) { this.selectedAppointment = selectedAppointment; }
+    public void setAppointments(List<Appointment> appointments) {
+        this.appointments = appointments;
+    }
+
+    public Appointment getNewAppointment() {
+        return newAppointment;
+    }
+
+    public void setNewAppointment(Appointment newAppointment) {
+        this.newAppointment = newAppointment;
+    }
+
+    public Appointment getSelectedAppointment() {
+        return selectedAppointment;
+    }
+
+    public void setSelectedAppointment(Appointment selectedAppointment) {
+        this.selectedAppointment = selectedAppointment;
+    }
 }

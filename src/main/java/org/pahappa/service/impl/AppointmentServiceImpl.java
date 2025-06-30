@@ -8,6 +8,7 @@ import org.pahappa.service.AppointmentService;
 import org.pahappa.service.HibernateUtil;
 import org.pahappa.utils.AppointmentStatus;
 import org.pahappa.utils.Role;
+import org.pahappa.model.Patient;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.sql.Timestamp;
@@ -76,6 +77,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
         appointment.setStatus(newStatus);
         appointmentDao.update(appointment);
+    }
+    @Override
+    public List<Appointment> getAppointmentsByPatient(Patient patient) {
+        if (patient == null || patient.getId() == null) {
+            throw new IllegalArgumentException("Patient must not be null and must have a valid ID.");
+        }
+        return appointmentDao.findByPatientId(patient.getId());
     }
 
     private void validateAppointment(Appointment appointment, Long idToIgnore) {
