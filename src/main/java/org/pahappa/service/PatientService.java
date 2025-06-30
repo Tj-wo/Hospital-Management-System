@@ -11,7 +11,11 @@ public interface PatientService {
     List<Patient> getAllPatients();
     void deletePatient(Long id);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
 =======
 }
 >>>>>>> Stashed changes

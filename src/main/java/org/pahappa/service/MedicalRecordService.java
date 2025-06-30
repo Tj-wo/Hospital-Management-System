@@ -11,7 +11,11 @@ public interface MedicalRecordService {
     List<MedicalRecord> getAllMedicalRecords();
     List<MedicalRecord> getRecordsForPatient(Long patientId);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
 =======
 }
 >>>>>>> Stashed changes

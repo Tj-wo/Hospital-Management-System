@@ -8,7 +8,11 @@ public interface UserService {
     User login(String username, String password);
     void registerPatient(Patient patient, String password);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
 =======
 }
 >>>>>>> Stashed changes
