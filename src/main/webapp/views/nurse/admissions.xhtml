@@ -1,44 +1,33 @@
-<ui:composition template="/templates/main-template.xhtml"
-                xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html"
-                xmlns:f="http://xmlns.jcp.org/jsf/core"
-                xmlns:p="http://primefaces.org/ui"
-                xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Nurse Admission</title>
+</h:head>
+<h:body>
+    <h:form>
+        <p:panel header="Admit Patient (Nurse)">
+            <p:messages id="msgs" showDetail="true" closable="true" />
 
-    <ui:define name="title">My Assigned Patients</ui:define>
+            <p:outputLabel for="patient" value="Select Patient:" />
+            <p:selectOneMenu id="patient" value="#{nurseAdmissionBean.patientId}">
+                <f:selectItem itemLabel="-- Select Patient --" itemValue="" />
+                <f:selectItems value="#{nurseAdmissionBean.patients}" var="p"
+                               itemLabel="#{p.fullName}" itemValue="#{p.id}" />
+            </p:selectOneMenu>
 
-    <ui:define name="content">
-        <h:form id="form">
-            <div class="card">
-                <p:dataTable id="admissionTable" var="admission" value="#{nurseAdmissionBean.assignedAdmissions}"
-                             paginator="true" rows="10" emptyMessage="No patients are currently assigned to you.">
-                    <f:facet name="header">My Assigned Patient Admissions</f:facet>
+            <p:outputLabel for="notes" value="Nurse Notes:" />
+            <p:inputTextarea id="notes" value="#{nurseAdmissionBean.nurseNotes}" autoResize="false" />
 
-                    <p:column headerText="Patient Name" sortBy="#{admission.patient.fullName}">
-                        <h:outputText value="#{admission.patient.fullName}"/>
-                    </p:column>
+            <p:outputLabel for="room" value="Assign Room:" />
+            <p:selectOneMenu id="room" value="#{nurseAdmissionBean.roomNumber}">
+                <f:selectItem itemLabel="-- Select Room --" itemValue="" />
+                <f:selectItems value="#{nurseAdmissionBean.availableRooms}" />
+            </p:selectOneMenu>
 
-                    <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}">
-                        <h:outputText value="#{admission.admissionDate}">
-                            <f:convertDateTime pattern="yyyy-MM-dd"/>
-                        </h:outputText>
-                    </p:column>
-
-                    <!-- THIS IS THE CORRECTED LINE -->
-                    <p:column headerText="Ward &amp; Bed" sortBy="#{admission.ward}">
-                        <h:outputText value="#{admission.ward} - #{admission.wardNumber}"/>
-                    </p:column>
-
-                    <p:column headerText="Reason for Admission">
-                        <h:outputText value="#{admission.reason}"/>
-                    </p:column>
-
-                    <p:column headerText="Status">
-                        <p:tag value="Admitted" severity="success" rendered="#{admission.dischargeDate == null}"/>
-                        <p:tag value="Discharged" severity="warning" rendered="#{admission.dischargeDate != null}"/>
-                    </p:column>
-                </p:dataTable>
-            </div>
-        </h:form>
-    </ui:define>
-</ui:composition>
+            <p:commandButton value="Complete Admission" action="#{nurseAdmissionBean.completeAdmission}" update="msgs" icon="pi pi-check" />
+        </p:panel>
+    </h:form>
+</h:body>
+</html>
