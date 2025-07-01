@@ -37,6 +37,11 @@ public class NurseAdmissionBean implements Serializable {
                 loginBean.getLoggedInUser().getRole() == org.pahappa.utils.Role.NURSE;
     }
 
+    public List<Admission> getAdmissions() {
+        return assignedAdmissions;
+    }
+
+
     // --- Getter ---
     public List<Admission> getAssignedAdmissions() {
         return assignedAdmissions;

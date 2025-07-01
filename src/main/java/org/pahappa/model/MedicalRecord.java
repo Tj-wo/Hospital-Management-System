@@ -1,9 +1,8 @@
 package org.pahappa.model;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.util.Date;
 
-// Entity class representing a medical record
 @Entity
 @Table(name = "medical_records")
 public class MedicalRecord extends BaseModel {
@@ -16,7 +15,8 @@ public class MedicalRecord extends BaseModel {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Staff doctor;
 
-    @Column(nullable = false)
+    @Temporal(TemporalType.DATE) //
+    @Column(name = "record_date", nullable = false)
     private Date recordDate;
 
     @Column(nullable = false)
@@ -25,12 +25,10 @@ public class MedicalRecord extends BaseModel {
     @Column(nullable = false)
     private String treatment;
 
-    // No-arg constructor for Hibernate
     public MedicalRecord() {
     }
 
     // Getters and setters
-
     public Patient getPatient() {
         return patient;
     }

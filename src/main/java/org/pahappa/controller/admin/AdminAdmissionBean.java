@@ -30,17 +30,6 @@ public class AdminAdmissionBean implements Serializable {
         admissions = admissionService.getAllAdmissions();
     }
 
-    public void dischargePatient() {
-        if (selectedAdmission != null) {
-            try {
-                admissionService.dischargePatient(selectedAdmission.getId());
-                loadAdmissions(); // Refresh
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient has been discharged.");
-            } catch (Exception e) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Failed to discharge patient: " + e.getMessage());
-            }
-        }
-    }
 
     private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
