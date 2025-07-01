@@ -17,13 +17,6 @@
                     <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}"><h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
                     <p:column headerText="Discharge Date" sortBy="#{admission.dischargeDate}"><h:outputText value="#{admission.dischargeDate}" rendered="#{admission.dischargeDate != null}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText><p:tag severity="success" value="Admitted" rendered="#{admission.dischargeDate == null}"/></p:column>
                     <p:column headerText="Ward"><h:outputText value="#{admission.ward} - #{admission.wardNumber}"/></p:column>
-                    <p:column headerText="Actions" style="width:6rem; text-align:center">
-                        <p:commandButton icon="pi pi-sign-out" actionListener="#{adminAdmissionBean.dischargePatient}" update="admissionTable :global-growl"
-                                         styleClass="rounded-button ui-button-success" title="Discharge Patient" rendered="#{admission.dischargeDate == null}">
-                            <f:setPropertyActionListener value="#{admission}" target="#{adminAdmissionBean.selectedAdmission}"/>
-                            <p:confirm header="Confirmation" message="Discharge #{admission.patient.fullName}?" icon="pi pi-question-circle"/>
-                        </p:commandButton>
-                    </p:column>
                 </p:dataTable>
             </div>
             <p:confirmDialog global="true">
