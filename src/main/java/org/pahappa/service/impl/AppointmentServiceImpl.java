@@ -11,8 +11,9 @@ import org.pahappa.utils.Role;
 import org.pahappa.model.Patient;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @ApplicationScoped
@@ -32,7 +33,14 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public void scheduleAppointment(Appointment appointment) {
+        System.out.println(">>> Scheduling appointment:");
+        System.out.println("Patient: " + appointment.getPatient());
+        System.out.println("Doctor: " + appointment.getDoctor());
+        System.out.println("Date: " + appointment.getAppointmentDate());
+        System.out.println("Reason: " + appointment.getReason());
+
         validateAppointment(appointment, null);
+        appointment.setDeleted(false);
         appointment.setStatus(AppointmentStatus.SCHEDULED);
         appointmentDao.save(appointment);
     }
@@ -78,6 +86,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setStatus(newStatus);
         appointmentDao.update(appointment);
     }
+
     @Override
     public List<Appointment> getAppointmentsByPatient(Patient patient) {
         if (patient == null || patient.getId() == null) {
@@ -98,7 +107,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (appointment.getDoctor().getRole() != Role.DOCTOR) throw new IllegalArgumentException("Assigned staff must be a DOCTOR.");
         if (appointment.getAppointmentDate() == null) throw new IllegalArgumentException("Appointment date is required.");
         if (appointment.getReason() == null || appointment.getReason().trim().isEmpty()) throw new IllegalArgumentException("A reason for the appointment is required.");
-        if (appointment.getAppointmentDate().before(Timestamp.valueOf(LocalDateTime.now().minusMinutes(5)))) {
+
+        // Convert LocalDateTime.now().minusMinutes(5) to java.util.Date for comparison
+        Date fiveMinutesAgo = Date.from(LocalDateTime.now().minusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
+        if (appointment.getAppointmentDate().before(fiveMinutesAgo)) {
             throw new IllegalArgumentException("Appointment date cannot be in the past.");
         }
         if (!isDoctorAvailable(appointment.getDoctor(), appointment.getAppointmentDate(), idToIgnore)) {
@@ -106,7 +118,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-    private boolean isDoctorAvailable(Staff doctor, Timestamp appointmentTime, Long idToIgnore) {
+    private boolean isDoctorAvailable(Staff doctor, Date appointmentTime, Long idToIgnore) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             String hql = "SELECT COUNT(a.id) FROM Appointment a WHERE a.doctor = :doctor AND a.appointmentDate = :appointmentTime AND a.status = 'SCHEDULED' AND a.deleted = false";
             if (idToIgnore != null) {

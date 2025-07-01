@@ -19,7 +19,7 @@
                         </div>
                     </f:facet>
                     <p:column headerText="Doctor"><h:outputText value="#{appt.doctor.fullName}"/></p:column>
-                    <p:column headerText="Date &amp; Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText></p:column>
+                    <p:column headerText="Date &amp; Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd hh:mm a"/></h:outputText></p:column>
                     <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
                     <p:column headerText="Status"><p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : appt.status == 'COMPLETED' ? 'success' : 'danger'}"/></p:column>
                     <p:column headerText="Actions" style="text-align:center; width:10rem;">
@@ -31,16 +31,31 @@
                     </p:column>
                 </p:dataTable>
             </div>
-            <p:confirmDialog global="true"><p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/><p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/></p:confirmDialog>
+            <p:confirmDialog global="true">
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/>
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+            </p:confirmDialog>
         </h:form>
 
         <h:form id="dialogForm">
             <p:dialog header="Book/Reschedule Appointment" widgetVar="appointmentDialog" modal="true" resizable="false" width="450">
                 <p:outputPanel id="appointmentDialogContent" class="ui-fluid p-4">
                     <p:growl id="dialogMessages" />
-                    <div class="p-field mb-4"><p:outputLabel for="doctor" value="Doctor:"/><p:selectOneMenu id="doctor" value="#{patientAppointmentBean.newAppointment.doctor}" converter="omnifaces.SelectItemsConverter" filter="true"><f:selectItem itemLabel="-- Select --" noSelectionOption="true"/><f:selectItems value="#{adminAppointmentBean.availableDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName}"/></p:selectOneMenu></div>
-                    <div class="p-field mb-4"><p:outputLabel for="datetime" value="Date &amp; Time:"/><p:calendar id="datetime" value="#{patientAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd HH:mm" showTime="true" required="true"/></div>
-                    <div class="p-field mb-4"><p:outputLabel for="reason" value="Reason:"/><p:inputTextarea id="reason" value="#{patientAppointmentBean.newAppointment.reason}" rows="3" style="width:100%;" required="true"/></div>
+                    <div class="p-field mb-4">
+                        <p:outputLabel for="doctor" value="Doctor:"/>
+                        <p:selectOneMenu id="doctor" value="#{patientAppointmentBean.newAppointment.doctor}" converter="omnifaces.SelectItemsConverter" filter="true">
+                            <f:selectItem itemLabel="-- Select --" noSelectionOption="true"/>
+                            <f:selectItems value="#{adminAppointmentBean.availableDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName}"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="p-field mb-4">
+                        <p:outputLabel for="datetime" value="Date &amp; Time:"/>
+                        <p:calendar id="datetime" value="#{patientAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd hh:mm a" showTime="true" required="true"/>
+                    </div>
+                    <div class="p-field mb-4">
+                        <p:outputLabel for="reason" value="Reason:"/>
+                        <p:inputTextarea id="reason" value="#{patientAppointmentBean.newAppointment.reason}" rows="3" style="width:100%;" required="true"/>
+                    </div>
                 </p:outputPanel>
                 <f:facet name="footer">
                     <p:commandButton value="Save" icon="pi pi-check" actionListener="#{patientAppointmentBean.saveAppointment}" update=":appointmentForm:appointmentTable :global-growl dialogMessages" oncomplete="if (args &amp;&amp; args.bookingSuccess) PF('appointmentDialog').hide();" styleClass="btn-primary"/>
