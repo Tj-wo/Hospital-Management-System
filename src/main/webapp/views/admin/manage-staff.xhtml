@@ -1,41 +1,55 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core">
-<h:head>
-    <title>Manage Staff</title>
-</h:head>
-<h:body>
-    <h:form id="staffForm">
-        <div class="card">
-            <p:growl id="messages" showDetail="true" life="6000"/>
-            <p:dataTable id="staffTable" var="staff" value="#{staffBean.staffList}" paginator="true" rows="10" emptyMessage="No staff members found.">
-                <f:facet name="header">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Staff Members</span>
-                        <p:commandButton value="New Staff" icon="pi pi-plus"
-                                         actionListener="#{staffBean.prepareNewStaff}"
-                                         oncomplete="PF('staffDialog').show()" update=":dialogForm"/>
-                    </div>
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Manage Staff</ui:define>
+    <ui:define name="content">
+        <h:form id="staffForm">
+            <div class="card">
+                <p:dataTable id="staffTable" var="staff" value="#{adminStaffBean.staffList}" paginator="true" rows="10" emptyMessage="No staff members found." styleClass="modern-table">
+                    <f:facet name="header">
+                        <div class="table-header">
+                            <span class="card-title"><i class="pi pi-users"></i>Staff Members</span>
+                            <p:commandButton value="New Staff" icon="pi pi-plus" actionListener="#{adminStaffBean.prepareNewStaff}" oncomplete="PF('staffDialog').show()" update=":dialogForm" process="@this" styleClass="btn-primary"/>
+                        </div>
+                    </f:facet>
+                    <p:column headerText="Name" sortBy="#{staff.fullName}"><h:outputText value="#{staff.fullName}"/></p:column>
+                    <p:column headerText="Role" sortBy="#{staff.role}"><p:tag value="#{staff.role}" severity="#{staff.role == 'DOCTOR' ? 'info' : staff.role == 'NURSE' ? 'success' : 'warning'}"/></p:column>
+                    <p:column headerText="Email"><h:outputText value="#{staff.email}"/></p:column>
+                    <p:column headerText="Specialty"><h:outputText value="#{staff.specialty != null ? staff.specialty : 'N/A'}"/></p:column>
+                    <p:column headerText="Actions" style="width:6rem; text-align:center">
+                        <p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger" actionListener="#{adminStaffBean.deleteStaff}" update="staffTable :global-growl">
+                            <f:setPropertyActionListener value="#{staff}" target="#{adminStaffBean.selectedStaff}"/>
+                            <p:confirm header="Confirmation" message="Delete #{staff.fullName}?" icon="pi pi-exclamation-triangle"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+            <p:confirmDialog global="true"><p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/><p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/></p:confirmDialog>
+        </h:form>
+
+        <h:form id="dialogForm">
+            <p:dialog header="Staff Details" widgetVar="staffDialog" modal="true" width="500" resizable="false">
+                <div class="ui-fluid p-4">
+                    <p:growl id="dialogMessages" showDetail="true"/>
+                    <div class="p-field mb-4"><p:outputLabel for="firstName" value="First Name:"/><p:inputText id="firstName" value="#{adminStaffBean.newStaff.firstName}" required="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="lastName" value="Last Name:"/><p:inputText id="lastName" value="#{adminStaffBean.newStaff.lastName}" required="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="email" value="Email (Username):"/><p:inputText id="email" value="#{adminStaffBean.newStaff.email}" required="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="password" value="Password:"/><p:password id="password" value="#{adminStaffBean.password}" required="true" feedback="false" toggleMask="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="dob" value="Date of Birth:"/><p:calendar id="dob" value="#{adminStaffBean.newStaff.dateOfBirth}" pattern="yyyy-MM-dd" required="true" navigator="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="role" value="Role:"/><p:selectOneMenu id="role" value="#{adminStaffBean.newStaff.role}" required="true"><f:selectItems value="#{adminStaffBean.roles}" var="role" itemLabel="#{role}" itemValue="#{role}"/></p:selectOneMenu></div>
+                    <div class="p-field mb-4"><p:outputLabel for="specialty" value="Specialty (for Doctors):"/><p:inputText id="specialty" value="#{adminStaffBean.newStaff.specialty}"/></div>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="Save" icon="pi pi-check" actionListener="#{adminStaffBean.addStaff}" styleClass="btn-primary"/>
+                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('staffDialog').hide()" styleClass="ui-button-secondary"/>
                 </f:facet>
-                <p:column headerText="Name"><h:outputText value="#{staff.fullName}"/></p:column>
-                <p:column headerText="Role">
-                    <p:tag value="#{staff.role}" severity="#{staff.role == 'DOCTOR' ? 'info' : staff.role == 'NURSE' ? 'success' : 'warning'}"/>
-                </p:column>
-                <p:column headerText="Email"><h:outputText value="#{staff.email}"/></p:column>
-                <p:column headerText="Specialty">
-                    <h:outputText value="#{staff.specialty != null ? staff.specialty : 'N/A'}"/>
-                </p:column>
-                <p:column headerText="Actions" style="width:6rem; text-align:center">
-                    <p:commandButton icon="pi pi-trash" styleClass="rounded-button ui-button-danger"
-                                     actionListener="#{staffBean.deleteStaff}" update="staffForm">
-                        <f:setPropertyActionListener value="#{staff}" target="#{staffBean.selectedStaff}"/>
-                        <p:confirm header="Confirmation" message="Delete #{staff.fullName}?" icon="pi pi-exclamation-triangle"/>
-                    </p:commandButton>
-                </p:column>
-            </p:dataTable>
-        </div>
-    </h:form>
-</h:body>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
 </html>

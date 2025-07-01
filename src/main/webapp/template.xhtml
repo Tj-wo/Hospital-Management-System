@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title><ui:insert name="title">HMS</ui:insert> - Hospital Management System</title>
+    <h:outputStylesheet name="/css/style.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+</h:head>
+
+<h:body>
+    <div class="app-layout">
+        <p:outputPanel rendered="#{loginBean.isLoggedIn()}">
+            <aside class="sidebar" id="mainSidebar">
+                <div class="sidebar-header">
+                    <i class="pi pi-heart-fill brand-icon"></i>
+                    <span class="brand-text">HMS Portal</span>
+                </div>
+                <div class="sidebar-content">
+                    <!-- The form is ONLY for the logout commandLink -->
+                    <h:form>
+                        <!-- Main Nav -->
+                        <div class="nav-section">
+                            <div class="nav-header">Main</div>
+                            <!-- CORRECTED: Using p:link with outcome -->
+                            <p:link styleClass="nav-item #{view.viewId.contains('dashboard') ? 'active' : ''}" outcome="dashboard">
+                                <i class="pi pi-home nav-icon"></i><span>Dashboard</span>
+                            </p:link>
+                        </div>
+
+                        <!-- ADMIN -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
+                            <div class="nav-section">
+                                <div class="nav-header">Administration</div>
+                                <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-staff') ? 'active' : ''}" outcome="manage-staff"><i class="pi pi-users nav-icon"></i><span>Staff</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-patients') ? 'active' : ''}" outcome="manage-patients"><i class="pi pi-user-plus nav-icon"></i><span>Patients</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-appointments') ? 'active' : ''}" outcome="manage-appointments"><i class="pi pi-calendar nav-icon"></i><span>Appointments</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-admissions') ? 'active' : ''}" outcome="manage-admissions"><i class="pi pi-building nav-icon"></i><span>Admissions</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-medical-records') ? 'active' : ''}" outcome="manage-medical-records"><i class="pi pi-file-edit nav-icon"></i><span>Records</span></p:link>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- DOCTOR -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
+                            <div class="nav-section"><div class="nav-header">Doctor Menu</div>
+                                <p:link styleClass="nav-item #{view.viewId.contains('doctor/appointments') ? 'active' : ''}" outcome="doctor-appointments"><i class="pi pi-calendar-check nav-icon"></i><span>My Appointments</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('doctor/medical-records') ? 'active' : ''}" outcome="doctor-medical-records"><i class="pi pi-file-edit nav-icon"></i><span>Medical Records</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('doctor/admissions') ? 'active' : ''}" outcome="doctor-admissions"><i class="pi pi-building nav-icon"></i><span>Admissions</span></p:link>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- NURSE -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'NURSE'}">
+                            <div class="nav-section"><div class="nav-header">Nurse Menu</div>
+                                <p:link styleClass="nav-item #{view.viewId.contains('nurse/admissions') ? 'active' : ''}" outcome="nurse-admissions"><i class="pi pi-th-large nav-icon"></i><span>Admissions</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('nurse/update-records') ? 'active' : ''}" outcome="nurse-update-records"><i class="pi pi-pencil nav-icon"></i><span>Update Records</span></p:link>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- RECEPTIONIST -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'RECEPTIONIST'}">
+                            <div class="nav-section"><div class="nav-header">Receptionist Menu</div>
+                                <p:link styleClass="nav-item #{view.viewId.contains('receptionist/register-patient') ? 'active' : ''}" outcome="receptionist-register-patient"><i class="pi pi-user-plus nav-icon"></i><span>Register Patient</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('receptionist/appointments') ? 'active' : ''}" outcome="receptionist-appointments"><i class="pi pi-calendar nav-icon"></i><span>Appointments</span></p:link>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- PATIENT -->
+                        <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
+                            <div class="nav-section"><div class="nav-header">Patient Portal</div>
+                                <p:link styleClass="nav-item #{view.viewId.contains('patient/appointments') ? 'active' : ''}" outcome="patient-appointments"><i class="pi pi-calendar nav-icon"></i><span>My Appointments</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('patient/medical-records') ? 'active' : ''}" outcome="patient-medical-records"><i class="pi pi-file nav-icon"></i><span>My Records</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('patient/admissions') ? 'active' : ''}" outcome="patient-admissions"><i class="pi pi-building nav-icon"></i><span>My Admissions</span></p:link>
+                            </div>
+                        </p:outputPanel>
+
+                        <!-- REMAINS a commandLink because it performs a server-side action -->
+                        <div class="logout-section">
+                            <p:commandLink action="#{loginBean.logout}" ajax="false" styleClass="nav-item">
+                                <i class="pi pi-sign-out nav-icon"></i><span>Logout</span>
+                            </p:commandLink>
+                        </div>
+                    </h:form>
+                </div>
+            </aside>
+        </p:outputPanel>
+
+        <main class="main-content">
+            <p:growl id="global-growl" showDetail="true" life="5000" />
+            <ui:insert name="content">
+                <p>Page content goes here.</p>
+            </ui:insert>
+        </main>
+    </div>
+</h:body>
+</html>

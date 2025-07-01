@@ -1,54 +1,44 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:p="http://primefaces.org/ui"
-      xmlns:f="http://java.sun.com/jsf/core">
+      xmlns:p="http://primefaces.org/ui">
 
 <h:head>
     <title>Login - Hospital Management System</title>
-    <h:outputStylesheet name="css/style.css"/>
+    <h:outputStylesheet name="/css/style.css"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 </h:head>
 
 <h:body class="login-body">
     <div class="login-container">
         <div class="login-card">
             <h:form id="loginForm">
-                <p:panel header="Hospital Management System" styleClass="login-panel">
-                    <p:growl id="messages" showDetail="true" closable="true"/>
+                <div class="login-header">
+                    <i class="pi pi-heart-fill"></i>
+                    <h3>Hospital Management Portal</h3>
+                </div>
 
-                    <div class="login-fields">
-                        <div class="p-field">
-                            <p:outputLabel for="username" value="Username"/>
-                            <p:inputText id="username" value="#{loginBean.username}" required="true"
-                                         requiredMessage="Username is required"
-                                         placeholder="Enter your email"
-                                         styleClass="login-input"/>
-                        </div>
+                <p:growl id="messages" showDetail="true" closable="true"/>
 
-                        <div class="p-field">
-                            <p:outputLabel for="password" value="Password"/>
-                            <p:password id="password" value="#{loginBean.password}" required="true"
-                                        requiredMessage="Password is required"
-                                        placeholder="Enter your password"
-                                        toggleMask="true" feedback="false"
-                                        styleClass="login-input"/>
-                        </div>
-
-                        <div class="login-actions">
-                            <p:commandButton value="Login" action="#{loginBean.login}" ajax="false"
-                                             icon="pi pi-sign-in" styleClass="login-button"/>
-                        </div>
+                <div class="ui-fluid">
+                    <div class="p-field" style="margin-bottom: 1.5rem;">
+                        <p:outputLabel for="username" value="Username/Email"/>
+                        <p:inputText id="username" value="#{loginBean.username}" required="true"
+                                     requiredMessage="Username is required"
+                                     placeholder="e.g., admin@email.com"/>
                     </div>
-
-                    <p:divider layout="horizontal" style="margin: 1.5rem 0;">
-                        <span class="divider-text">OR</span>
-                    </p:divider>
-
-                    <div class="registration-link">
-                        <p>No account? Please contact hospital staff to create one for you.</p>
+                    <div class="p-field" style="margin-bottom: 1.5rem;">
+                        <p:outputLabel for="password" value="Password"/>
+                        <p:password id="password" value="#{loginBean.password}" required="true"
+                                    requiredMessage="Password is required"
+                                    placeholder="Enter your password"
+                                    toggleMask="true" feedback="false"/>
                     </div>
-                </p:panel>
+                </div>
+
+                <p:commandButton value="Login" action="#{loginBean.login}" ajax="false"
+                                 icon="pi pi-sign-in" styleClass="login-button"/>
             </h:form>
         </div>
     </div>
