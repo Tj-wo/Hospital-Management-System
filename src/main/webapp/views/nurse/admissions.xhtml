@@ -1,33 +1,24 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
-<h:head>
-    <title>Nurse Admission</title>
-</h:head>
-<h:body>
-    <h:form>
-        <p:panel header="Admit Patient (Nurse)">
-            <p:messages id="msgs" showDetail="true" closable="true" />
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
 
-            <p:outputLabel for="patient" value="Select Patient:" />
-            <p:selectOneMenu id="patient" value="#{nurseAdmissionBean.patientId}">
-                <f:selectItem itemLabel="-- Select Patient --" itemValue="" />
-                <f:selectItems value="#{nurseAdmissionBean.patients}" var="p"
-                               itemLabel="#{p.fullName}" itemValue="#{p.id}" />
-            </p:selectOneMenu>
-
-            <p:outputLabel for="notes" value="Nurse Notes:" />
-            <p:inputTextarea id="notes" value="#{nurseAdmissionBean.nurseNotes}" autoResize="false" />
-
-            <p:outputLabel for="room" value="Assign Room:" />
-            <p:selectOneMenu id="room" value="#{nurseAdmissionBean.roomNumber}">
-                <f:selectItem itemLabel="-- Select Room --" itemValue="" />
-                <f:selectItems value="#{nurseAdmissionBean.availableRooms}" />
-            </p:selectOneMenu>
-
-            <p:commandButton value="Complete Admission" action="#{nurseAdmissionBean.completeAdmission}" update="msgs" icon="pi pi-check" />
-        </p:panel>
-    </h:form>
-</h:body>
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">My Assigned Admissions</ui:define>
+    <ui:define name="content">
+        <h:form id="admissionForm">
+            <div class="card">
+                <p:dataTable id="admissionTable" var="admission" value="#{nurseAdmissionBean.admissions}" paginator="true" rows="10" styleClass="modern-table">
+                    <f:facet name="header"><h2 class="card-title"><i class="pi pi-th-large"></i> Patients Under My Care</h2></f:facet>
+                    <p:column headerText="Patient" sortBy="#{admission.patient.fullName}"><h:outputText value="#{admission.patient.fullName}"/></p:column>
+                    <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}"><h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                    <p:column headerText="Ward/Bed"><h:outputText value="#{admission.ward} - #{admission.wardNumber}"/></p:column>
+                    <p:column headerText="Reason"><h:outputText value="#{admission.reason}"/></p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
 </html>

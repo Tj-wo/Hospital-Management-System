@@ -3,7 +3,6 @@
               xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_3.xsd"
               version="2.3">
 
-    <!-- This makes OmniFaces SelectItemsConverter available by default -->
     <converter>
         <converter-id>omnifaces.SelectItemsConverter</converter-id>
         <converter-class>org.omnifaces.converter.SelectItemsConverter</converter-class>
@@ -12,87 +11,41 @@
     <navigation-rule>
         <from-view-id>*</from-view-id>
 
-        <!-- General Navigation -->
         <navigation-case>
-            <from-outcome>index</from-outcome>
+            <from-outcome>dashboard</from-outcome>
             <to-view-id>/dashboard.xhtml</to-view-id>
             <redirect/>
         </navigation-case>
-        <navigation-case>
-            <from-outcome>login</from-outcome>
-            <to-view-id>/login.xhtml</to-view-id>
-            <redirect/>
-        </navigation-case>
 
-        <!-- === ADMIN Navigation === -->
-        <navigation-case>
-            <from-outcome>manage-staff</from-outcome>
-            <to-view-id>/views/admin/manage-staff.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>manage-patients</from-outcome>
-            <to-view-id>/views/admin/manage-patients.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>manage-appointments</from-outcome>
-            <to-view-id>/views/admin/manage-appointments.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>manage-admissions</from-outcome>
-            <to-view-id>/views/admin/manage-admissions.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>manage-medical-records</from-outcome>
-            <to-view-id>/views/admin/manage-medical-records.xhtml</to-view-id>
-        </navigation-case>
 
-        <!-- === DOCTOR Navigation === -->
-        <navigation-case>
-            <from-outcome>doctor-appointments</from-outcome>
-            <to-view-id>/views/doctor/appointments.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>doctor-medical-records</from-outcome>
-            <to-view-id>/views/doctor/medical-records.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>doctor-admissions</from-outcome>
-            <to-view-id>/views/doctor/admissions.xhtml</to-view-id>
-        </navigation-case>
+        <!-- General Navigation -->
+        <navigation-case><from-outcome>index</from-outcome><to-view-id>/dashboard.xhtml</to-view-id><redirect/></navigation-case>
+        <navigation-case><from-outcome>login</from-outcome><to-view-id>/login.xhtml</to-view-id><redirect/></navigation-case>
 
-        <!-- === NURSE Navigation === -->
-        <navigation-case>
-            <from-outcome>nurse-admissions</from-outcome>
-            <to-view-id>/views/nurse/admissions.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>nurse-update-records</from-outcome>
-            <to-view-id>/views/nurse/update-records.xhtml</to-view-id>
-        </navigation-case>
+        <!-- ADMIN -->
+        <navigation-case><from-outcome>manage-staff</from-outcome><to-view-id>/views/admin/manage-staff.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-patients</from-outcome><to-view-id>/views/admin/manage-patients.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-appointments</from-outcome><to-view-id>/views/admin/manage-appointments.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-admissions</from-outcome><to-view-id>/views/admin/manage-admissions.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-medical-records</from-outcome><to-view-id>/views/admin/manage-medical-records.xhtml</to-view-id></navigation-case>
 
-        <!-- === RECEPTIONIST Navigation === -->
-        <navigation-case>
-            <from-outcome>receptionist-register-patient</from-outcome>
-            <to-view-id>/views/receptionist/register-patient.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>receptionist-appointments</from-outcome>
-            <to-view-id>/views/receptionist/appointments.xhtml</to-view-id>
-        </navigation-case>
+        <!-- DOCTOR -->
+        <navigation-case><from-outcome>doctor-appointments</from-outcome><to-view-id>/views/doctor/appointments.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>doctor-medical-records</from-outcome><to-view-id>/views/doctor/medical-records.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>doctor-admissions</from-outcome><to-view-id>/views/doctor/admissions.xhtml</to-view-id></navigation-case>
 
-        <!-- === PATIENT Navigation === -->
-        <navigation-case>
-            <from-outcome>patient-appointments</from-outcome>
-            <to-view-id>/views/patient/appointments.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>patient-medical-records</from-outcome>
-            <to-view-id>/views/patient/medical-records.xhtml</to-view-id>
-        </navigation-case>
-        <navigation-case>
-            <from-outcome>patient-admissions</from-outcome>
-            <to-view-id>/views/patient/admissions.xhtml</to-view-id>
-        </navigation-case>
+        <!-- NURSE -->
+        <navigation-case><from-outcome>nurse-admissions</from-outcome><to-view-id>/views/nurse/admissions.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>nurse-update-records</from-outcome><to-view-id>/views/nurse/update-records.xhtml</to-view-id></navigation-case>
+
+        <!-- RECEPTIONIST -->
+        <navigation-case><from-outcome>receptionist-register-patient</from-outcome><to-view-id>/views/receptionist/register-patient.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>receptionist-appointments</from-outcome><to-view-id>/views/receptionist/appointments.xhtml</to-view-id></navigation-case>
+
+        <!-- PATIENT -->
+        <navigation-case><from-outcome>patient-appointments</from-outcome><to-view-id>/views/patient/appointments.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>patient-medical-records</from-outcome><to-view-id>/views/patient/medical-records.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>patient-admissions</from-outcome><to-view-id>/views/patient/admissions.xhtml</to-view-id></navigation-case>
     </navigation-rule>
 
 </faces-config>

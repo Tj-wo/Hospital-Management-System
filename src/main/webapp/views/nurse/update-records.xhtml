@@ -1,71 +1,60 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core">
-<h:head>
-    <title>Update Patient Records</title>
-</h:head>
-<h:body>
-    <h:form id="form">
-        <div class="card">
-            <p:growl id="messages" showDetail="true" />
 
-            <p:panel header="Select an Assigned Patient">
-                <h:panelGrid columns="2" cellpadding="5">
-                    <p:outputLabel for="patientSelect" value="Patient:"/>
-                    <p:selectOneMenu id="patientSelect" value="#{nurseRecordBean.selectedAdmissionId}"
-                                     filter="true" filterMatchMode="contains">
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Update Patient Records</ui:define>
+    <ui:define name="content">
+        <h:form id="recordForm">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title"><i class="pi pi-users"></i> Select an Assigned Patient</h2></div>
+                <div class="card-content">
+                    <p:selectOneMenu id="patientSelect" value="#{nurseRecordBean.selectedAdmissionId}" filter="true" filterMatchMode="contains">
                         <f:selectItem itemLabel="--- Select a patient under your care ---" itemValue="" noSelectionOption="true"/>
-                        <f:selectItems value="#{nurseRecordBean.assignedAdmissions}" var="admission"
-                                       itemValue="#{admission.id}" itemLabel="#{admission.patient.fullName} (Ward: #{admission.ward}-#{admission.wardNumber})"/>
+                        <f:selectItems value="#{nurseRecordBean.assignedAdmissions}" var="admission" itemValue="#{admission.id}" itemLabel="#{admission.patient.fullName} (Ward: #{admission.ward}-#{admission.wardNumber})"/>
                         <p:ajax listener="#{nurseRecordBean.onPatientChange}" update="recordsPanel"/>
                     </p:selectOneMenu>
-                </h:panelGrid>
-            </p:panel>
+                </div>
+            </div>
 
-            <p:outputPanel id="recordsPanel" style="margin-top: 1.5rem;">
-                <p:dataTable var="record" value="#{nurseRecordBean.selectedPatientRecords}"
-                             rendered="#{not empty nurseRecordBean.selectedAdmissionId}"
-                             emptyMessage="No medical records found for this patient.">
-                    <f:facet name="header">
-                        Medical History for Selected Patient
-                    </f:facet>
-                    <p:column headerText="Record Date"><h:outputText value="#{record.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
-                    <p:column headerText="Attending Doctor"><h:outputText value="#{record.doctor.fullName}"/></p:column>
-                    <p:column headerText="Diagnosis"><h:outputText value="#{record.diagnosis}"/></p:column>
-                    <p:column headerText="Treatment"><h:outputText value="#{record.treatment}"/></p:column>
-                    <p:column headerText="Actions" style="width:6rem; text-align:center">
-                        <p:commandButton icon="pi pi-pencil" oncomplete="PF('recordDialog').show()"
-                                         update=":form:recordDialogContent" title="Update Record">
-                            <f:setPropertyActionListener value="#{record}" target="#{nurseRecordBean.recordToUpdate}"/>
-                        </p:commandButton>
-                    </p:column>
-                </p:dataTable>
+            <p:outputPanel id="recordsPanel">
+                <div class="card">
+                    <p:dataTable var="record" value="#{nurseRecordBean.selectedPatientRecords}" styleClass="modern-table" emptyMessage="No medical records found for this patient.">
+                        <f:facet name="header"><h2 class="card-title"><i class="pi pi-list"></i> Medical History for Selected Patient</h2></f:facet>
+                        <p:column headerText="Record Date"><h:outputText value="#{record.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                        <p:column headerText="Attending Doctor"><h:outputText value="#{record.doctor.fullName}"/></p:column>
+                        <p:column headerText="Diagnosis"><h:outputText value="#{record.diagnosis}"/></p:column>
+                        <p:column headerText="Treatment/Notes"><h:outputText value="#{record.treatment}"/></p:column>
+                        <p:column headerText="Actions" style="width:6rem; text-align:center">
+                            <p:commandButton icon="pi pi-pencil" oncomplete="PF('recordDialog').show()" update=":dialogForm" process="@this" title="Update Record">
+                                <f:setPropertyActionListener value="#{record}" target="#{nurseRecordBean.recordToUpdate}"/>
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </div>
             </p:outputPanel>
+        </h:form>
 
+        <h:form id="dialogForm">
             <p:dialog header="Update Medical Record" widgetVar="recordDialog" modal="true" width="600" resizable="false">
-                <p:outputPanel id="recordDialogContent">
-                    <h:panelGrid columns="1" style="width:100%;" rendered="#{not empty nurseRecordBean.recordToUpdate}">
-                        <h:outputText value="Patient: #{nurseRecordBean.recordToUpdate.patient.fullName}" style="font-weight:bold;"/>
-                        <h:outputText value="Date: #{nurseRecordBean.recordToUpdate.recordDate}" style="font-style:italic;">
-                            <f:convertDateTime pattern="yyyy-MM-dd"/>
-                        </h:outputText>
+                <p:outputPanel id="recordDialogContent" class="ui-fluid p-4">
+                    <p:outputPanel rendered="#{not empty nurseRecordBean.recordToUpdate}">
+                        <strong>Patient:</strong> #{nurseRecordBean.recordToUpdate.patient.fullName}<br/>
+                        <strong>Date:</strong> <h:outputText value="#{nurseRecordBean.recordToUpdate.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText>
                         <hr/>
-                        <p:outputLabel for="diagnosis" value="Diagnosis (Notes):"/>
-                        <p:inputTextarea id="diagnosis" value="#{nurseRecordBean.recordToUpdate.diagnosis}" rows="5" style="width:100%;"/>
-                        <p:outputLabel for="treatment" value="Treatment (Notes/Updates):"/>
-                        <p:inputTextarea id="treatment" value="#{nurseRecordBean.recordToUpdate.treatment}" rows="5" style="width:100%;"/>
-                    </h:panelGrid>
+                        <div class="p-field mb-4"><p:outputLabel for="diagnosis" value="Diagnosis (Notes):"/><p:inputTextarea id="diagnosis" value="#{nurseRecordBean.recordToUpdate.diagnosis}" rows="5" style="width:100%;"/></div>
+                        <div class="p-field mb-4"><p:outputLabel for="treatment" value="Treatment (Notes/Updates):"/><p:inputTextarea id="treatment" value="#{nurseRecordBean.recordToUpdate.treatment}" rows="5" style="width:100%;"/></div>
+                    </p:outputPanel>
                 </p:outputPanel>
                 <f:facet name="footer">
-                    <p:commandButton value="Save Changes" icon="pi pi-check"
-                                     action="#{nurseRecordBean.updateRecord}" update="recordsPanel messages"
-                                     oncomplete="PF('recordDialog').hide();"/>
+                    <p:commandButton value="Save Changes" icon="pi pi-check" actionListener="#{nurseRecordBean.updateRecord}" update=":recordForm:recordsPanel :global-growl" oncomplete="PF('recordDialog').hide();" styleClass="btn-primary"/>
                     <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('recordDialog').hide()" styleClass="ui-button-secondary"/>
                 </f:facet>
             </p:dialog>
-        </div>
-    </h:form>
-</h:body>
+        </h:form>
+    </ui:define>
+</ui:composition>
 </html>

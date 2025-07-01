@@ -1,427 +1,111 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core">
 
-<h:head>
-    <title>Dashboard - Hospital Management System</title>
-    <h:outputStylesheet name="/resources/css/style.css"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-</h:head>
+<ui:composition template="/template.xhtml">
 
-<h:body>
-    <!-- Mobile Menu Toggle -->
-    <p:commandButton icon="pi pi-bars" styleClass="mobile-menu-toggle"
-                     onclick="toggleMobileMenu()" style="display: none;"/>
+    <ui:define name="title">Dashboard</ui:define>
 
-    <div class="dashboard-container">
+    <ui:define name="content">
         <h:form id="dashboardForm">
-            <!-- Header Section -->
+
             <div class="dashboard-header">
                 <div class="welcome-section">
-                    <h1 class="dashboard-title">
-                        <i class="pi pi-home dashboard-icon"></i>
-                        Dashboard
-                    </h1>
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="pi pi-user"></i>
-                        </div>
-                        <div class="user-details">
-                            <span class="user-name">#{loginBean.loggedInUser.username}</span>
-                            <span class="user-role">#{loginBean.loggedInUser.role}</span>
-                        </div>
+                    <div>
+                        <h1 class="dashboard-title">Welcome, #{loginBean.loggedInUser.username}!</h1>
+                        <p>Here's a summary for your role: <strong>#{loginBean.loggedInUser.role}</strong>.</p>
                     </div>
+                    <p:commandButton value="Refresh" icon="pi pi-refresh" action="#{dashboardBean.init}" update="@form" styleClass="btn-outline"/>
                 </div>
             </div>
 
-            <!-- Stats Cards Section -->
             <div class="stats-section">
-                <!-- Admin Dashboard -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
-                    <div class="stats-grid">
-                        <div class="stat-card patients-card">
-                            <div class="stat-icon">
-                                <i class="pi pi-users"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3 class="stat-number">#{dashboardBean.totalPatients}</h3>
-                                <p class="stat-label">Total Patients</p>
-                                <div class="stat-trend">
-                                    <i class="pi pi-arrow-up"></i>
-                                    <span>+12% this month</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="stat-card appointments-card">
-                            <div class="stat-icon">
-                                <i class="pi pi-calendar"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3 class="stat-number">#{dashboardBean.totalAppointments}</h3>
-                                <p class="stat-label">Total Appointments</p>
-                                <div class="stat-trend">
-                                    <i class="pi pi-arrow-up"></i>
-                                    <span>+8% this week</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="stat-card staff-card">
-                            <div class="stat-icon">
-                                <i class="pi pi-id-card"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3 class="stat-number">#{dashboardBean.totalStaff}</h3>
-                                <p class="stat-label">Active Staff</p>
-                                <div class="stat-trend">
-                                    <i class="pi pi-minus"></i>
-                                    <span>No change</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="stat-card revenue-card">
-                            <div class="stat-icon">
-                                <i class="pi pi-chart-line"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3 class="stat-number">98.5%</h3>
-                                <p class="stat-label">System Uptime</p>
-                                <div class="stat-trend">
-                                    <i class="pi pi-check-circle"></i>
-                                    <span>Excellent</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- ADMIN STATS -->
+                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'ADMIN'}" styleClass="stats-grid">
+                    <p:link outcome="manage-patients" styleClass="stat-card">
+                        <div class="stat-icon patients-card"><i class="pi pi-users"></i></div>
+                        <div class="stat-content"><h3 class="stat-number">#{dashboardBean.totalPatients}</h3><p class="stat-label">Total Patients</p></div>
+                    </p:link>
+                    <p:link outcome="manage-appointments" styleClass="stat-card">
+                        <div class="stat-icon appointments-card"><i class="pi pi-calendar"></i></div>
+                        <div class="stat-content"><h3 class="stat-number">#{dashboardBean.totalAppointments}</h3><p class="stat-label">Total Appointments</p></div>
+                    </p:link>
+                    <p:link outcome="manage-staff" styleClass="stat-card">
+                        <div class="stat-icon staff-card"><i class="pi pi-id-card"></i></div>
+                        <div class="stat-content"><h3 class="stat-number">#{dashboardBean.totalStaff}</h3><p class="stat-label">Active Staff</p></div>
+                    </p:link>
                 </p:outputPanel>
 
-                <!-- Doctor Quick Stats -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
-                    <div class="stats-grid doctor-stats">
-                        <div class="stat-card appointments-card">
-                            <div class="stat-icon">
-                                <i class="pi pi-calendar-check"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3 class="stat-number">#{dashboardBean.todaysAppointments.size()}</h3>
-                                <p class="stat-label">Today's Appointments</p>
-                            </div>
-                        </div>
+                <!-- DOCTOR STATS -->
+                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}" styleClass="stats-grid">
+                    <p:link outcome="doctor-appointments" styleClass="stat-card">
+                        <div class="stat-icon appointments-card"><i class="pi pi-calendar-check"></i></div>
+                        <div class="stat-content"><h3 class="stat-number">#{dashboardBean.todaysAppointments.size()}</h3><p class="stat-label">Today's Appointments</p></div>
+                    </p:link>
+                </p:outputPanel>
 
-                        <div class="stat-card patients-card">
-                            <div class="stat-icon">
-                                <i class="pi pi-heart"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3 class="stat-number">42</h3>
-                                <p class="stat-label">Patients This Week</p>
-                            </div>
-                        </div>
-                    </div>
+                <!-- NURSE STATS -->
+                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'NURSE'}" styleClass="stats-grid">
+                    <p:link outcome="nurse-admissions" styleClass="stat-card">
+                        <div class="stat-icon patients-card"><i class="pi pi-bed"></i></div>
+                        <div class="stat-content"><h3 class="stat-number">#{dashboardBean.myActivePatientCount}</h3><p class="stat-label">My Active Patients</p></div>
+                    </p:link>
+                </p:outputPanel>
+
+                <!-- RECEPTIONIST STATS -->
+                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'RECEPTIONIST'}" styleClass="stats-grid">
+                    <p:link outcome="receptionist-appointments" styleClass="stat-card">
+                        <div class="stat-icon appointments-card"><i class="pi pi-calendar"></i></div>
+                        <div class="stat-content"><h3 class="stat-number">#{dashboardBean.allTodaysAppointmentsCount}</h3><p class="stat-label">Total Appointments Today</p></div>
+                    </p:link>
+                </p:outputPanel>
+
+                <!-- PATIENT STATS / QUICK ACTIONS -->
+                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}" styleClass="stats-grid">
+                    <p:link outcome="patient-appointments" styleClass="stat-card">
+                        <div class="stat-icon success-card"><i class="pi pi-calendar-plus"></i></div>
+                        <div class="stat-content"><h3 class="stat-number" style="font-size: 1.5rem;">Book an Appointment</h3><p class="stat-label">Find available doctors and times.</p></div>
+                    </p:link>
+                    <p:link outcome="patient-medical-records" styleClass="stat-card">
+                        <div class="stat-icon info-card"><i class="pi pi-file-o"></i></div>
+                        <div class="stat-content"><h3 class="stat-number" style="font-size: 1.5rem;">View My Records</h3><p class="stat-label">Check your medical history.</p></div>
+                    </p:link>
                 </p:outputPanel>
             </div>
 
-            <!-- Quick Navigation Section -->
-            <div class="quick-nav-section">
-                <h3 class="quick-nav-title">
-                    <i class="pi pi-compass"></i>
-                    Quick Navigation
-                </h3>
-
-                <!-- Admin Navigation -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'ADMIN'}" styleClass="quick-nav-grid">
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/admin/manage-staff.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-users"></i>
-                        </div>
-                        <span class="quick-nav-label">Staff Management</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/admin/manage-patients.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-user-plus"></i>
-                        </div>
-                        <span class="quick-nav-label">Patient Management</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/admin/manage-appointments.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-calendar"></i>
-                        </div>
-                        <span class="quick-nav-label">Appointments</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/admin/manage-admissions.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-building"></i>
-                        </div>
-                        <span class="quick-nav-label">Admissions</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/admin/manage-medical-records.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-file-edit"></i>
-                        </div>
-                        <span class="quick-nav-label">Medical Records</span>
-                    </p:commandLink>
-                </p:outputPanel>
-
-                <!-- Doctor Navigation -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}" styleClass="quick-nav-grid">
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/doctor/appointments.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-calendar-check"></i>
-                        </div>
-                        <span class="quick-nav-label">My Appointments</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/doctor/medical-records.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-file-edit"></i>
-                        </div>
-                        <span class="quick-nav-label">Medical Records</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/doctor/admissions.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-building"></i>
-                        </div>
-                        <span class="quick-nav-label">Patient Admissions</span>
-                    </p:commandLink>
-                </p:outputPanel>
-
-                <!-- Patient Navigation -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}" styleClass="quick-nav-grid">
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/patient/appointments.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-calendar"></i>
-                        </div>
-                        <span class="quick-nav-label">My Appointments</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/patient/medical-records.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-file"></i>
-                        </div>
-                        <span class="quick-nav-label">Medical Records</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/patient/admissions.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-building"></i>
-                        </div>
-                        <span class="quick-nav-label">My Admissions</span>
-                    </p:commandLink>
-                </p:outputPanel>
-
-                <!-- Nurse Navigation -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'NURSE'}" styleClass="quick-nav-grid">
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/nurse/admissions.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-th-large"></i>
-                        </div>
-                        <span class="quick-nav-label">Assigned Patients</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/nurse/update-records.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-pencil"></i>
-                        </div>
-                        <span class="quick-nav-label">Update Records</span>
-                    </p:commandLink>
-                </p:outputPanel>
-
-                <!-- Receptionist Navigation -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'RECEPTIONIST'}" styleClass="quick-nav-grid">
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/receptionist/register-patient.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-user-plus"></i>
-                        </div>
-                        <span class="quick-nav-label">Register Patient</span>
-                    </p:commandLink>
-
-                    <p:commandLink styleClass="quick-nav-btn" action="/views/receptionist/appointments.xhtml">
-                        <div class="quick-nav-icon">
-                            <i class="pi pi-calendar"></i>
-                        </div>
-                        <span class="quick-nav-label">Manage Appointments</span>
-                    </p:commandLink>
-                </p:outputPanel>
-            </div>
-
-            <!-- Main Content Area -->
-            <div class="main-content">
-                <!-- Doctor Dashboard -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h2 class="card-title">
-                                <i class="pi pi-calendar-check"></i>
-                                Today's Appointments
-                            </h2>
-                            <p:button value="View All" styleClass="btn-outline" outcome="/views/doctor/appointments.xhtml"/>
-                        </div>
-                        <div class="card-content">
-                            <p:dataTable var="appt" value="#{dashboardBean.todaysAppointments}"
-                                         rows="5" paginator="true" styleClass="modern-table"
-                                         emptyMessage="No appointments scheduled for today">
-                                <p:column headerText="Patient" styleClass="patient-col">
-                                    <div class="patient-info">
-                                        <div class="patient-avatar">
-                                            <i class="pi pi-user"></i>
-                                        </div>
-                                        <span>#{appt.patient.fullName}</span>
-                                    </div>
-                                </p:column>
-                                <p:column headerText="Time" styleClass="time-col">
-                                    <div class="time-badge">
-                                        <h:outputText value="#{appt.appointmentDate}">
-                                            <f:convertDateTime pattern="HH:mm"/>
-                                        </h:outputText>
-                                    </div>
-                                </p:column>
-                                <p:column headerText="Status" styleClass="status-col">
-                                    <p:tag value="#{appt.status}"
-                                           severity="#{appt.status == 'SCHEDULED' ? 'info' : 'success'}"
-                                           styleClass="status-tag"/>
-                                </p:column>
-                                <p:column headerText="Actions" styleClass="actions-col">
-                                    <p:commandButton icon="pi pi-eye" styleClass="btn-sm btn-outline"
-                                                     title="View Details"/>
-                                </p:column>
-                            </p:dataTable>
-                        </div>
+            <!-- DOCTOR: Today's Appointments Table -->
+            <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title"><i class="pi pi-list"></i>Today's Schedule</h2></div>
+                    <div class="card-content">
+                        <p:dataTable var="appt" value="#{dashboardBean.todaysAppointments}" rows="5" paginator="true" styleClass="modern-table" emptyMessage="No appointments scheduled for today">
+                            <p:column headerText="Patient"><h:outputText value="#{appt.patient.fullName}"/></p:column>
+                            <p:column headerText="Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="HH:mm"/></h:outputText></p:column>
+                            <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
+                        </p:dataTable>
                     </div>
-                </p:outputPanel>
+                </div>
+            </p:outputPanel>
 
-                <!-- Patient Dashboard -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h2 class="card-title">
-                                <i class="pi pi-calendar-plus"></i>
-                                Upcoming Appointments
-                            </h2>
-                            <p:button value="Book New" styleClass="btn-primary" outcome="/views/patient/appointments.xhtml"/>
-                        </div>
-                        <div class="card-content">
-                            <p:dataTable var="appt" value="#{dashboardBean.upcomingAppointments}"
-                                         rows="5" paginator="true" styleClass="modern-table"
-                                         emptyMessage="No upcoming appointments">
-                                <p:column headerText="Doctor" styleClass="doctor-col">
-                                    <div class="doctor-info">
-                                        <div class="doctor-avatar">
-                                            <i class="pi pi-user-plus"></i>
-                                        </div>
-                                        <span>Dr. #{appt.doctor.fullName}</span>
-                                    </div>
-                                </p:column>
-                                <p:column headerText="Date &amp; Time" styleClass="datetime-col">
-                                    <div class="datetime-info">
-                                        <h:outputText value="#{appt.appointmentDate}">
-                                            <f:convertDateTime pattern="MMM dd, yyyy"/>
-                                        </h:outputText>
-                                        <br/>
-                                        <small>
-                                            <h:outputText value="#{appt.appointmentDate}">
-                                                <f:convertDateTime pattern="HH:mm"/>
-                                            </h:outputText>
-                                        </small>
-                                    </div>
-                                </p:column>
-                                <p:column headerText="Status" styleClass="status-col">
-                                    <p:tag value="#{appt.status}"
-                                           severity="#{appt.status == 'SCHEDULED' ? 'info' : 'success'}"
-                                           styleClass="status-tag"/>
-                                </p:column>
-                            </p:dataTable>
-                        </div>
+            <!-- PATIENT: Upcoming Appointments Table -->
+            <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title"><i class="pi pi-calendar-plus"></i>Your Upcoming Appointments</h2></div>
+                    <div class="card-content">
+                        <p:dataTable var="appt" value="#{dashboardBean.upcomingAppointments}" rows="5" paginator="true" styleClass="modern-table" emptyMessage="You have no upcoming appointments.">
+                            <p:column headerText="Doctor"><h:outputText value="Dr. #{appt.doctor.fullName}"/></p:column>
+                            <p:column headerText="Date &amp; Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="MMM dd, yyyy 'at' HH:mm"/></h:outputText></p:column>
+                            <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
+                        </p:dataTable>
                     </div>
-                </p:outputPanel>
+                </div>
+            </p:outputPanel>
 
-                <!-- Admin System Overview -->
-                <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
-                    <div class="admin-grid">
-                        <div class="content-card">
-                            <div class="card-header">
-                                <h2 class="card-title">
-                                    <i class="pi pi-chart-bar"></i>
-                                    Recent Activity
-                                </h2>
-                            </div>
-                            <div class="card-content">
-                                <div class="activity-list">
-                                    <div class="activity-item">
-                                        <div class="activity-icon success">
-                                            <i class="pi pi-user-plus"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <p>New patient registered</p>
-                                            <small>2 minutes ago</small>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-icon info">
-                                            <i class="pi pi-calendar"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <p>Appointment scheduled</p>
-                                            <small>15 minutes ago</small>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-icon warning">
-                                            <i class="pi pi-exclamation-triangle"></i>
-                                        </div>
-                                        <div class="activity-content">
-                                            <p>System maintenance reminder</p>
-                                            <small>1 hour ago</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="content-card">
-                            <div class="card-header">
-                                <h2 class="card-title">
-                                    <i class="pi pi-cog"></i>
-                                    Quick Actions
-                                </h2>
-                            </div>
-                            <div class="card-content">
-                                <div class="quick-actions">
-                                    <p:commandButton value="Add New Staff" icon="pi pi-user-plus"
-                                                     styleClass="action-btn staff-btn"
-                                                     outcome="/views/admin/manage-staff.xhtml"/>
-                                    <p:commandButton value="Schedule Appointment" icon="pi pi-calendar-plus"
-                                                     styleClass="action-btn appointment-btn"
-                                                     outcome="/views/admin/manage-appointments.xhtml"/>
-                                    <p:commandButton value="View Reports" icon="pi pi-chart-line"
-                                                     styleClass="action-btn report-btn"/>
-                                    <p:commandButton value="System Settings" icon="pi pi-cog"
-                                                     styleClass="action-btn settings-btn"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </p:outputPanel>
-            </div>
         </h:form>
-    </div>
+    </ui:define>
 
-    <script>
-        function toggleMobileMenu() {
-            // Mobile menu toggle functionality
-            const sidebar = document.querySelector('.layout-sidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('mobile-open');
-            }
-        }
-    </script>
-</h:body>
+</ui:composition>
 </html>

@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core">
-<h:head>
-    <title>My Medical Records</title>
-</h:head>
-<h:body>
-    <h:form id="recordsForm">
-        <div class="card">
-            <p:growl id="messages" showDetail="true"/>
-            <p:dataTable id="recordsTable" var="record" value="#{patientMedicalRecordBean.records}" paginator="true" rows="10">
-                <f:facet name="header">My Medical Record History</f:facet>
-                <p:column headerText="Doctor"><h:outputText value="#{record.doctor.fullName}"/></p:column>
-                <p:column headerText="Date"><h:outputText value="#{record.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
-                <p:column headerText="Diagnosis"><h:outputText value="#{record.diagnosis}"/></p:column>
-                <p:column headerText="Treatment"><h:outputText value="#{record.treatment}"/></p:column>
-            </p:dataTable>
-        </div>
-    </h:form>
-</h:body>
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">My Medical Records</ui:define>
+
+    <ui:define name="content">
+        <h:form id="recordsForm">
+            <div class="card">
+                <p:dataTable id="recordsTable" var="record" value="#{patientMedicalRecordBean.records}" paginator="true" rows="10" styleClass="modern-table" emptyMessage="You have no medical record history.">
+                    <f:facet name="header"><h2 class="card-title"><i class="pi pi-file"></i> My Medical Record History</h2></f:facet>
+                    <p:column headerText="Doctor"><h:outputText value="#{record.doctor.fullName}"/></p:column>
+                    <p:column headerText="Date"><h:outputText value="#{record.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                    <p:column headerText="Diagnosis"><h:outputText value="#{record.diagnosis}"/></p:column>
+                    <p:column headerText="Treatment"><h:outputText value="#{record.treatment}"/></p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
 </html>

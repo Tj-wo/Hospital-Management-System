@@ -14,9 +14,9 @@ import javax.inject.Named;
 import java.io.Serializable;
 import java.util.List;
 
-@Named("staffBean")
+@Named("adminStaffBean")
 @ViewScoped
-public class StaffBean implements Serializable {
+public class AdminStaffBean implements Serializable {
 
     @Inject
     private StaffService staffService;
