@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,8 +28,10 @@ public class AdminAppointmentBean implements Serializable {
 
     @Inject
     private AppointmentService appointmentService;
+
     @Inject
     private PatientService patientService;
+
     @Inject
     private StaffService staffService;
 
@@ -36,10 +39,10 @@ public class AdminAppointmentBean implements Serializable {
     private Appointment selectedAppointment;
     private Long selectedPatientId;
     private Long selectedDoctorId;
+    private Date appointmentDate;
 
     private List<Patient> availablePatients;
     private List<Staff> availableDoctors;
-
 
     @PostConstruct
     public void init() {
@@ -53,11 +56,11 @@ public class AdminAppointmentBean implements Serializable {
         selectedAppointment = new Appointment();
         selectedPatientId = null;
         selectedDoctorId = null;
+        appointmentDate = null;
     }
 
     public void saveAppointment() {
         try {
-            // Find the full objects from the selected IDs
             Patient patient = patientService.getPatient(selectedPatientId);
             Staff doctor = staffService.getStaff(selectedDoctorId);
 
@@ -65,10 +68,14 @@ public class AdminAppointmentBean implements Serializable {
                 throw new IllegalArgumentException("Invalid patient or doctor selected.");
             }
 
+            if (appointmentDate == null) {
+                throw new IllegalArgumentException("Appointment date must be selected.");
+            }
+
             selectedAppointment.setPatient(patient);
             selectedAppointment.setDoctor(doctor);
+            selectedAppointment.setAppointmentDate(appointmentDate);
 
-            // Logic to differentiate between creating a new appointment and updating an old one
             if (selectedAppointment.getId() == null) {
                 appointmentService.scheduleAppointment(selectedAppointment);
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment scheduled successfully.");
@@ -77,8 +84,7 @@ public class AdminAppointmentBean implements Serializable {
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment updated successfully.");
             }
 
-            // Refresh data and hide dialog
-            init(); // Re-fetch all data
+            init();
             PrimeFaces.current().executeScript("PF('appointmentDialog').hide()");
             PrimeFaces.current().ajax().update("appointmentForm:messages", "appointmentForm:appointmentTable");
 
@@ -88,15 +94,14 @@ public class AdminAppointmentBean implements Serializable {
     }
 
     public void selectAppointmentForEdit(Appointment appointment) {
-        // We create a defensive copy to avoid modifying the list directly
         this.selectedAppointment = appointmentService.getAppointmentById(appointment.getId());
         if (this.selectedAppointment != null) {
             this.selectedPatientId = this.selectedAppointment.getPatient().getId();
             this.selectedDoctorId = this.selectedAppointment.getDoctor().getId();
+            this.appointmentDate = this.selectedAppointment.getAppointmentDate();
         }
     }
 
-    // This was missing a closing brace in the original file
     public List<Staff> completeDoctor(String query) {
         if (query == null || query.isEmpty()) {
             return Collections.emptyList();
@@ -111,19 +116,57 @@ public class AdminAppointmentBean implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
     }
 
+    // Getters and setters
 
-    // --- Getters & Setters for JSF page access ---
-    public List<Appointment> getAppointments() { return appointments; }
-    public void setAppointments(List<Appointment> appointments) { this.appointments = appointments; }
-    public Appointment getSelectedAppointment() { return selectedAppointment; }
-    public void setSelectedAppointment(Appointment selectedAppointment) { this.selectedAppointment = selectedAppointment; }
-    public Long getSelectedPatientId() { return selectedPatientId; }
-    public void setSelectedPatientId(Long selectedPatientId) { this.selectedPatientId = selectedPatientId; }
-    public Long getSelectedDoctorId() { return selectedDoctorId; }
-    public void setSelectedDoctorId(Long selectedDoctorId) { this.selectedDoctorId = selectedDoctorId; }
+    public List<Appointment> getAppointments() {
+        return appointments;
+    }
 
-    // --- Helper methods for populating dropdowns ---
-    public List<Patient> getAvailablePatients() { return availablePatients; }
-    public List<Staff> getAvailableDoctors() { return availableDoctors; }
-    public AppointmentStatus[] getAppointmentStatuses() { return AppointmentStatus.values(); }
+    public void setAppointments(List<Appointment> appointments) {
+        this.appointments = appointments;
+    }
+
+    public Appointment getSelectedAppointment() {
+        return selectedAppointment;
+    }
+
+    public void setSelectedAppointment(Appointment selectedAppointment) {
+        this.selectedAppointment = selectedAppointment;
+    }
+
+    public Long getSelectedPatientId() {
+        return selectedPatientId;
+    }
+
+    public void setSelectedPatientId(Long selectedPatientId) {
+        this.selectedPatientId = selectedPatientId;
+    }
+
+    public Long getSelectedDoctorId() {
+        return selectedDoctorId;
+    }
+
+    public void setSelectedDoctorId(Long selectedDoctorId) {
+        this.selectedDoctorId = selectedDoctorId;
+    }
+
+    public List<Patient> getAvailablePatients() {
+        return availablePatients;
+    }
+
+    public List<Staff> getAvailableDoctors() {
+        return availableDoctors;
+    }
+
+    public AppointmentStatus[] getAppointmentStatuses() {
+        return AppointmentStatus.values();
+    }
+
+    public Date getAppointmentDate() {
+        return appointmentDate;
+    }
+
+    public void setAppointmentDate(Date appointmentDate) {
+        this.appointmentDate = appointmentDate;
+    }
 }

@@ -22,7 +22,7 @@ public class PatientAppointmentBean implements Serializable {
     private Appointment selectedAppointment;
 
     @Inject
-    private AppointmentService appointmentService;  // Inject interface, not impl
+    private AppointmentService appointmentService;
 
     @Inject
     private org.pahappa.controller.LoginBean loginBean;
@@ -77,7 +77,6 @@ public class PatientAppointmentBean implements Serializable {
     public void cancelAppointment() {
         try {
             if (selectedAppointment != null && selectedAppointment.getId() != null) {
-                // Assuming patient cancels the appointment, set true as second param
                 appointmentService.cancelAppointment(selectedAppointment.getId(), true);
                 addMessage(FacesMessage.SEVERITY_INFO, "Cancelled", "Appointment cancelled.");
                 loadAppointments();
@@ -93,7 +92,6 @@ public class PatientAppointmentBean implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, detail));
     }
 
-    // Getters and setters
     public List<Appointment> getAppointments() {
         return appointments;
     }
