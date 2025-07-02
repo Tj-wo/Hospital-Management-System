@@ -1,9 +1,12 @@
 package org.pahappa.model;
 
+import org.hibernate.envers.Audited;
+
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
+@Audited
 @Table(name = "medical_records")
 public class MedicalRecord extends BaseModel {
 
