@@ -1,9 +1,11 @@
 package org.pahappa.model;
 
+import org.hibernate.envers.Audited;
 import org.pahappa.utils.Role;
 import javax.persistence.*;
 
 @Entity
+@Audited
 @Table(name = "users")
 public class User extends BaseModel {
 
