@@ -2,7 +2,7 @@ package org.pahappa.controller.patient;
 
 import org.pahappa.model.Admission;
 import org.pahappa.controller.LoginBean;
-import org.pahappa.service.AdmissionService;
+import org.pahappa.service.admission.AdmissionService;
 import javax.annotation.PostConstruct;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;

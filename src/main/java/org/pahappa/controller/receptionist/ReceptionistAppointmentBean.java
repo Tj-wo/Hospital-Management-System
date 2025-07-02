@@ -5,7 +5,7 @@ import org.pahappa.model.Patient;
 import org.pahappa.model.Staff;
 import org.pahappa.service.AppointmentService;
 import org.pahappa.service.PatientService;
-import org.pahappa.service.StaffService;
+import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Role;
 
 import javax.annotation.PostConstruct;

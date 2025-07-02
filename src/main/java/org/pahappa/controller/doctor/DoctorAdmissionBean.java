@@ -2,7 +2,7 @@ package org.pahappa.controller.doctor;
 
 import org.pahappa.model.Admission;
 import org.pahappa.model.Patient;
-import org.pahappa.service.AdmissionService;
+import org.pahappa.service.admission.AdmissionService;
 import org.pahappa.service.PatientService;
 import org.primefaces.PrimeFaces;
 

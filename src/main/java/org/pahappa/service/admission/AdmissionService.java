@@ -1,4 +1,4 @@
-package org.pahappa.service;
+package org.pahappa.service.admission;
 
 import org.pahappa.model.Admission;
 import java.util.List;

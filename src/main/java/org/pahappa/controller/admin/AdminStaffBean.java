@@ -1,7 +1,7 @@
 package org.pahappa.controller.admin;
 
 import org.pahappa.model.Staff;
-import org.pahappa.service.StaffService;
+import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Role;
 import org.primefaces.PrimeFaces;
 

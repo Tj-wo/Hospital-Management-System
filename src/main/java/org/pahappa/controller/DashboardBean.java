@@ -1,14 +1,13 @@
 // PATH: org/pahappa/controller/DashboardBean.java
 package org.pahappa.controller;
 
-import org.pahappa.model.Admission;
 import org.pahappa.model.Appointment;
 import org.pahappa.model.Patient;
 import org.pahappa.model.Staff;
-import org.pahappa.service.AdmissionService;
+import org.pahappa.service.admission.AdmissionService;
 import org.pahappa.service.AppointmentService;
 import org.pahappa.service.PatientService;
-import org.pahappa.service.StaffService;
+import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.AppointmentStatus;
 
 import javax.annotation.PostConstruct;

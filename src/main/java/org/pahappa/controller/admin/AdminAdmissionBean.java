@@ -1,7 +1,7 @@
 package org.pahappa.controller.admin;
 
 import org.pahappa.model.Admission;
-import org.pahappa.service.AdmissionService;
+import org.pahappa.service.admission.AdmissionService;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;

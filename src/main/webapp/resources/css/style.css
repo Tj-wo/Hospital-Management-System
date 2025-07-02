@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Professional Color Palette */
+
     --primary-color: #2563eb;
     --primary-dark: #1d4ed8;
     --primary-light: #3b82f6;
@@ -22,7 +22,7 @@
     --text-secondary: #475569;
     --text-muted: #94a3b8;
 
-    /* Professional Borders & Shadows */
+
     --border-color: #e2e8f0;
     --border-light: #f1f5f9;
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -221,7 +221,7 @@ body {
 .logout-section {
     margin-top: auto;
     padding: 1rem 0;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--danger-color);
 }
 
 /* --- CARDS --- */
