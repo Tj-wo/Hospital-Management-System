@@ -1,5 +1,5 @@
 
-package org.pahappa.service;
+package org.pahappa.service.staff;
 
 import org.pahappa.model.Staff;
 import org.pahappa.utils.Role;

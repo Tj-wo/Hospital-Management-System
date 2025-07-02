@@ -1,11 +1,11 @@
-package org.pahappa.service.impl;
+package org.pahappa.service.staff.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.pahappa.dao.StaffDao;
 import org.pahappa.dao.UserDao;
 import org.pahappa.model.Staff;
 import org.pahappa.model.User;
-import org.pahappa.service.StaffService;
+import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Constants;
 import org.pahappa.utils.Role;
 

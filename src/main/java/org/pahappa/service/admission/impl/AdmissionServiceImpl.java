@@ -1,10 +1,10 @@
-package org.pahappa.service.impl;
+package org.pahappa.service.admission.impl;
 
 import org.pahappa.dao.AdmissionDao;
 import org.pahappa.model.Admission;
 import org.pahappa.model.Staff;
-import org.pahappa.service.AdmissionService;
-import org.pahappa.service.StaffService;
+import org.pahappa.service.admission.AdmissionService;
+import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Role;
 
 import javax.enterprise.context.ApplicationScoped;
