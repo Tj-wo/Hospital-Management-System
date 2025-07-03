@@ -1,7 +1,7 @@
 package org.pahappa.controller;
 
 import org.pahappa.model.User;
-import org.pahappa.service.UserService;
+import org.pahappa.service.user.UserService;
 
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;

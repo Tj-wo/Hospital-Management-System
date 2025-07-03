@@ -1,8 +1,8 @@
-package org.pahappa.service.impl;
+package org.pahappa.service.medicalRecord.impl;
 
 import org.pahappa.dao.MedicalRecordDao;
 import org.pahappa.model.MedicalRecord;
-import org.pahappa.service.MedicalRecordService;
+import org.pahappa.service.medicalRecord.MedicalRecordService;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.List;

@@ -2,7 +2,7 @@ package org.pahappa.controller.doctor;
 
 import org.pahappa.model.Appointment;
 import org.pahappa.controller.LoginBean;
-import org.pahappa.service.AppointmentService;
+import org.pahappa.service.appointment.AppointmentService;
 import org.pahappa.utils.AppointmentStatus;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;

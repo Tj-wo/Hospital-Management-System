@@ -33,7 +33,7 @@
                         <p:commandButton icon="pi pi-trash"
                                          styleClass="rounded-button ui-button-danger"
                                          process="@this"
-                                         actionListener="#{adminStaffBean.deleteStaff}"
+                                         actionListener="#{adminStaffBean.softDeleteStaff()}"
                                          update="staffForm:staffTable :global-growl">
                             <f:setPropertyActionListener value="#{staff}" target="#{adminStaffBean.selectedStaff}"/>
                             <p:confirm header="Confirmation" message="Delete #{staff.fullName}? (This is a soft-delete)" icon="pi pi-exclamation-triangle"/>

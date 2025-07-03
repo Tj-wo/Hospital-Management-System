@@ -1,4 +1,4 @@
-package org.pahappa.service;
+package org.pahappa.service.appointment;
 
 import org.pahappa.model.Appointment;
 import org.pahappa.model.Patient;

@@ -29,7 +29,7 @@
                     </p:column>
                     <p:column headerText="Actions" style="width:6rem; text-align:center">
                         <p:commandButton icon="pi pi-trash"
-                                         actionListener="#{adminPatientBean.deletePatient}"
+                                         actionListener="#{adminPatientBean.softDeletePatient}"
                                          process="@this"
                                          update="patientForm:patientTable :global-growl"
                                          styleClass="rounded-button ui-button-danger">

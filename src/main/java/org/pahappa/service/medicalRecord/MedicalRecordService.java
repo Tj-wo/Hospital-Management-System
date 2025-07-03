@@ -1,4 +1,4 @@
-package org.pahappa.service;
+package org.pahappa.service.medicalRecord;
 
 import org.pahappa.model.MedicalRecord;
 import java.util.List;

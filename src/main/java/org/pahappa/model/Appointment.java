@@ -1,13 +1,11 @@
 package org.pahappa.model;
 
-import org.hibernate.envers.Audited;
 import org.pahappa.utils.AppointmentStatus;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Audited
 @Table(name = "appointments")
 public class Appointment extends BaseModel {
 

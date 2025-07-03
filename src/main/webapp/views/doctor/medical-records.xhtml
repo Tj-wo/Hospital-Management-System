@@ -1,0 +1,88 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+        template="/template.xhtml">
+    <ui:define name="title">Medical Records</ui:define>
+    <ui:define name="content">
+        <h:form id="recordForm">
+            <div class="card">
+                <div class="card-content">
+                    <p:panel header="Select Patient to View or Add Records">
+                        <div class="ui-fluid">
+                            <p:selectOneMenu id="patientSelect" value="#{doctorMedicalRecordBean.selectedPatient}" converter="omnifaces.SelectItemsConverter" filter="true" filterMatchMode="contains">
+                                <f:selectItem itemLabel="--- Select a patient ---" noSelectionOption="true"/>
+                                <f:selectItems value="#{doctorMedicalRecordBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/>
+                                <p:ajax listener="#{doctorMedicalRecordBean.onPatientChange}" update="recordsPanel newRecordPanel"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </p:panel>
+                </div>
+            </div>
+
+            <p:outputPanel id="recordsPanel">
+                <div class="card">
+                    <p:dataTable var="record" value="#{doctorMedicalRecordBean.selectedPatientRecords}" paginator="true" rows="5" styleClass="modern-table" emptyMessage="No medical records found for this patient.">
+                        <f:facet name="header">
+                            <h2 class="card-title"><i class="pi pi-list"></i> Medical History for #{doctorMedicalRecordBean.selectedPatient.fullName}</h2>
+                        </f:facet>
+                        <p:column headerText="Record Date" sortBy="#{record.recordDate}">
+                            <h:outputText value="#{record.recordDate}">
+                                <f:convertDateTime pattern="yyyy-MM-dd"/>
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Attending Doctor" sortBy="#{record.doctor.fullName}">
+                            <h:outputText value="#{record.doctor.fullName}"/>
+                        </p:column>
+                        <p:column headerText="Diagnosis">
+                            <h:outputText value="#{record.diagnosis}"/>
+                        </p:column>
+                        <p:column headerText="Treatment">
+                            <h:outputText value="#{record.treatment}"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:outputPanel>
+
+            <p:outputPanel id="newRecordPanel">
+                <div class="card" style="max-width: 900px; margin: auto;">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="pi pi-plus-circle"></i> Add Medical Record for #{doctorMedicalRecordBean.selectedPatient.fullName}</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="ui-fluid">
+
+                            <div class="p-formgrid p-grid" style="display: flex; flex-direction: column; gap: 1rem;">
+                              <p:fieldset legend="Medical Record Details">
+
+                                    <div class="p-field">
+                                        <p:outputLabel for="recordDate" value="Record Date"/>
+                                        <p:calendar id="recordDate" value="#{doctorMedicalRecordBean.newRecord.recordDate}"
+                                                    pattern="yyyy-MM-dd" required="true" navigator="true"
+                                                    style="width: 100%"/>
+                                    </div>
+
+                                    <div class="p-field">
+                                        <p:outputLabel for="diagnosis" value="Diagnosis"/>
+                                        <p:inputTextarea id="diagnosis" value="#{doctorMedicalRecordBean.newRecord.diagnosis}"
+                                                         rows="4" autoResize="true" required="true"
+                                                         style="width: 100%"/>
+                                    </div>
+
+                                    <div class="p-field">
+                                        <p:outputLabel for="treatment" value="Treatment Plan"/>
+                                        <p:inputTextarea id="treatment" value="#{doctorMedicalRecordBean.newRecord.treatment}"
+                                                         rows="4" autoResize="true" required="true"
+                                                         style="width: 100%"/>
+                                    </div>
+                                </p:fieldset>
+                            </div>
+                            <p:commandButton value="Save Record" icon="pi pi-save" actionListener="#{doctorMedicalRecordBean.addRecord}" update="recordsPanel newRecordPanel :global-growl" styleClass="btn-primary mt-4"/>
+                        </div>
+                    </div>
+                </div>
+            </p:outputPanel>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,14 +1,15 @@
-package org.pahappa.service.impl;
+package org.pahappa.service.patient.impl;
 
 import org.pahappa.dao.PatientDao;
 import org.pahappa.model.Patient;
-import org.pahappa.service.PatientService;
+import org.pahappa.service.patient.PatientService;
 import org.pahappa.utils.Constants;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class PatientServiceImpl implements PatientService {
@@ -21,6 +22,7 @@ public class PatientServiceImpl implements PatientService {
             throw new IllegalArgumentException("Cannot add a patient that already has an ID.");
         }
         validatePatient(patient);
+        patient.setDeleted(false);
         patientDao.save(patient);
     }
 
@@ -43,20 +45,53 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public List<Patient> getAllPatients() {
-        return patientDao.getAll();
+        List<Patient> allPatients = patientDao.getAll().stream()
+                .filter(patient -> !patient.isDeleted())
+                .collect(Collectors.toList());
+        System.out.println("Retrieved active patients count from service: " + allPatients.size());
+        return allPatients;
     }
 
     @Override
     public void deletePatient(Long id) {
+        softDeletePatient(id); // Default to soft-delete
+    }
+
+    @Override
+    public void softDeletePatient(Long id) {
         if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid ID provided for deletion.");
+            throw new IllegalArgumentException("Invalid ID for soft deletion.");
+        }
+        Patient patient = patientDao.getById(id);
+        if (patient != null) {
+            patient.setDeleted(true);
+            patientDao.update(patient);
+        }
+    }
+
+    @Override
+    public void restorePatient(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid ID for restoration.");
+        }
+        Patient patient = patientDao.getById(id);
+        if (patient != null && patient.isDeleted()) {
+            patient.setDeleted(false);
+            patientDao.update(patient);
+        }
+    }
+
+    @Override
+    public void permanentlyDeletePatient(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid ID for permanent deletion.");
         }
         patientDao.delete(id);
     }
 
     @Override
     public long countPatients() {
-        return patientDao.getAll().size(); // Or better: implement patientDao.count()
+        return getAllPatients().size();
     }
 
     private void validatePatient(Patient patient) {

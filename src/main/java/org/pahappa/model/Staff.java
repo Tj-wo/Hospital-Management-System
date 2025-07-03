@@ -1,13 +1,11 @@
 package org.pahappa.model;
 
-import org.hibernate.envers.Audited;
 import org.pahappa.utils.Role;
 import javax.persistence.*;
 import java.util.Date;
 
 
 @Entity
-@Audited
 @Table(name = "staff")
 public class Staff extends BaseModel {
 
@@ -33,6 +31,9 @@ public class Staff extends BaseModel {
     @OneToOne(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true)
     private User user;
 
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
+
     public Staff() {}
 
     // Getters and setters
@@ -51,6 +52,8 @@ public class Staff extends BaseModel {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
     public String getFullName() { return firstName + " " + lastName; }
+    public boolean isDeleted() { return deleted; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 
     @Override
     public String toString() {
@@ -61,6 +64,7 @@ public class Staff extends BaseModel {
                 ", dateOfBirth=" + dateOfBirth +
                 ", role=" + role +
                 ", specialty='" + (specialty != null ? specialty : "N/A") + '\'' +
+                ", deleted=" + deleted +
                 '}';
     }
 }

@@ -1,11 +1,11 @@
-package org.pahappa.service.impl;
+package org.pahappa.service.user.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.pahappa.dao.UserDao;
 import org.pahappa.model.Patient;
 import org.pahappa.model.User;
-import org.pahappa.service.PatientService;
-import org.pahappa.service.UserService;
+import org.pahappa.service.patient.PatientService;
+import org.pahappa.service.user.UserService;
 import org.pahappa.utils.Role;
 
 import javax.enterprise.context.ApplicationScoped;

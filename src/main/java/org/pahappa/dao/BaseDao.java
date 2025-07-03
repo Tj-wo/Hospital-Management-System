@@ -52,7 +52,7 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<T> query = builder.createQuery(entityClass);
             Root<T> root = query.from(entityClass);
-            query.select(root).where(builder.equal(root.get("deleted"), false));
+            query.select(root); // Remove WHERE clause to include all records
             return session.createQuery(query).list();
         }
     }
@@ -67,9 +67,7 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            // We must use session.get() here because our custom getById() filters out deleted items.
-            // We need to be able to retrieve an item to "undelete" it if needed in the future.
-            T entity = session.get(entityClass, id);
+            T entity = session.get(entityClass, id); // Use session.get() to bypass getById filter
             if (entity != null) {
                 entity.setDeleted(true);
                 session.update(entity);
@@ -78,6 +76,16 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             throw new RuntimeException("Failed to soft-delete " + entityClass.getSimpleName(), e);
+        }
+    }
+
+    public List<T> getAllDeleted() {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> query = builder.createQuery(entityClass);
+            Root<T> root = query.from(entityClass);
+            query.select(root).where(builder.equal(root.get("deleted"), true));
+            return session.createQuery(query).list();
         }
     }
 }

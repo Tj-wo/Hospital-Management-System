@@ -1,7 +1,7 @@
 package org.pahappa.controller.patient;
 
 import org.pahappa.model.Appointment;
-import org.pahappa.service.AppointmentService;
+import org.pahappa.service.appointment.AppointmentService;
 import org.primefaces.PrimeFaces;
 
 import javax.annotation.PostConstruct;

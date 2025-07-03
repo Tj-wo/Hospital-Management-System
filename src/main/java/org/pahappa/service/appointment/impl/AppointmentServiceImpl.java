@@ -1,10 +1,10 @@
-package org.pahappa.service.impl;
+package org.pahappa.service.appointment.impl;
 
 import org.hibernate.Session;
 import org.pahappa.dao.AppointmentDao;
 import org.pahappa.model.Appointment;
 import org.pahappa.model.Staff;
-import org.pahappa.service.AppointmentService;
+import org.pahappa.service.appointment.AppointmentService;
 import org.pahappa.service.HibernateUtil;
 import org.pahappa.utils.AppointmentStatus;
 import org.pahappa.utils.Role;
