@@ -1,7 +1,7 @@
 package org.pahappa.controller.admin;
 
 import org.pahappa.model.MedicalRecord;
-import org.pahappa.service.MedicalRecordService;
+import org.pahappa.service.medicalRecord.MedicalRecordService;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;

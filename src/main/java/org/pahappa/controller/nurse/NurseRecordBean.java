@@ -4,7 +4,7 @@ import org.pahappa.model.Admission;
 import org.pahappa.model.MedicalRecord;
 import org.pahappa.controller.LoginBean;
 import org.pahappa.service.admission.AdmissionService;
-import org.pahappa.service.MedicalRecordService;
+import org.pahappa.service.medicalRecord.MedicalRecordService;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;

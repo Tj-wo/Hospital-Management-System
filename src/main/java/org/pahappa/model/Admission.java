@@ -1,13 +1,11 @@
 package org.pahappa.model;
 
-import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import java.sql.Date;
 import java.util.Objects;
 
 @Entity
-@Audited
 @Table(name = "admissions")
 public class Admission extends BaseModel {
 

@@ -8,7 +8,8 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title><ui:insert name="title">HMS</ui:insert> - Hospital Management System</title>
-   />
+    <h:outputStylesheet library="css" name="style.css"/>
+    <h:outputScript library="js" name="script.js"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 </h:head>
 
@@ -41,6 +42,7 @@
                                 <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-appointments') ? 'active' : ''}" outcome="manage-appointments"><i class="pi pi-calendar nav-icon"></i><span>Appointments</span></p:link>
                                 <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-admissions') ? 'active' : ''}" outcome="manage-admissions"><i class="pi pi-building nav-icon"></i><span>Admissions</span></p:link>
                                 <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-medical-records') ? 'active' : ''}" outcome="manage-medical-records"><i class="pi pi-file-edit nav-icon"></i><span>Records</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('admin/manage-deactivated-users') ? 'active' : ''}" outcome="manage-deactivated-users"><i class="pi pi-user-minus nav-icon"></i><span>Deactivated Users</span></p:link>
                             </div>
                         </p:outputPanel>
 
@@ -78,9 +80,8 @@
                             </div>
                         </p:outputPanel>
 
-                        <!-- REMAINS a commandLink because it performs a server-side action -->
                         <div class="logout-section">
-                            <p:commandLink action="#{loginBean.logout}" ajax="false" styleClass="nav-item">
+                            <p:commandLink action="#{loginBean.logout}" ajax="false" styleClass="logout-button nav-item">
                                 <i class="pi pi-sign-out nav-icon"></i><span>Logout</span>
                             </p:commandLink>
                         </div>

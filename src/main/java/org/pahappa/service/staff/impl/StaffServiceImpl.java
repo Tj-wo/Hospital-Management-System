@@ -40,6 +40,7 @@ public class StaffServiceImpl implements StaffService {
         user.setRole(staff.getRole());
         user.setStaff(staff);
         staff.setUser(user);
+        staff.setDeleted(false);
 
         staffDao.save(staff);
     }
@@ -55,8 +56,37 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public void deleteStaff(Long id) {
+        softDeleteStaff(id); // Default to soft-delete
+    }
+
+    @Override
+    public void softDeleteStaff(Long id) {
         if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid ID for deletion.");
+            throw new IllegalArgumentException("Invalid ID for soft deletion.");
+        }
+        Staff staff = staffDao.getById(id);
+        if (staff != null) {
+            staff.setDeleted(true);
+            staffDao.update(staff);
+        }
+    }
+
+    @Override
+    public void restoreStaff(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid ID for restoration.");
+        }
+        Staff staff = staffDao.getById(id);
+        if (staff != null && staff.isDeleted()) {
+            staff.setDeleted(false);
+            staffDao.update(staff);
+        }
+    }
+
+    @Override
+    public void permanentlyDeleteStaff(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid ID for permanent deletion.");
         }
         staffDao.delete(id);
     }
@@ -68,12 +98,23 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public List<Staff> getAllStaff() {
-        return staffDao.getAll();
+        return staffDao.getAll().stream()
+                .filter(staff -> !staff.isDeleted())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Staff> getSoftDeletedStaff() {
+        List<Staff> deletedStaff = staffDao.getAll().stream()
+                .filter(Staff::isDeleted)
+                .collect(Collectors.toList());
+        System.out.println("Retrieved soft deleted staff count from service: " + deletedStaff.size());
+        return deletedStaff;
     }
 
     @Override
     public List<Staff> getStaffByRole(Role role) {
-        return staffDao.getAll().stream()
+        return getAllStaff().stream()
                 .filter(staff -> staff.getRole() == role)
                 .collect(Collectors.toList());
     }

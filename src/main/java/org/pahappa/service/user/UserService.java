@@ -1,4 +1,4 @@
-package org.pahappa.service;
+package org.pahappa.service.user;
 
 import org.pahappa.model.Patient;
 import org.pahappa.model.User;

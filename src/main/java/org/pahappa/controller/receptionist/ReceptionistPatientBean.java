@@ -1,7 +1,7 @@
 package org.pahappa.controller.receptionist;
 
 import org.pahappa.model.Patient;
-import org.pahappa.service.UserService;
+import org.pahappa.service.user.UserService;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
