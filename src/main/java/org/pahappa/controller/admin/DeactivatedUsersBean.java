@@ -51,9 +51,7 @@ public class DeactivatedUsersBean implements Serializable {
         }
 
         if (selectedCategory == 0) { // Patients [87]
-            currentDeactivatedList = new ArrayList<>(patientDao.getAll().stream() 
-                    .filter(Patient::isDeleted) 
-                    .collect(Collectors.toList())); 
+            currentDeactivatedList = new ArrayList<>(patientDao.getAllDeleted());
             System.out.println("Deactivated patients count: " + currentDeactivatedList.size()); 
         } else if (selectedCategory == 1) { // Staff [87]
             currentDeactivatedList = new ArrayList<>(staffService.getSoftDeletedStaff()); 
