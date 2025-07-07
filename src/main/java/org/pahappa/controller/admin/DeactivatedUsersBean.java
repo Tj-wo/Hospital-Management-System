@@ -8,6 +8,7 @@ import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Role;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
@@ -65,6 +66,7 @@ public class DeactivatedUsersBean implements Serializable {
         }
         try {
             if (selectedCategory == 0 && selectedUser instanceof Patient) {
+                System.out.println("Patient .." + ((Patient) selectedUser).getFullName());
                 patientService.restorePatient(((Patient) selectedUser).getId());
                 currentDeactivatedList.remove(selectedUser);
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient restored successfully.");

@@ -28,6 +28,8 @@
         <navigation-case><from-outcome>manage-admissions</from-outcome><to-view-id>/views/admin/manage-admissions.xhtml</to-view-id></navigation-case>
         <navigation-case><from-outcome>manage-medical-records</from-outcome><to-view-id>/views/admin/manage-medical-records.xhtml</to-view-id></navigation-case>
         <navigation-case><from-outcome>manage-deactivated-users</from-outcome><to-view-id>/views/admin/deactivatedUsers.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-audit-logs</from-outcome><to-view-id>/views/admin/audit-logs.xhtml</to-view-id></navigation-case>
+
 
         <!-- DOCTOR -->
         <navigation-case><from-outcome>doctor-appointments</from-outcome><to-view-id>/views/doctor/appointments.xhtml</to-view-id></navigation-case>

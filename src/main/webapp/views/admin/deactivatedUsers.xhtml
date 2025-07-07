@@ -64,7 +64,7 @@
                     <!-- Actions -->
                     <p:column headerText="Actions" style="width:12rem; text-align:center">
                         <p:commandButton icon="pi pi-refresh"
-                                         actionListener="#{deactivatedUsersBean.restoreUser}"
+                                         action="#{deactivatedUsersBean.restoreUser}"
                                          process="@this"
                                          update="deactivatedUsersForm global-growl"
                                          styleClass="rounded-button ui-button-success">
@@ -79,7 +79,7 @@
                                          process="@this"
                                          update="deactivatedUsersForm global-growl"
                                          styleClass="rounded-button ui-button-danger">
-                            <f:setPropertyActionListener value="#{user}" target="#{deactivatedUsersBean.selectedUser}"/>
+                            <f:setPropertyActionListener value="#{user}" target="#{deactivatedUsersBean.selectedUser()}"/>
                             <p:confirm header="Confirmation"
                                        message="Permanently delete #{deactivatedUsersBean.selectedCategory == 0 ? user.fullName : user.firstName.concat(' ').concat(user.lastName)}?"
                                        icon="pi pi-exclamation-triangle"/>
