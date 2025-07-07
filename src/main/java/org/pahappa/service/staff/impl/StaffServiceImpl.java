@@ -104,9 +104,7 @@ public class StaffServiceImpl implements StaffService {
 
         staffDao.save(staff);
         String details = "Name: " + staff.getFirstName() + " " + staff.getLastName() + ", Role: " + staff.getRole().name();
-        // Corrected logCreate call: userId, username, details
-        // Note: For adding staff, the 'user' is the newly created user for the staff.
-        // The audit user (getCurrentUser) is the one performing the action (e.g., admin).
+
         auditService.logCreate(staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
@@ -122,7 +120,6 @@ public class StaffServiceImpl implements StaffService {
         validateStaff(staff);
         staffDao.update(staff);
         String details = "Staff ID: " + staff.getId() + ", New Name: " + staff.getFirstName() + " " + staff.getLastName();
-        // Corrected logUpdate call: original, updated, userId, username, details
         auditService.logUpdate(original, staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
@@ -151,13 +148,11 @@ public class StaffServiceImpl implements StaffService {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Invalid ID for restoration.");
         }
-        Staff staff = staffDao.getById(id);
+        Staff staff = staffDao.getByIdIncludingDeleted(id);
         if (staff != null && staff.isDeleted()) {
             staff.setDeleted(false);
             staffDao.update(staff);
             String details = "Restored Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-            // Using logUpdate for restoration as it's a change to the object's state
-            // Corrected logUpdate call: original, updated, userId, username, details
             auditService.logUpdate(staff, staff, getCurrentUserId(), getCurrentUser(), details);
         }
     }
@@ -167,7 +162,7 @@ public class StaffServiceImpl implements StaffService {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Invalid ID for permanent deletion.");
         }
-        Staff staff = staffDao.getById(id); // Get staff before deletion for logging details
+        Staff staff = staffDao.getByIdIncludingDeleted(id);
         staffDao.delete(id);
         String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
         // Corrected logDelete call: entity, userId, username, details

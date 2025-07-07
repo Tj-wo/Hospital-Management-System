@@ -65,7 +65,7 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
             CriteriaBuilder builder = session.getCriteriaBuilder();
             CriteriaQuery<T> query = builder.createQuery(entityClass);
             Root<T> root = query.from(entityClass);
-            query.select(root); // Remove WHERE clause to include all records
+            query.select(root).where(builder.equal(root.get("deleted"), false));
             return session.createQuery(query).list();
         }
     }
