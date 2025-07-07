@@ -47,7 +47,7 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
         }
     }
 
-    
+    @Override
     public T getByIdIncludingDeleted(ID id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             CriteriaBuilder builder = session.getCriteriaBuilder();
