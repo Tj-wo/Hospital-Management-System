@@ -5,12 +5,16 @@ import org.pahappa.model.Patient;
 import org.pahappa.controller.LoginBean;
 import org.pahappa.service.medicalRecord.MedicalRecordService;
 import org.pahappa.service.patient.PatientService;
+import org.pahappa.exception.HospitalServiceException; // Added import
+import org.pahappa.exception.ValidationException; // Added import
+
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,17 +24,14 @@ public class DoctorMedicalRecordBean implements Serializable {
 
     @Inject
     private MedicalRecordService medicalRecordService;
-
     @Inject
     private PatientService patientService;
-
     @Inject
     private LoginBean loginBean;
 
-    private List<Patient> allPatients;
-    private List<MedicalRecord> selectedPatientRecords;
+    private List allPatients;
+    private List selectedPatientRecords;
     private Patient selectedPatient;
-
     private MedicalRecord newRecord = new MedicalRecord();
 
     @PostConstruct
@@ -65,10 +66,13 @@ public class DoctorMedicalRecordBean implements Serializable {
                 // Refresh the records list and reset the form
                 onPatientChange();
                 newRecord = new MedicalRecord();
-
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Medical record added for " + selectedPatient.getFullName());
-            } catch (Exception e) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Save Failed", e.getMessage());
+            } catch (ValidationException ve) { // Specific catch for validation errors
+                addMessage(FacesMessage.SEVERITY_WARN, "Save Failed", ve.getMessage());
+            } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+                addMessage(FacesMessage.SEVERITY_ERROR, "Save Failed", hse.getMessage());
+            } catch (Exception e) { // Generic fallback for unexpected errors
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
             }
         } else {
             addMessage(FacesMessage.SEVERITY_WARN, "No Patient Selected", "Please select a patient before adding a record.");
@@ -80,8 +84,8 @@ public class DoctorMedicalRecordBean implements Serializable {
     }
 
     // Getters and Setters
-    public List<Patient> getAllPatients() { return allPatients; }
-    public List<MedicalRecord> getSelectedPatientRecords() { return selectedPatientRecords; }
+    public List getAllPatients() { return allPatients; }
+    public List getSelectedPatientRecords() { return selectedPatientRecords; }
     public Patient getSelectedPatient() { return selectedPatient; }
     public void setSelectedPatient(Patient selectedPatient) { this.selectedPatient = selectedPatient; }
     public MedicalRecord getNewRecord() { return newRecord; }

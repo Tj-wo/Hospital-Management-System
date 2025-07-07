@@ -4,12 +4,17 @@ import org.pahappa.model.Appointment;
 import org.pahappa.controller.LoginBean;
 import org.pahappa.service.appointment.AppointmentService;
 import org.pahappa.utils.AppointmentStatus;
+import org.pahappa.exception.HospitalServiceException;
+import org.pahappa.exception.ValidationException;
+import org.pahappa.exception.ResourceNotFoundException;
+
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -18,57 +23,55 @@ import java.util.List;
 public class DoctorAppointmentBean implements Serializable {
 
     @Inject
-    private AppointmentService appointmentService;
-
+    private AppointmentService appointmentService; // [100]
     @Inject
-    private LoginBean loginBean;
+    private LoginBean loginBean; // [100]
 
-    private List<Appointment> appointments;
-    private Appointment selectedAppointment;
-    private AppointmentStatus newStatus;
+    private List<Appointment> appointments; // [100]
+    private Appointment selectedAppointment; // [100]
+    private AppointmentStatus newStatus; // [100]
 
     @PostConstruct
     public void init() {
-        loadAppointments();
+        loadAppointments(); // [100]
     }
 
     private void loadAppointments() {
-        if (loginBean.isLoggedIn() && loginBean.getLoggedInUser().getStaff() != null) {
-            long doctorId = loginBean.getLoggedInUser().getStaff().getId();
-            appointments = appointmentService.getAppointmentsForDoctor(doctorId);
+        if (loginBean.isLoggedIn() && loginBean.getLoggedInUser().getStaff() != null) { // [100]
+            long doctorId = loginBean.getLoggedInUser().getStaff().getId(); // [101]
+            appointments = appointmentService.getAppointmentsForDoctor(doctorId); // [101]
         }
     }
 
-    /**
-     * Action method to update the status of the selected appointment.
-     */
     public void updateStatus() {
-        if (selectedAppointment != null && newStatus != null) {
+        if (selectedAppointment != null && newStatus != null) { // [101]
             try {
-                appointmentService.updateAppointmentStatus(selectedAppointment.getId(), newStatus);
-                loadAppointments(); // Refresh the list to show the new status
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment status updated to " + newStatus);
+                appointmentService.updateAppointmentStatus(selectedAppointment.getId(), newStatus); // [101]
+                loadAppointments(); // [101]
+                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment status updated to " + newStatus); // [101]
+            } catch (ValidationException | ResourceNotFoundException e) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not update status: " + e.getMessage()); // [102]
+            } catch (HospitalServiceException hse) {
+                addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
             } catch (Exception e) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not update status: " + e.getMessage());
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); // [102]
             }
         } else {
-            addMessage(FacesMessage.SEVERITY_WARN, "Invalid Selection", "Please select an appointment and a new status.");
+            addMessage(FacesMessage.SEVERITY_WARN, "Invalid Selection", "Please select an appointment and a new status."); // [102]
         }
     }
 
     private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail)); // [102]
     }
 
-    // Getters and Setters
-    public List<Appointment> getAppointments() { return appointments; }
-    public Appointment getSelectedAppointment() { return selectedAppointment; }
-    public void setSelectedAppointment(Appointment appointment) { this.selectedAppointment = appointment; }
-    public AppointmentStatus getNewStatus() { return newStatus; }
-    public void setNewStatus(AppointmentStatus status) { this.newStatus = status; }
+    public List<Appointment> getAppointments() { return appointments; } // [103]
+    public Appointment getSelectedAppointment() { return selectedAppointment; } // [103]
+    public void setSelectedAppointment(Appointment appointment) { this.selectedAppointment = appointment; } // [103]
+    public AppointmentStatus getNewStatus() { return newStatus; } // [103]
+    public void setNewStatus(AppointmentStatus status) { this.newStatus = status; } // [103]
 
-    // Helper to provide all possible statuses to the dropdown in the view
     public AppointmentStatus[] getAppointmentStatuses() {
-        return AppointmentStatus.values();
+        return AppointmentStatus.values(); // [103]
     }
 }
