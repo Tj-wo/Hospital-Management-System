@@ -5,12 +5,17 @@ import org.pahappa.model.MedicalRecord;
 import org.pahappa.controller.LoginBean;
 import org.pahappa.service.admission.AdmissionService;
 import org.pahappa.service.medicalRecord.MedicalRecordService;
+import org.pahappa.exception.HospitalServiceException; // Added import
+import org.pahappa.exception.ValidationException; // Added import
+import org.pahappa.exception.ResourceNotFoundException; // Added import
+
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,17 +26,14 @@ public class NurseRecordBean implements Serializable {
 
     @Inject
     private MedicalRecordService medicalRecordService;
-
     @Inject
     private AdmissionService admissionService;
-
     @Inject
     private LoginBean loginBean;
 
-    private List<Admission> assignedAdmissions; // For the patient dropdown
+    private List assignedAdmissions; // For the patient dropdown
     private Long selectedAdmissionId; // To hold the value from the dropdown
-
-    private List<MedicalRecord> selectedPatientRecords; // Records for the selected patient
+    private List selectedPatientRecords; // Records for the selected patient
     private MedicalRecord recordToUpdate; // The specific record being edited
 
     @PostConstruct
@@ -45,7 +47,6 @@ public class NurseRecordBean implements Serializable {
         }
     }
 
-
     public void onPatientChange() {
         if (selectedAdmissionId != null) {
             Admission selectedAdmission = admissionService.getAdmissionById(selectedAdmissionId);
@@ -57,19 +58,21 @@ public class NurseRecordBean implements Serializable {
         }
     }
 
-
     public void updateRecord() {
         if (recordToUpdate != null) {
             try {
                 medicalRecordService.updateMedicalRecord(recordToUpdate);
                 onPatientChange(); // Refresh the records list
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Medical record updated.");
-            } catch (Exception e) {
+            } catch (ValidationException | ResourceNotFoundException e) { // Specific catch for validation/not found errors
                 addMessage(FacesMessage.SEVERITY_ERROR, "Update Failed", e.getMessage());
+            } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+                addMessage(FacesMessage.SEVERITY_ERROR, "Update Failed", hse.getMessage());
+            } catch (Exception e) { // Generic fallback for unexpected errors
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
             }
         }
     }
-
 
     public void selectRecordForEdit(MedicalRecord record) {
         this.recordToUpdate = record;
@@ -86,10 +89,10 @@ public class NurseRecordBean implements Serializable {
     }
 
     // Getters and Setters
-    public List<Admission> getAssignedAdmissions() { return assignedAdmissions; }
+    public List getAssignedAdmissions() { return assignedAdmissions; }
     public Long getSelectedAdmissionId() { return selectedAdmissionId; }
     public void setSelectedAdmissionId(Long selectedAdmissionId) { this.selectedAdmissionId = selectedAdmissionId; }
-    public List<MedicalRecord> getSelectedPatientRecords() { return selectedPatientRecords; }
+    public List getSelectedPatientRecords() { return selectedPatientRecords; }
     public MedicalRecord getRecordToUpdate() { return recordToUpdate; }
     public void setRecordToUpdate(MedicalRecord recordToUpdate) { this.recordToUpdate = recordToUpdate; }
 }
