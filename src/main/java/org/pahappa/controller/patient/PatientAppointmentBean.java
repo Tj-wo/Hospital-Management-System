@@ -3,6 +3,10 @@ package org.pahappa.controller.patient;
 import org.pahappa.model.Appointment;
 import org.pahappa.service.appointment.AppointmentService;
 import org.primefaces.PrimeFaces;
+import org.pahappa.exception.HospitalServiceException; // Added import
+import org.pahappa.exception.ValidationException; // Added import
+import org.pahappa.exception.AppointmentConflictException; // Added import
+import org.pahappa.exception.ResourceNotFoundException; // Added import
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
@@ -10,6 +14,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -17,13 +22,12 @@ import java.util.List;
 @RequestScoped
 public class PatientAppointmentBean implements Serializable {
 
-    private List<Appointment> appointments;
+    private List appointments;
     private Appointment newAppointment;
     private Appointment selectedAppointment;
 
     @Inject
     private AppointmentService appointmentService;
-
     @Inject
     private org.pahappa.controller.LoginBean loginBean;
 
@@ -47,7 +51,6 @@ public class PatientAppointmentBean implements Serializable {
         boolean success = false;
         try {
             newAppointment.setPatient(loginBean.getLoggedInUser().getPatient());
-
             if (newAppointment.getId() == null) {
                 appointmentService.scheduleAppointment(newAppointment);
                 addMessage(FacesMessage.SEVERITY_INFO, "Booked", "Appointment scheduled.");
@@ -55,12 +58,17 @@ public class PatientAppointmentBean implements Serializable {
                 appointmentService.updateAppointment(newAppointment);
                 addMessage(FacesMessage.SEVERITY_INFO, "Updated", "Appointment rescheduled.");
             }
-
             loadAppointments();
             newAppointment = new Appointment();
             success = true;
-        } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Failed", e.getMessage());
+        } catch (ValidationException ve) { // Specific catch for validation errors
+            addMessage(FacesMessage.SEVERITY_WARN, "Booking Failed", ve.getMessage());
+        } catch (ResourceNotFoundException rnfe) { // Specific catch for resource not found errors
+            addMessage(FacesMessage.SEVERITY_ERROR, "Booking Failed", rnfe.getMessage());
+        } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+            addMessage(FacesMessage.SEVERITY_ERROR, "Booking Failed", hse.getMessage());
+        } catch (Exception e) { // Generic fallback for unexpected errors
+            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
         }
         PrimeFaces.current().ajax().addCallbackParam("bookingSuccess", success);
     }
@@ -83,8 +91,12 @@ public class PatientAppointmentBean implements Serializable {
             } else {
                 addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No appointment selected to cancel.");
             }
-        } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage());
+        } catch (ValidationException | ResourceNotFoundException e) { // Specific catch for validation/not found errors
+            addMessage(FacesMessage.SEVERITY_ERROR, "Cancellation Failed", e.getMessage());
+        } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+            addMessage(FacesMessage.SEVERITY_ERROR, "Cancellation Failed", hse.getMessage());
+        } catch (Exception e) { // Generic fallback for unexpected errors
+            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
         }
     }
 
@@ -92,11 +104,11 @@ public class PatientAppointmentBean implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, title, detail));
     }
 
-    public List<Appointment> getAppointments() {
+    public List getAppointments() {
         return appointments;
     }
 
-    public void setAppointments(List<Appointment> appointments) {
+    public void setAppointments(List appointments) {
         this.appointments = appointments;
     }
 
