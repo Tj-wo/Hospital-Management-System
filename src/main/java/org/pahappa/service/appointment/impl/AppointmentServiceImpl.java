@@ -13,6 +13,12 @@ import org.pahappa.utils.Role;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
+import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+main
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -23,7 +29,8 @@ import org.pahappa.controller.LoginBean;
 @ApplicationScoped
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private final AppointmentDao appointmentDao = new AppointmentDao();
+    @Inject
+    private AppointmentDao appointmentDao;
 
     @Inject
     private AuditService auditService;

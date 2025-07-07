@@ -16,7 +16,8 @@ import org.pahappa.controller.LoginBean;
 @ApplicationScoped
 public class MedicalRecordServiceImpl implements MedicalRecordService {
 
-    private final MedicalRecordDao medicalRecordDao = new MedicalRecordDao();
+    @Inject
+    private  MedicalRecordDao medicalRecordDao;
 
     @Inject
     private AuditService auditService;

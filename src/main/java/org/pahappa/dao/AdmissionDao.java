@@ -3,8 +3,11 @@ package org.pahappa.dao;
 import org.hibernate.Session;
 import org.pahappa.model.Admission;
 import org.pahappa.service.HibernateUtil;
+
+import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
 
+@ApplicationScoped
 public class AdmissionDao extends BaseDao<Admission, Long> {
 
     public AdmissionDao() {

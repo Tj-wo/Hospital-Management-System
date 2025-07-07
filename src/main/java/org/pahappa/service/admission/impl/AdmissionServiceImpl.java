@@ -22,7 +22,8 @@ import org.pahappa.controller.LoginBean;
 @ApplicationScoped
 public class AdmissionServiceImpl implements AdmissionService {
 
-    private final AdmissionDao admissionDao = new AdmissionDao();
+    @Inject
+    private AdmissionDao admissionDao;
 
     @Inject
     private AuditService auditService;
