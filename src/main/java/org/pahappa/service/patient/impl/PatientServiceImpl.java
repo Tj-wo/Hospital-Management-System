@@ -148,7 +148,7 @@ public class PatientServiceImpl implements PatientService {
                 throw new ValidationException("Invalid ID for restoration."); 
             }
             System.out.println("patient id" +id); 
-            Patient patient = patientDao.getById(id);
+            Patient patient = patientDao.getByIdIncludingDeleted(id);
             System.out.println("the patient is " +patient.getFirstName()); 
             if (patient == null) {
                 throw new ResourceNotFoundException("Patient not found with ID: " + id);

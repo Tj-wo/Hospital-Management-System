@@ -66,7 +66,7 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public List getSoftDeletedStaff() {
-        List<Staff> allStaff = staffDao.getAll(); 
+        List<Staff> allStaff = staffDao.getAllDeleted();
         List<Staff> deletedStaff = new ArrayList<>();
         for (Staff staff : allStaff) {
             if (staff.isDeleted()) {
