@@ -6,21 +6,19 @@
     <session-factory>
         <!-- Database connection settings -->
         <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hospital_db?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hospital_db?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC</property>
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.connection.password">database</property>
 
         <!-- C3P0 Connection Pool Settings -->
-        <property name="hibernate.connection.provider_class">org.hibernate.c3p0.internal.C3P0ConnectionProvider</property>
         <property name="hibernate.c3p0.min_size">5</property>
         <property name="hibernate.c3p0.max_size">20</property>
         <property name="hibernate.c3p0.acquire_increment">2</property>
-        <property name="hibernate.c3p0.timeout">1800</property>
+        <property name="hibernate.c3p0.timeout">300</property> <!-- Reduced from 1800 -->
         <property name="hibernate.c3p0.max_statements">50</property>
-        <property name="hibernate.c3p0.idle_test_period">300</property>
+        <property name="hibernate.c3p0.idle_test_period">100</property> <!-- Reduced from 300 -->
         <property name="hibernate.c3p0.preferredTestQuery">SELECT 1</property>
         <property name="hibernate.c3p0.testConnectionOnCheckout">true</property>
-        <property name="hibernate.c3p0.unreturnedConnectionTimeout">300</property>
 
         <!-- SQL Dialect -->
         <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
@@ -31,16 +29,6 @@
 
         <!-- Schema management -->
         <property name="hibernate.hbm2ddl.auto">update</property>
-        <property name="hibernate.temp.use_jdbc_metadata_defaults">false</property>
-
-        <!-- Connection handling -->
-        <property name="hibernate.connection.provider_disables_autocommit">true</property>
-        <property name="hibernate.connection.handling_mode">DELAYED_ACQUISITION_AND_HOLD</property>
-
-        <!-- Cache settings -->
-        <property name="hibernate.cache.use_second_level_cache">false</property>
-        <property name="hibernate.cache.use_query_cache">false</property>
-        <property name="hibernate.jdbc.batch_size">20</property>
 
         <!-- Entity mappings -->
         <mapping class="org.pahappa.model.Patient"/>
