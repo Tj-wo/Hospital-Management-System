@@ -7,6 +7,10 @@ import org.pahappa.service.appointment.AppointmentService;
 import org.pahappa.service.patient.PatientService;
 import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Role;
+import org.pahappa.exception.HospitalServiceException; // Added import
+import org.pahappa.exception.ValidationException; // Added import
+import org.pahappa.exception.AppointmentConflictException; // Added import
+import org.pahappa.exception.ResourceNotFoundException; // Added import
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -14,6 +18,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -28,10 +33,9 @@ public class ReceptionistAppointmentBean implements Serializable {
     @Inject
     private StaffService staffService;
 
-    private List<Appointment> allAppointments;
-    private List<Patient> allPatients;
-    private List<Staff> allDoctors;
-
+    private List allAppointments;
+    private List allPatients;
+    private List allDoctors;
     private Appointment newAppointment = new Appointment();
     private Appointment selectedAppointment;
 
@@ -52,8 +56,12 @@ public class ReceptionistAppointmentBean implements Serializable {
             loadAppointments();
             newAppointment = new Appointment();
             addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment scheduled.");
-        } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Scheduling Failed", e.getMessage());
+        } catch (ValidationException ve) { // Specific catch for validation errors
+            addMessage(FacesMessage.SEVERITY_WARN, "Scheduling Failed", ve.getMessage());
+        } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+            addMessage(FacesMessage.SEVERITY_ERROR, "Scheduling Failed", hse.getMessage());
+        } catch (Exception e) { // Generic fallback for unexpected errors
+            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
         }
     }
 
@@ -63,8 +71,12 @@ public class ReceptionistAppointmentBean implements Serializable {
                 appointmentService.updateAppointment(selectedAppointment);
                 loadAppointments();
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment rescheduled successfully.");
-            } catch (Exception e) {
+            } catch (ValidationException | ResourceNotFoundException e) { // Specific catch for validation/not found errors
                 addMessage(FacesMessage.SEVERITY_ERROR, "Update Failed", e.getMessage());
+            } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+                addMessage(FacesMessage.SEVERITY_ERROR, "Update Failed", hse.getMessage());
+            } catch (Exception e) { // Generic fallback for unexpected errors
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
             }
         }
     }
@@ -75,8 +87,12 @@ public class ReceptionistAppointmentBean implements Serializable {
                 appointmentService.cancelAppointment(selectedAppointment.getId(), false);
                 loadAppointments();
                 addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment has been cancelled.");
-            } catch (Exception e) {
+            } catch (ValidationException | ResourceNotFoundException e) { // Specific catch for validation/not found errors
                 addMessage(FacesMessage.SEVERITY_ERROR, "Cancellation Failed", e.getMessage());
+            } catch (HospitalServiceException hse) { // Specific catch for service-layer errors
+                addMessage(FacesMessage.SEVERITY_ERROR, "Cancellation Failed", hse.getMessage());
+            } catch (Exception e) { // Generic fallback for unexpected errors
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
             }
         }
     }
@@ -95,9 +111,9 @@ public class ReceptionistAppointmentBean implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
     }
 
-    public List<Appointment> getAllAppointments() { return allAppointments; }
-    public List<Patient> getAllPatients() { return allPatients; }
-    public List<Staff> getAllDoctors() { return allDoctors; }
+    public List getAllAppointments() { return allAppointments; }
+    public List getAllPatients() { return allPatients; }
+    public List getAllDoctors() { return allDoctors; }
     public Appointment getNewAppointment() { return newAppointment; }
     public void setNewAppointment(Appointment newAppointment) { this.newAppointment = newAppointment; }
     public Appointment getSelectedAppointment() { return selectedAppointment; }
