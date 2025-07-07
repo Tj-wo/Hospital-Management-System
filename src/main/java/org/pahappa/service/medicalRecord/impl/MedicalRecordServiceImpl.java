@@ -5,12 +5,14 @@ import org.pahappa.model.MedicalRecord;
 import org.pahappa.service.medicalRecord.MedicalRecordService;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.List;
 
 @ApplicationScoped
 public class MedicalRecordServiceImpl implements MedicalRecordService {
 
-    private final MedicalRecordDao medicalRecordDao = new MedicalRecordDao();
+    @Inject
+    private  MedicalRecordDao medicalRecordDao;
 
     @Override
     public void saveMedicalRecord(MedicalRecord record) {

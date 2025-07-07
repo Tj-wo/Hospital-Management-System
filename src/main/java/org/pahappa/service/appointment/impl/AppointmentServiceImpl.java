@@ -11,6 +11,7 @@ import org.pahappa.utils.Role;
 import org.pahappa.model.Patient;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,7 +20,8 @@ import java.util.List;
 @ApplicationScoped
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private final AppointmentDao appointmentDao = new AppointmentDao();
+    @Inject
+    private AppointmentDao appointmentDao;
 
     @Override
     public List<Appointment> getAllAppointments() {

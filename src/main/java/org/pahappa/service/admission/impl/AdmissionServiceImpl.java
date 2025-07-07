@@ -16,7 +16,8 @@ import java.util.List;
 @ApplicationScoped
 public class AdmissionServiceImpl implements AdmissionService {
 
-    private final AdmissionDao admissionDao = new AdmissionDao();
+    @Inject
+    private AdmissionDao admissionDao;
 
     @Inject
     private StaffService staffService;
