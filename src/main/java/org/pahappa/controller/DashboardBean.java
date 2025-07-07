@@ -77,7 +77,7 @@ public class DashboardBean implements Serializable {
     private void loadDoctorData() {
         Staff doctor = loginBean.getLoggedInUser().getStaff();
         if (doctor == null) return;
-        todaysAppointments = filterForToday(appointmentService.getAppointmentsForDoctor(doctor.getId()));
+        List todaysAppointments = filterForToday(appointmentService.getAppointmentsForDoctor(doctor.getId()));
     }
 
     private void loadPatientData() {

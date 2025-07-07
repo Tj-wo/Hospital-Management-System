@@ -13,6 +13,6 @@ public interface PatientService {
     void restorePatient(Long id) throws HospitalServiceException;
     void permanentlyDeletePatient(Long id) throws HospitalServiceException;
     Patient getPatient(Long id);
-    List getAllPatients();
+    List <Patient> getAllPatients();
     long countPatients();
 }

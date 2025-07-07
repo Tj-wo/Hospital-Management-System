@@ -27,10 +27,10 @@ public class AdminPatientBean implements Serializable {
     @Inject
     private PatientService patientService; 
 
-    private List<Patient> patients; 
-    private List<Patient> softDeletedPatients; 
+    private List <Patient> patients;
+    private List <Patient> softDeletedPatients;
     private Patient selectedPatient; 
-    private Patient selectedSoftDeletedPatient; 
+    private Patient selectedSoftDeletedPatient;
 
     @PostConstruct
     public void init() {
