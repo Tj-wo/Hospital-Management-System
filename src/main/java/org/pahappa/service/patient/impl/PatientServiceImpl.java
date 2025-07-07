@@ -117,9 +117,8 @@ public class PatientServiceImpl implements PatientService {
             throw new IllegalArgumentException("Invalid ID for restoration.");
         }
 
-        System.out.println("patient id" +id);
-        Patient patient = patientDao.getById(id);
-        System.out.println("the patient is " +patient.getFirstName());
+        Patient patient = patientDao.getByIdIncludingDeleted(id);
+
         if (patient != null && patient.isDeleted()) {
             patient.setDeleted(false);
             patientDao.update(patient);
@@ -133,7 +132,7 @@ public class PatientServiceImpl implements PatientService {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Invalid ID for permanent deletion.");
         }
-        Patient patient = patientDao.getById(id); // Get patient before deletion for logging details
+        Patient patient = patientDao.getByIdIncludingDeleted(id);
         patientDao.delete(id);
         String details = "Permanently Deleted Patient ID: " + patient.getId() + ", Name: " + patient.getFirstName() + " " + patient.getLastName();
         // Corrected logDelete call: entity, userId, username, details
