@@ -30,7 +30,7 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
         }
     }
 
-    /* @Override
+    @Override
     public T getById(ID id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             CriteriaBuilder builder = session.getCriteriaBuilder();
@@ -39,20 +39,25 @@ public abstract class BaseDao<T extends BaseModel, ID extends Serializable> impl
             query.select(root).where(
                     builder.and(
                             builder.equal(root.get("id"), id),
-                            builder.equal(root.get("deleted"), false),
-                            //builder.equal(root.get("deleted"), true)
+                            builder.equal(root.get("deleted"), false)
+
                     )
             );
             return session.createQuery(query).uniqueResultOptional().orElse(null);
         }
-    }*/
+    }
 
     @Override
-    public T getById(ID id) {
+    public T getByIdIncludingDeleted(ID id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.get(entityClass, id);
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<T> query = builder.createQuery(entityClass);
+            Root<T> root = query.from(entityClass);
+            query.select(root).where(builder.equal(root.get("id"), id));
+            return session.createQuery(query).uniqueResultOptional().orElse(null);
         }
     }
+
 
     @Override
     public List<T> getAll() {

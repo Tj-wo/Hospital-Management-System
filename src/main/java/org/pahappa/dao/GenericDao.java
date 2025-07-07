@@ -10,4 +10,5 @@ public interface GenericDao<T extends BaseModel, ID extends Serializable> {
     List<T> getAll();
     void update(T entity);
     void delete(ID id);
+    T getByIdIncludingDeleted(ID id);
 }
