@@ -5,21 +5,81 @@ import org.pahappa.dao.StaffDao;
 import org.pahappa.dao.UserDao;
 import org.pahappa.model.Staff;
 import org.pahappa.model.User;
+import org.pahappa.service.audit.AuditService;
 import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Constants;
 import org.pahappa.utils.Role;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import org.pahappa.controller.LoginBean;
+
 
 @ApplicationScoped
 public class StaffServiceImpl implements StaffService {
 
-    private final StaffDao staffDao = new StaffDao();
-    private final UserDao userDao = new UserDao();
+    @Inject
+    private  StaffDao staffDao;
+
+    @Inject
+    private  UserDao userDao;
+
+    @Inject
+    private AuditService auditService;
+
+    // Inject the LoginBean
+    @Inject
+    private LoginBean loginBean;
+
+    // Helper method to get the current username from the LoginBean
+    private String getCurrentUser() {
+        if (loginBean != null && loginBean.getLoggedInUser() != null) {
+            return loginBean.getLoggedInUser().getUsername();
+        }
+        return "system"; // Fallback for background tasks or unauthenticated operations
+    }
+
+    // Helper method to get the current user ID from the LoginBean
+    private String getCurrentUserId() {
+        if (loginBean != null && loginBean.getLoggedInUser() != null && loginBean.getLoggedInUser().getId() != null) {
+            return loginBean.getLoggedInUser().getId().toString();
+        }
+        return "0"; // Default ID for system or unauthenticated actions
+    }
+
+
+    @Override
+    public List<Staff> getAllStaff() {
+        List<Staff> allStaff = staffDao.getAll();
+        List<Staff> activeStaff = new ArrayList<>();
+        for (Staff staff : allStaff) {
+            if (!staff.isDeleted()) {
+                activeStaff.add(staff);
+            }
+        }
+        return activeStaff;
+    }
+
+    @Override
+    public List<Staff> getSoftDeletedStaff() {
+        List<Staff> allStaff = staffDao.getAll();
+        List<Staff> deletedStaff = new ArrayList<>();
+        for (Staff staff : allStaff) {
+            if (staff.isDeleted()) {
+                deletedStaff.add(staff);
+            }
+        }
+        return deletedStaff;
+    }
+
+    @Override
+    public Staff getStaff(Long id) {
+        return staffDao.getById(id);
+    }
 
     @Override
     public void addStaff(Staff staff, String password) {
@@ -43,20 +103,32 @@ public class StaffServiceImpl implements StaffService {
         staff.setDeleted(false);
 
         staffDao.save(staff);
+        String details = "Name: " + staff.getFirstName() + " " + staff.getLastName() + ", Role: " + staff.getRole().name();
+        // Corrected logCreate call: userId, username, details
+        // Note: For adding staff, the 'user' is the newly created user for the staff.
+        // The audit user (getCurrentUser) is the one performing the action (e.g., admin).
+        auditService.logCreate(staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
     @Override
     public void updateStaff(Staff staff) {
+        Staff original = staffDao.getById(staff.getId());
+        if (original == null) { // Defensive check
+            throw new IllegalArgumentException("Original Staff not found for ID: " + staff.getId());
+        }
         if (staff.getId() == null) {
             throw new IllegalArgumentException("Staff ID is required for an update.");
         }
         validateStaff(staff);
         staffDao.update(staff);
+        String details = "Staff ID: " + staff.getId() + ", New Name: " + staff.getFirstName() + " " + staff.getLastName();
+        // Corrected logUpdate call: original, updated, userId, username, details
+        auditService.logUpdate(original, staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
     @Override
     public void deleteStaff(Long id) {
-        softDeleteStaff(id); // Default to soft-delete
+        softDeleteStaff(id);
     }
 
     @Override
@@ -68,6 +140,9 @@ public class StaffServiceImpl implements StaffService {
         if (staff != null) {
             staff.setDeleted(true);
             staffDao.update(staff);
+            String details = "Soft Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
+            // Corrected logDelete call: entity, userId, username, details
+            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details);
         }
     }
 
@@ -80,6 +155,10 @@ public class StaffServiceImpl implements StaffService {
         if (staff != null && staff.isDeleted()) {
             staff.setDeleted(false);
             staffDao.update(staff);
+            String details = "Restored Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
+            // Using logUpdate for restoration as it's a change to the object's state
+            // Corrected logUpdate call: original, updated, userId, username, details
+            auditService.logUpdate(staff, staff, getCurrentUserId(), getCurrentUser(), details);
         }
     }
 
@@ -88,35 +167,23 @@ public class StaffServiceImpl implements StaffService {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Invalid ID for permanent deletion.");
         }
+        Staff staff = staffDao.getById(id); // Get staff before deletion for logging details
         staffDao.delete(id);
-    }
-
-    @Override
-    public Staff getStaff(Long id) {
-        return staffDao.getById(id);
-    }
-
-    @Override
-    public List<Staff> getAllStaff() {
-        return staffDao.getAll().stream()
-                .filter(staff -> !staff.isDeleted())
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Staff> getSoftDeletedStaff() {
-        List<Staff> deletedStaff = staffDao.getAll().stream()
-                .filter(Staff::isDeleted)
-                .collect(Collectors.toList());
-        System.out.println("Retrieved soft deleted staff count from service: " + deletedStaff.size());
-        return deletedStaff;
+        String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
+        // Corrected logDelete call: entity, userId, username, details
+        auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
     @Override
     public List<Staff> getStaffByRole(Role role) {
-        return getAllStaff().stream()
-                .filter(staff -> staff.getRole() == role)
-                .collect(Collectors.toList());
+        List<Staff> allStaff = getAllStaff();
+        List<Staff> staffByRole = new ArrayList<>();
+        for (Staff staff : allStaff) {
+            if (staff.getRole() == role) {
+                staffByRole.add(staff);
+            }
+        }
+        return staffByRole;
     }
 
     @Override
@@ -136,12 +203,18 @@ public class StaffServiceImpl implements StaffService {
 
     private void validateStaff(Staff staff) {
         if (staff == null) throw new IllegalArgumentException("Staff object cannot be null.");
-        if (staff.getFirstName() == null || staff.getFirstName().trim().isEmpty()) throw new IllegalArgumentException("First Name is required.");
-        if (staff.getLastName() == null || staff.getLastName().trim().isEmpty()) throw new IllegalArgumentException("Last Name is required.");
-        if (staff.getEmail() == null || !Pattern.matches(Constants.EMAIL_REGEX, staff.getEmail())) throw new IllegalArgumentException(Constants.ERROR_INVALID_EMAIL);
-        if (staff.getDateOfBirth() == null) throw new IllegalArgumentException("Date of Birth is required.");
-        if (staff.getDateOfBirth().after(new Date())) throw new IllegalArgumentException("Date of birth cannot be in the future.");
-        if (staff.getRole() == null) throw new IllegalArgumentException("Role is required.");
+        if (staff.getFirstName() == null || staff.getFirstName().trim().isEmpty())
+            throw new IllegalArgumentException("First Name is required.");
+        if (staff.getLastName() == null || staff.getLastName().trim().isEmpty())
+            throw new IllegalArgumentException("Last Name is required.");
+        if (staff.getEmail() == null || !Pattern.matches(Constants.EMAIL_REGEX, staff.getEmail()))
+            throw new IllegalArgumentException(Constants.ERROR_INVALID_EMAIL);
+        if (staff.getDateOfBirth() == null)
+            throw new IllegalArgumentException("Date of Birth is required.");
+        if (staff.getDateOfBirth().after(new Date()))
+            throw new IllegalArgumentException("Date of birth cannot be in the future.");
+        if (staff.getRole() == null)
+            throw new IllegalArgumentException("Role is required.");
         if (staff.getRole() == Role.DOCTOR && (staff.getSpecialty() == null || staff.getSpecialty().trim().isEmpty())) {
             throw new IllegalArgumentException("Specialty is required for doctors.");
         }

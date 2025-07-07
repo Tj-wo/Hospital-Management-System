@@ -102,4 +102,5 @@ public class AdminPatientBean implements Serializable {
     public void setSelectedPatient(Patient selectedPatient) { this.selectedPatient = selectedPatient; }
     public Patient getSelectedSoftDeletedPatient() { return selectedSoftDeletedPatient; }
     public void setSelectedSoftDeletedPatient(Patient selectedSoftDeletedPatient) { this.selectedSoftDeletedPatient = selectedSoftDeletedPatient; }
+
 }
