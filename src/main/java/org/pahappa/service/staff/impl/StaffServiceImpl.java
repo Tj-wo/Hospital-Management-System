@@ -9,52 +9,52 @@ import org.pahappa.service.audit.AuditService;
 import org.pahappa.service.staff.StaffService;
 import org.pahappa.utils.Constants;
 import org.pahappa.utils.Role;
+import org.pahappa.exception.HospitalServiceException;
+import org.pahappa.exception.ValidationException;
+import org.pahappa.exception.ResourceNotFoundException;
+import org.pahappa.exception.DuplicateEntryException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.pahappa.controller.LoginBean;
 
-
 @ApplicationScoped
 public class StaffServiceImpl implements StaffService {
 
     @Inject
-    private  StaffDao staffDao;
+    private StaffDao staffDao; 
 
     @Inject
-    private  UserDao userDao;
+    private UserDao userDao; 
 
     @Inject
-    private AuditService auditService;
+    private AuditService auditService; 
 
-    // Inject the LoginBean
     @Inject
-    private LoginBean loginBean;
+    private LoginBean loginBean; 
 
-    // Helper method to get the current username from the LoginBean
     private String getCurrentUser() {
         if (loginBean != null && loginBean.getLoggedInUser() != null) {
-            return loginBean.getLoggedInUser().getUsername();
+            return loginBean.getLoggedInUser().getUsername(); 
         }
-        return "system"; // Fallback for background tasks or unauthenticated operations
+        return "system";
     }
 
-    // Helper method to get the current user ID from the LoginBean
     private String getCurrentUserId() {
         if (loginBean != null && loginBean.getLoggedInUser() != null && loginBean.getLoggedInUser().getId() != null) {
-            return loginBean.getLoggedInUser().getId().toString();
+            return loginBean.getLoggedInUser().getId().toString(); 
         }
-        return "0"; // Default ID for system or unauthenticated actions
+        return "0";
     }
 
-
     @Override
-    public List<Staff> getAllStaff() {
-        List<Staff> allStaff = staffDao.getAll();
+    public List getAllStaff() {
+        List<Staff> allStaff = staffDao.getAll(); 
         List<Staff> activeStaff = new ArrayList<>();
         for (Staff staff : allStaff) {
             if (!staff.isDeleted()) {
@@ -65,8 +65,8 @@ public class StaffServiceImpl implements StaffService {
     }
 
     @Override
-    public List<Staff> getSoftDeletedStaff() {
-        List<Staff> allStaff = staffDao.getAll();
+    public List getSoftDeletedStaff() {
+        List<Staff> allStaff = staffDao.getAll(); 
         List<Staff> deletedStaff = new ArrayList<>();
         for (Staff staff : allStaff) {
             if (staff.isDeleted()) {
@@ -78,104 +78,153 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public Staff getStaff(Long id) {
-        return staffDao.getById(id);
+        return staffDao.getById(id); 
     }
 
     @Override
-    public void addStaff(Staff staff, String password) {
-        validateStaff(staff);
-        if (password == null || password.trim().isEmpty()) {
-            throw new IllegalArgumentException("A password is required to create a staff user account.");
+    public void addStaff(Staff staff, String password) throws HospitalServiceException {
+        try {
+            validateStaff(staff); 
+            if (password == null || password.trim().isEmpty()) {
+                throw new ValidationException("A password is required to create a staff user account."); 
+            }
+
+            String username = staff.getEmail();
+            if (userDao.findByUsername(username) != null) {
+                throw new DuplicateEntryException("An account with the email '" + username + "' already exists."); 
+            }
+
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt()); 
+            User user = new User(); 
+            user.setUsername(username); 
+            user.setPassword(hashedPassword); 
+            user.setRole(staff.getRole()); 
+            user.setStaff(staff); 
+            staff.setUser(user); 
+            staff.setDeleted(false); 
+            staffDao.save(staff); 
+
+            String details = "Name: " + staff.getFirstName() + " " + staff.getLastName() + ", Role: " + staff.getRole().name();
+            auditService.logCreate(staff, getCurrentUserId(), getCurrentUser(), details); 
+        } catch (ValidationException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new HospitalServiceException("Failed to add staff: " + e.getMessage(), e);
         }
-
-        String username = staff.getEmail();
-        if (userDao.findByUsername(username) != null) {
-            throw new IllegalArgumentException("An account with the email '" + username + "' already exists.");
-        }
-
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(hashedPassword);
-        user.setRole(staff.getRole());
-        user.setStaff(staff);
-        staff.setUser(user);
-        staff.setDeleted(false);
-
-        staffDao.save(staff);
-        String details = "Name: " + staff.getFirstName() + " " + staff.getLastName() + ", Role: " + staff.getRole().name();
-
-        auditService.logCreate(staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
     @Override
-    public void updateStaff(Staff staff) {
-        Staff original = staffDao.getById(staff.getId());
-        if (original == null) { // Defensive check
-            throw new IllegalArgumentException("Original Staff not found for ID: " + staff.getId());
+    public void updateStaff(Staff staff) throws HospitalServiceException {
+        try {
+            Staff original = staffDao.getById(staff.getId()); 
+            if (original == null) {
+                throw new ResourceNotFoundException("Original Staff not found for ID: " + staff.getId()); 
+            }
+            if (staff.getId() == null) {
+                throw new ValidationException("Staff ID is required for an update."); 
+            }
+            if (!original.getEmail().equalsIgnoreCase(staff.getEmail()) &&
+                    staffDao.getAll().stream().anyMatch(s -> s.getEmail().equalsIgnoreCase(staff.getEmail()) && !s.isDeleted() && !s.getId().equals(staff.getId()))) {
+                throw new DuplicateEntryException("Staff with email '" + staff.getEmail() + "' already exists.");
+            }
+
+            validateStaff(staff);
+            staffDao.update(staff); 
+
+            String details = "Staff ID: " + staff.getId() + ", New Name: " + staff.getFirstName() + " " + staff.getLastName();
+            auditService.logUpdate(original, staff, getCurrentUserId(), getCurrentUser(), details); 
+        } catch (ValidationException | ResourceNotFoundException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new HospitalServiceException("Failed to update staff: " + e.getMessage(), e);
         }
-        if (staff.getId() == null) {
-            throw new IllegalArgumentException("Staff ID is required for an update.");
-        }
-        validateStaff(staff);
-        staffDao.update(staff);
-        String details = "Staff ID: " + staff.getId() + ", New Name: " + staff.getFirstName() + " " + staff.getLastName();
-        auditService.logUpdate(original, staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
     @Override
-    public void deleteStaff(Long id) {
-        softDeleteStaff(id);
+    public void deleteStaff(Long id) throws HospitalServiceException {
+        softDeleteStaff(id); 
     }
 
     @Override
-    public void softDeleteStaff(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid ID for soft deletion.");
-        }
-        Staff staff = staffDao.getById(id);
-        if (staff != null) {
-            staff.setDeleted(true);
-            staffDao.update(staff);
+    public void softDeleteStaff(Long id) throws HospitalServiceException {
+        try {
+            if (id == null || id <= 0) {
+                throw new ValidationException("Invalid ID for soft deletion."); 
+            }
+            Staff staff = staffDao.getById(id); 
+            if (staff == null) {
+                throw new ResourceNotFoundException("Staff not found with ID: " + id);
+            }
+            if (staff.isDeleted()) {
+                throw new ValidationException("Staff is already soft-deleted.");
+            }
+
+            staff.setDeleted(true); 
+            staffDao.update(staff); 
+
             String details = "Soft Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-            // Corrected logDelete call: entity, userId, username, details
-            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details);
+            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details); 
+        } catch (ValidationException | ResourceNotFoundException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new HospitalServiceException("Failed to soft-delete staff: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public void restoreStaff(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid ID for restoration.");
-        }
-        Staff staff = staffDao.getByIdIncludingDeleted(id);
-        if (staff != null && staff.isDeleted()) {
-            staff.setDeleted(false);
-            staffDao.update(staff);
+    public void restoreStaff(Long id) throws HospitalServiceException {
+        try {
+            if (id == null || id <= 0) {
+                throw new ValidationException("Invalid ID for restoration."); 
+            }
+            Staff staff = staffDao.getById(id); 
+            if (staff == null) {
+                throw new ResourceNotFoundException("Staff not found with ID: " + id);
+            }
+            if (!staff.isDeleted()) {
+                throw new ValidationException("Staff is not soft-deleted and cannot be restored.");
+            }
+
+            staff.setDeleted(false); 
+            staffDao.update(staff); 
+
             String details = "Restored Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-            auditService.logUpdate(staff, staff, getCurrentUserId(), getCurrentUser(), details);
+            auditService.logUpdate(staff, staff, getCurrentUserId(), getCurrentUser(), details); 
+        } catch (ValidationException | ResourceNotFoundException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new HospitalServiceException("Failed to restore staff: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public void permanentlyDeleteStaff(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Invalid ID for permanent deletion.");
+    public void permanentlyDeleteStaff(Long id) throws HospitalServiceException {
+        try {
+            if (id == null || id <= 0) {
+                throw new ValidationException("Invalid ID for permanent deletion."); 
+            }
+            Staff staff = staffDao.getById(id); 
+            if (staff == null) {
+                throw new ResourceNotFoundException("Staff not found with ID: " + id);
+            }
+            staffDao.delete(id); // This performs a soft-delete based on BaseDao [40]
+
+            String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
+            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details); 
+        } catch (ValidationException | ResourceNotFoundException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw new HospitalServiceException("Failed to permanently delete staff: " + e.getMessage(), e);
         }
-        Staff staff = staffDao.getByIdIncludingDeleted(id);
-        staffDao.delete(id);
-        String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-        // Corrected logDelete call: entity, userId, username, details
-        auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details);
     }
 
     @Override
-    public List<Staff> getStaffByRole(Role role) {
-        List<Staff> allStaff = getAllStaff();
+    public List getStaffByRole(Role role) {
+        List<Staff> allStaff = getAllStaff(); 
         List<Staff> staffByRole = new ArrayList<>();
         for (Staff staff : allStaff) {
             if (staff.getRole() == role) {
-                staffByRole.add(staff);
+                staffByRole.add(staff); 
             }
         }
         return staffByRole;
@@ -183,38 +232,38 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public long countDoctors() {
-        return getStaffByRole(Role.DOCTOR).size();
+        return getStaffByRole(Role.DOCTOR).size(); 
     }
 
     @Override
     public long countNurses() {
-        return getStaffByRole(Role.NURSE).size();
+        return getStaffByRole(Role.NURSE).size(); 
     }
 
     @Override
     public long countReceptionists() {
-        return getStaffByRole(Role.RECEPTIONIST).size();
+        return getStaffByRole(Role.RECEPTIONIST).size(); 
     }
 
-    private void validateStaff(Staff staff) {
-        if (staff == null) throw new IllegalArgumentException("Staff object cannot be null.");
+    private void validateStaff(Staff staff) throws ValidationException { // Added throws
+        if (staff == null) throw new ValidationException("Staff object cannot be null."); 
         if (staff.getFirstName() == null || staff.getFirstName().trim().isEmpty())
-            throw new IllegalArgumentException("First Name is required.");
+            throw new ValidationException("First Name is required."); 
         if (staff.getLastName() == null || staff.getLastName().trim().isEmpty())
-            throw new IllegalArgumentException("Last Name is required.");
+            throw new ValidationException("Last Name is required."); 
         if (staff.getEmail() == null || !Pattern.matches(Constants.EMAIL_REGEX, staff.getEmail()))
-            throw new IllegalArgumentException(Constants.ERROR_INVALID_EMAIL);
+            throw new ValidationException(Constants.ERROR_INVALID_EMAIL); 
         if (staff.getDateOfBirth() == null)
-            throw new IllegalArgumentException("Date of Birth is required.");
+            throw new ValidationException("Date of Birth is required."); 
         if (staff.getDateOfBirth().after(new Date()))
-            throw new IllegalArgumentException("Date of birth cannot be in the future.");
+            throw new ValidationException("Date of birth cannot be in the future."); 
         if (staff.getRole() == null)
-            throw new IllegalArgumentException("Role is required.");
+            throw new ValidationException("Role is required."); 
         if (staff.getRole() == Role.DOCTOR && (staff.getSpecialty() == null || staff.getSpecialty().trim().isEmpty())) {
-            throw new IllegalArgumentException("Specialty is required for doctors.");
+            throw new ValidationException("Specialty is required for doctors."); 
         }
         if (staff.getRole() != Role.DOCTOR && staff.getSpecialty() != null && !staff.getSpecialty().trim().isEmpty()) {
-            throw new IllegalArgumentException("Specialty should only be set for doctors.");
+            throw new ValidationException("Specialty should only be set for doctors."); 
         }
     }
 }
