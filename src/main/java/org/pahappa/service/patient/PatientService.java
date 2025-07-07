@@ -1,17 +1,18 @@
 package org.pahappa.service.patient;
 
+import org.pahappa.exception.HospitalServiceException;
 import org.pahappa.model.Patient;
 
 import java.util.List;
 
 public interface PatientService {
-    void addPatient(Patient patient);
-    void updatePatient(Patient patient);
-    void deletePatient(Long id); // Keep existing method, now soft-delete
-    void softDeletePatient(Long id); // Explicit soft-delete method
-    void restorePatient(Long id);
-    void permanentlyDeletePatient(Long id);
+    void addPatient(Patient patient) throws HospitalServiceException;
+    void updatePatient(Patient patient) throws HospitalServiceException;
+    void deletePatient(Long id) throws HospitalServiceException;
+    void softDeletePatient(Long id) throws HospitalServiceException;
+    void restorePatient(Long id) throws HospitalServiceException;
+    void permanentlyDeletePatient(Long id) throws HospitalServiceException;
     Patient getPatient(Long id);
-    List<Patient> getAllPatients();
+    List getAllPatients();
     long countPatients();
 }
