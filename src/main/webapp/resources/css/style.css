@@ -969,13 +969,16 @@ body {
 
 /* --- PASSWORD TOGGLE FIX --- */
 .ui-password {
-    position: relative !important;
+    position: relative !important;  /* Changed from absolute to relative */
     display: inline-block;
     width: 100%;
+    margin-bottom: 1rem;  /* Added for better spacing */
 }
 
 .ui-password input {
     padding-right: 3rem !important;
+    width: 100% !important;  /* Ensures full width */
+    box-sizing: border-box !important;  /* Includes padding in width calculation */
 }
 
 .ui-password .ui-password-toggle {
@@ -985,12 +988,33 @@ body {
     transform: translateY(-50%);
     cursor: pointer;
     z-index: 2;
-    color: var(--text-muted);
-    transition: var(--transition-base);
+    color: var(--text-color-secondary);
+    transition: color 0.2s ease;
+    background: none;
+    border: none;
+    padding: 0.5rem;
 }
 
 .ui-password .ui-password-toggle:hover {
-    color: var(--text-accent);
+    color: var(--primary-color);
+}
+
+/* Additional recommended styles */
+.ui-password-panel {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+}
+
+.ui-password-meter {
+    margin-top: 0.5rem;
+    height: 0.25rem;
+    background: var(--surface-d);
+}
+
+.ui-password-strength {
+    height: 100%;
+    transition: width 0.3s ease;
 }
 
 /* --- RESPONSIVE DESIGN --- */
