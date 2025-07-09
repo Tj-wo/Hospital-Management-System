@@ -50,7 +50,7 @@
                         <!-- DOCTOR -->
                         <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
                             <div class="nav-section"><div class="nav-header">Doctor Menu</div>
-                                <p:link styleClass="nav-item #{view.viewId.contains('doctor/appointments') ? 'active' : ''}" outcome="doctor-appointments"><i class="pi pi-calendar-check nav-icon"></i><span>My Appointments</span></p:link>
+                                <p:link styleClass="nav-item #{view.viewId.contains('doctor/appointments') ? 'active' : ''}" outcome="doctor-appointments"><i class="pi pi-calendar nav-icon"></i><span>My Appointments</span></p:link>
                                 <p:link styleClass="nav-item #{view.viewId.contains('doctor/medical-records') ? 'active' : ''}" outcome="doctor-medical-records"><i class="pi pi-file-edit nav-icon"></i><span>Medical Records</span></p:link>
                                 <p:link styleClass="nav-item #{view.viewId.contains('doctor/admissions') ? 'active' : ''}" outcome="doctor-admissions"><i class="pi pi-building nav-icon"></i><span>Admissions</span></p:link>
                             </div>

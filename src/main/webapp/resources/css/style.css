@@ -1316,3 +1316,10 @@ body {
         border: 1px solid var(--border-color) !important;
     }
 }
+
+.quick-actions {
+    display: flex;
+    gap: 1rem; /* Space between buttons */
+    flex-wrap: wrap;
+    align-items: center;
+}
