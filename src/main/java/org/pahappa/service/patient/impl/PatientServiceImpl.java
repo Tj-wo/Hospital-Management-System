@@ -179,7 +179,7 @@ public class PatientServiceImpl implements PatientService {
             if (patient == null) {
                 throw new ResourceNotFoundException("Patient not found with ID: " + id);
             }
-            patientDao.delete(id); // This performs a soft-delete based on BaseDao [40]
+            patientDao.delete(id); // This performs a soft-delete based on BaseDao
 
             String details = "Permanently Deleted Patient ID: " + patient.getId() + ", Name: " + patient.getFirstName() + " " + patient.getLastName();
             auditService.logDelete(patient, getCurrentUserId(), getCurrentUser(), details); 

@@ -39,7 +39,7 @@ public class AdminStaffBean implements Serializable {
         staffList = staffService.getAllStaff();
         softDeletedStaffList = staffService.getSoftDeletedStaff();
         prepareNewStaff();
-        System.out.println("Soft deleted staff count: " + softDeletedStaffList.size());//debug [77]
+        System.out.println("Soft deleted staff count: " + softDeletedStaffList.size());//debug
     }
 
     public void prepareNewStaff() {

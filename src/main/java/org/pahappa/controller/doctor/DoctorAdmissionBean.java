@@ -26,71 +26,71 @@ import java.util.List;
 public class DoctorAdmissionBean implements Serializable {
 
     @Inject
-    private AdmissionService admissionService; // [95]
+    private AdmissionService admissionService; 
     @Inject
-    private PatientService patientService; // [95]
+    private PatientService patientService; 
 
-    private List<Admission> admissions; // [96]
-    private List<Patient> allPatients; // [96]
-    private Admission newAdmission; // [96]
-    private Admission selectedAdmission; // [96]
+    private List<Admission> admissions; 
+    private List<Patient> allPatients; 
+    private Admission newAdmission; 
+    private Admission selectedAdmission; 
 
     @PostConstruct
     public void init() {
-        loadAdmissions(); // [96]
-        allPatients = patientService.getAllPatients(); // [96]
-        prepareNewAdmission(); // [96]
+        loadAdmissions(); 
+        allPatients = patientService.getAllPatients(); 
+        prepareNewAdmission(); 
     }
 
     private void loadAdmissions() {
-        admissions = admissionService.getAllAdmissions(); // [96]
+        admissions = admissionService.getAllAdmissions(); 
     }
 
     public void prepareNewAdmission() {
-        newAdmission = new Admission(); // [97]
-        newAdmission.setAdmissionDate(new java.sql.Date(new Date().getTime())); // [97]
+        newAdmission = new Admission(); 
+        newAdmission.setAdmissionDate(new java.sql.Date(new Date().getTime())); 
     }
 
     public void admitPatient() {
         try {
-            admissionService.admitPatient(newAdmission); // [97]
-            loadAdmissions(); // [97]
-            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient admitted successfully."); // [97]
-            PrimeFaces.current().executeScript("PF('admissionDialog').hide()"); // [97]
-            prepareNewAdmission(); // [97]
+            admissionService.admitPatient(newAdmission); 
+            loadAdmissions(); 
+            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient admitted successfully."); 
+            PrimeFaces.current().executeScript("PF('admissionDialog').hide()"); 
+            prepareNewAdmission(); 
         } catch (ValidationException ve) {
             addMessage(FacesMessage.SEVERITY_WARN, "Admission Failed", ve.getMessage());
         } catch (HospitalServiceException hse) {
             addMessage(FacesMessage.SEVERITY_ERROR, "Admission Failed", hse.getMessage());
         } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); // [97]
+            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); 
         }
     }
 
     public void dischargePatient() {
-        if (selectedAdmission != null) { // [98]
+        if (selectedAdmission != null) { 
             try {
-                admissionService.dischargePatient(selectedAdmission.getId()); // [98]
-                loadAdmissions(); // [98]
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient discharged."); // [98]
+                admissionService.dischargePatient(selectedAdmission.getId()); 
+                loadAdmissions(); 
+                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient discharged."); 
             } catch (ValidationException | ResourceNotFoundException e) {
                 addMessage(FacesMessage.SEVERITY_WARN, "Discharge Failed", e.getMessage());
             } catch (HospitalServiceException hse) {
                 addMessage(FacesMessage.SEVERITY_ERROR, "Discharge Failed", hse.getMessage());
             } catch (Exception e) {
-                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); // [98]
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); 
             }
         }
     }
 
     private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail)); // [99]
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail)); 
     }
 
-    public List<Admission> getAdmissions() { return admissions; } // [99]
-    public List<Patient> getAllPatients() { return allPatients; } // [99]
-    public Admission getNewAdmission() { return newAdmission; } // [99]
-    public void setNewAdmission(Admission newAdmission) { this.newAdmission = newAdmission; } // [99]
-    public Admission getSelectedAdmission() { return selectedAdmission; } // [99]
-    public void setSelectedAdmission(Admission selectedAdmission) { this.selectedAdmission = selectedAdmission; } // [99]
+    public List<Admission> getAdmissions() { return admissions; } 
+    public List<Patient> getAllPatients() { return allPatients; } 
+    public Admission getNewAdmission() { return newAdmission; } 
+    public void setNewAdmission(Admission newAdmission) { this.newAdmission = newAdmission; } 
+    public Admission getSelectedAdmission() { return selectedAdmission; } 
+    public void setSelectedAdmission(Admission selectedAdmission) { this.selectedAdmission = selectedAdmission; } 
 }
