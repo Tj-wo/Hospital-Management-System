@@ -68,10 +68,10 @@ public class AdminAppointmentBean implements Serializable {
             Staff doctor = staffService.getStaff(selectedDoctorId); 
 
             if (patient == null || doctor == null) {
-                throw new ValidationException("Invalid patient or doctor selected."); // Using custom exception [62]
+                throw new ValidationException("Invalid patient or doctor selected."); // Using custom exception
             }
             if (appointmentDate == null) {
-                throw new ValidationException("Appointment date must be selected."); // Using custom exception [63]
+                throw new ValidationException("Appointment date must be selected."); // Using custom exception
             }
 
             selectedAppointment.setPatient(patient); 

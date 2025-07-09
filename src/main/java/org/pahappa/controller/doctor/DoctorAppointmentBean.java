@@ -23,55 +23,55 @@ import java.util.List;
 public class DoctorAppointmentBean implements Serializable {
 
     @Inject
-    private AppointmentService appointmentService; // [100]
+    private AppointmentService appointmentService; 
     @Inject
-    private LoginBean loginBean; // [100]
+    private LoginBean loginBean; 
 
-    private List<Appointment> appointments; // [100]
-    private Appointment selectedAppointment; // [100]
-    private AppointmentStatus newStatus; // [100]
+    private List<Appointment> appointments; 
+    private Appointment selectedAppointment; 
+    private AppointmentStatus newStatus; 
 
     @PostConstruct
     public void init() {
-        loadAppointments(); // [100]
+        loadAppointments(); 
     }
 
     private void loadAppointments() {
-        if (loginBean.isLoggedIn() && loginBean.getLoggedInUser().getStaff() != null) { // [100]
-            long doctorId = loginBean.getLoggedInUser().getStaff().getId(); // [101]
-            appointments = appointmentService.getAppointmentsForDoctor(doctorId); // [101]
+        if (loginBean.isLoggedIn() && loginBean.getLoggedInUser().getStaff() != null) { 
+            long doctorId = loginBean.getLoggedInUser().getStaff().getId(); 
+            appointments = appointmentService.getAppointmentsForDoctor(doctorId); 
         }
     }
 
     public void updateStatus() {
-        if (selectedAppointment != null && newStatus != null) { // [101]
+        if (selectedAppointment != null && newStatus != null) { 
             try {
-                appointmentService.updateAppointmentStatus(selectedAppointment.getId(), newStatus); // [101]
-                loadAppointments(); // [101]
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment status updated to " + newStatus); // [101]
+                appointmentService.updateAppointmentStatus(selectedAppointment.getId(), newStatus); 
+                loadAppointments(); 
+                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Appointment status updated to " + newStatus); 
             } catch (ValidationException | ResourceNotFoundException e) {
-                addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not update status: " + e.getMessage()); // [102]
+                addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not update status: " + e.getMessage()); 
             } catch (HospitalServiceException hse) {
                 addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
             } catch (Exception e) {
-                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); // [102]
+                addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); 
             }
         } else {
-            addMessage(FacesMessage.SEVERITY_WARN, "Invalid Selection", "Please select an appointment and a new status."); // [102]
+            addMessage(FacesMessage.SEVERITY_WARN, "Invalid Selection", "Please select an appointment and a new status."); 
         }
     }
 
     private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail)); // [102]
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail)); 
     }
 
-    public List<Appointment> getAppointments() { return appointments; } // [103]
-    public Appointment getSelectedAppointment() { return selectedAppointment; } // [103]
-    public void setSelectedAppointment(Appointment appointment) { this.selectedAppointment = appointment; } // [103]
-    public AppointmentStatus getNewStatus() { return newStatus; } // [103]
-    public void setNewStatus(AppointmentStatus status) { this.newStatus = status; } // [103]
+    public List<Appointment> getAppointments() { return appointments; } 
+    public Appointment getSelectedAppointment() { return selectedAppointment; } 
+    public void setSelectedAppointment(Appointment appointment) { this.selectedAppointment = appointment; } 
+    public AppointmentStatus getNewStatus() { return newStatus; } 
+    public void setNewStatus(AppointmentStatus status) { this.newStatus = status; } 
 
     public AppointmentStatus[] getAppointmentStatuses() {
-        return AppointmentStatus.values(); // [103]
+        return AppointmentStatus.values(); 
     }
 }

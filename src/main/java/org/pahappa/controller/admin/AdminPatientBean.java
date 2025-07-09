@@ -38,7 +38,7 @@ public class AdminPatientBean implements Serializable {
         softDeletedPatients = patientService.getAllPatients().stream() 
                 .filter(Patient::isDeleted) 
                 .collect(Collectors.toList()); 
-        System.out.println("Soft deleted patients count: " + softDeletedPatients.size());//debug [70]
+        System.out.println("Soft deleted patients count: " + softDeletedPatients.size());//debug
     }
 
     private void loadPatients() {

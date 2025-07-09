@@ -207,7 +207,7 @@ public class StaffServiceImpl implements StaffService {
             if (staff == null) {
                 throw new ResourceNotFoundException("Staff not found with ID: " + id);
             }
-            staffDao.delete(id); // This performs a soft-delete based on BaseDao [40]
+            staffDao.delete(id); // This performs a soft-delete based on BaseDao
 
             String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
             auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details); 

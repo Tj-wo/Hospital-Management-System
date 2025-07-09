@@ -34,7 +34,7 @@ public class DeactivatedUsersBean implements Serializable {
     @Inject
     private StaffService staffService; 
 
-    private Integer selectedCategory; // 0 for Patients, 1 for Staff [86]
+    private Integer selectedCategory; // 0 for Patients, 1 for Staff
     private List currentDeactivatedList; 
     private Object selectedUser; 
 
@@ -50,10 +50,10 @@ public class DeactivatedUsersBean implements Serializable {
             return; 
         }
 
-        if (selectedCategory == 0) { // Patients [87]
+        if (selectedCategory == 0) { // Patients
             currentDeactivatedList = new ArrayList<>(patientDao.getAllDeleted());
             System.out.println("Deactivated patients count: " + currentDeactivatedList.size()); 
-        } else if (selectedCategory == 1) { // Staff [87]
+        } else if (selectedCategory == 1) { // Staff
             currentDeactivatedList = new ArrayList<>(staffService.getSoftDeletedStaff()); 
             System.out.println("Deactivated staff count: " + currentDeactivatedList.size()); 
         }
