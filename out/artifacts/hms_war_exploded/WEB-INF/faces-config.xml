@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_3.xsd"
+              version="2.3">
+
+    <converter>
+        <converter-id>omnifaces.SelectItemsConverter</converter-id>
+        <converter-class>org.omnifaces.converter.SelectItemsConverter</converter-class>
+    </converter>
+
+    <navigation-rule>
+        <from-view-id>*</from-view-id>
+
+        <!-- General Navigation -->
+        <navigation-case><from-outcome>dashboard</from-outcome><to-view-id>/dashboard.xhtml</to-view-id><redirect/></navigation-case>
+        <navigation-case><from-outcome>login</from-outcome><to-view-id>/login.xhtml</to-view-id><redirect/></navigation-case>
+
+        <!-- ADMIN -->
+        <navigation-case><from-outcome>manage-staff</from-outcome><to-view-id>/views/admin/manage-staff.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-patients</from-outcome><to-view-id>/views/admin/manage-patients.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-appointments</from-outcome><to-view-id>/views/admin/manage-appointments.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-admissions</from-outcome><to-view-id>/views/admin/manage-admissions.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-medical-records</from-outcome><to-view-id>/views/admin/manage-medical-records.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-deactivated-users</from-outcome><to-view-id>/views/admin/deactivatedUsers.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-audit-logs</from-outcome><to-view-id>/views/admin/audit-logs.xhtml</to-view-id></navigation-case>
+        <!-- FIXED: Simplified outcome for roles -->
+        <navigation-case><from-outcome>manage-roles</from-outcome><to-view-id>/views/admin/manage-roles.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-permissions</from-outcome><to-view-id>/views/admin/manage-permissions.xhtml</to-view-id></navigation-case>
+
+        <!-- DOCTOR -->
+        <navigation-case><from-outcome>doctor-appointments</from-outcome><to-view-id>/views/doctor/appointments.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>doctor-medical-records</from-outcome><to-view-id>/views/doctor/medical-records.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>doctor-admissions</from-outcome><to-view-id>/views/doctor/admissions.xhtml</to-view-id></navigation-case>
+
+        <!-- NURSE -->
+        <navigation-case><from-outcome>nurse-admissions</from-outcome><to-view-id>/views/nurse/admissions.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>nurse-update-records</from-outcome><to-view-id>/views/nurse/update-records.xhtml</to-view-id></navigation-case>
+
+        <!-- RECEPTIONIST -->
+        <navigation-case><from-outcome>receptionist-register-patient</from-outcome><to-view-id>/views/receptionist/register-patient.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>receptionist-appointments</from-outcome><to-view-id>/views/receptionist/appointments.xhtml</to-view-id></navigation-case>
+
+        <!-- PATIENT -->
+        <navigation-case><from-outcome>patient-appointments</from-outcome><to-view-id>/views/patient/appointments.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>patient-medical-records</from-outcome><to-view-id>/views/patient/medical-records.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>patient-admissions</from-outcome><to-view-id>/views/patient/admissions.xhtml</to-view-id></navigation-case>
+    </navigation-rule>
+
+</faces-config>

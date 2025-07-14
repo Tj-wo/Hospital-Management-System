@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Named("doctorMedicalRecordBean")
@@ -81,6 +82,10 @@ public class DoctorMedicalRecordBean implements Serializable {
 
     private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
+    }
+
+    public Date getToday() {
+        return new Date();
     }
 
     // Getters and Setters

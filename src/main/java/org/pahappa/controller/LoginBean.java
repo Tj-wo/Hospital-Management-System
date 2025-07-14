@@ -2,7 +2,6 @@ package org.pahappa.controller;
 
 import org.pahappa.model.User;
 import org.pahappa.service.user.UserService;
-
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -21,33 +20,38 @@ public class LoginBean implements Serializable {
     @Inject
     private UserService userService;
 
+    @Inject
+    private MenuSecurityBean menuSecurityBean;
+
     public String login() {
         loggedInUser = userService.login(username, password);
 
         if (loggedInUser != null) {
-            // A successful login should redirect to the main index page.
-            // This outcome is handled by faces-config.xml.
-            return "index";
+            // This part is excellent. It correctly loads the user's permissions into the security bean.
+            System.out.println("LoginBean: Successful login. Calling MenuSecurityBean.loadUserPermissions().");
+            menuSecurityBean.loadUserPermissions(loggedInUser);
+
+            // FIXED: Return the "dashboard" outcome to match the rule in faces-config.xml
+            return "dashboard";
         } else {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Login Failed", "Invalid username or password."));
-            // Stay on the same page by returning null.
-            return null;
+            return null; // Stay on the same page (login.xhtml)
         }
     }
 
     public String logout() {
         FacesContext.getCurrentInstance().getExternalContext().invalidateSession();
         loggedInUser = null;
-        // Correctly return the "login" outcome to trigger navigation.
-        return "login";
+        System.out.println("LoginBean: User logged out. Session invalidated.");
+        return "login"; // This correctly returns the "login" outcome.
     }
 
     public boolean isLoggedIn() {
         return loggedInUser != null;
     }
 
-    // Getters and Setters...
+    // --- Getters and Setters ---
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }

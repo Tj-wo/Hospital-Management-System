@@ -45,12 +45,12 @@
                         <p:outputLabel for="doctor" value="Doctor:"/>
                         <p:selectOneMenu id="doctor" value="#{patientAppointmentBean.newAppointment.doctor}" converter="omnifaces.SelectItemsConverter" filter="true">
                             <f:selectItem itemLabel="-- Select --" noSelectionOption="true"/>
-                            <f:selectItems value="#{adminAppointmentBean.availableDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName}"/>
+                            <f:selectItems value="#{patientAppointmentBean.availableDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName}"/>
                         </p:selectOneMenu>
                     </div>
                     <div class="p-field mb-4">
                         <p:outputLabel for="datetime" value="Date &amp; Time:"/>
-                        <p:calendar id="datetime" value="#{patientAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd hh:mm a" showTime="true" required="true"/>
+                        <p:calendar id="datetime" value="#{patientAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd hh:mm a" showTime="true" required="true" mindate="#{patientAppointmentBean.today}"/>
                     </div>
                     <div class="p-field mb-4">
                         <p:outputLabel for="reason" value="Reason:"/>

@@ -12,6 +12,7 @@ import org.pahappa.exception.ResourceNotFoundException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import java.util.Date;
 import java.util.List;
 
 import org.pahappa.controller.LoginBean;
@@ -19,7 +20,8 @@ import org.pahappa.controller.LoginBean;
 @ApplicationScoped
 public class MedicalRecordServiceImpl implements MedicalRecordService {
 
-    private final MedicalRecordDao medicalRecordDao = new MedicalRecordDao(); 
+    @Inject
+    private MedicalRecordDao medicalRecordDao;
 
     @Inject
     private AuditService auditService;
@@ -99,6 +101,15 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private void validateRecord(MedicalRecord record) throws ValidationException { // Added throws
         if (record.getPatient() == null) throw new ValidationException("Patient is required for a medical record."); 
         if (record.getDoctor() == null) throw new ValidationException("Doctor is required for a medical record."); 
-        if (record.getDiagnosis() == null || record.getDiagnosis().trim().isEmpty()) throw new ValidationException("Diagnosis cannot be empty."); 
+        if (record.getDiagnosis() == null || record.getDiagnosis().trim().isEmpty()) throw new ValidationException("Diagnosis cannot be empty.");
+        if (record.getRecordDate() == null) {
+            throw new ValidationException("Record date is required.");
+        }
+        if (record.getRecordDate().after(new Date())) {
+            throw new ValidationException("Record date cannot be in the future.");
+        }
+        if (record.getRecordDate().before(new Date())) {
+            throw new ValidationException("Record date cannot be in the past.");
+        }
     }
 }

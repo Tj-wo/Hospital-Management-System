@@ -4,11 +4,11 @@ import org.pahappa.dao.AppointmentDao;
 import org.pahappa.model.Appointment;
 import org.pahappa.model.Patient;
 import org.pahappa.model.Staff;
-import org.pahappa.model.User;
+import org.pahappa.model.Role;
 import org.pahappa.service.audit.AuditService;
 import org.pahappa.service.appointment.AppointmentService;
+import org.pahappa.service.role.RoleService;
 import org.pahappa.utils.AppointmentStatus;
-import org.pahappa.utils.Role;
 import org.pahappa.exception.HospitalServiceException;
 import org.pahappa.exception.ValidationException;
 import org.pahappa.exception.ResourceNotFoundException;
@@ -16,22 +16,30 @@ import org.pahappa.exception.AppointmentConflictException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import org.pahappa.controller.LoginBean;
+import org.pahappa.utils.Constants;
 
 @ApplicationScoped
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private final AppointmentDao appointmentDao = new AppointmentDao(); 
+    @Inject
+    private AppointmentDao appointmentDao;
 
     @Inject
     private AuditService auditService;
 
     @Inject
+    private RoleService roleService;
+
+    @Inject
     private LoginBean loginBean;
+
 
     private String getCurrentUser() {
         if (loginBean != null && loginBean.getLoggedInUser() != null) {
@@ -58,8 +66,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public void scheduleAppointment(Appointment appointment) throws HospitalServiceException {
-        try {
+    public void scheduleAppointment(Appointment appointment,String userId, String username) throws HospitalServiceException {
+        try { 
             validateAppointment(appointment, null); 
             appointment.setDeleted(false);
             appointment.setStatus(AppointmentStatus.SCHEDULED);
@@ -178,30 +186,75 @@ public class AppointmentServiceImpl implements AppointmentService {
         return appointmentDao.getAll().size();
     }
 
-    private void validateAppointment(Appointment appointment, Long idToIgnore) throws ValidationException, AppointmentConflictException { // Added throws
-        if (appointment == null) throw new ValidationException("Appointment object cannot be null."); 
-        if (appointment.getPatient() == null) throw new ValidationException("Patient is required for the appointment."); 
-        if (appointment.getDoctor() == null) throw new ValidationException("Doctor is required for the appointment."); 
-        if (appointment.getDoctor().getRole() != Role.DOCTOR) throw new ValidationException("Assigned staff must be a DOCTOR."); 
-        if (appointment.getAppointmentDate() == null) throw new ValidationException("Appointment date is required."); 
-        if (appointment.getReason() == null || appointment.getReason().trim().isEmpty()) throw new ValidationException("A reason for the appointment is required."); 
+    private void validateAppointment(Appointment appointment, Long idToIgnore) throws ValidationException, AppointmentConflictException {
+        if (appointment == null) throw new ValidationException("Appointment object cannot be null.");
+        if (appointment.getPatient() == null) throw new ValidationException("Patient is required for the appointment.");
+        if (appointment.getDoctor() == null) throw new ValidationException("Doctor is required for the appointment.");
 
-        Date fiveMinutesAgo = Date.from(LocalDateTime.now().minusMinutes(5).atZone(ZoneId.systemDefault()).toInstant()); 
-        if (appointment.getAppointmentDate().before(fiveMinutesAgo)) {
-            throw new ValidationException("Appointment date cannot be in the past."); 
+        if (appointment.getDoctor().getRole() == null || !appointment.getDoctor().getRole().getName().equalsIgnoreCase("DOCTOR")) {
+            throw new ValidationException("Assigned staff must be a DOCTOR.");
         }
 
-        if (!isDoctorAvailable(appointment.getDoctor(), appointment.getAppointmentDate(), idToIgnore)) { 
-            throw new AppointmentConflictException("Doctor is already booked for a 'SCHEDULED' appointment at this time."); // Used specific conflict exception
+        if (appointment.getAppointmentDate() == null) throw new ValidationException("Appointment date is required.");
+        if (appointment.getReason() == null || appointment.getReason().trim().isEmpty()) throw new ValidationException("A reason for the appointment is required.");
+        Date fiveMinutesAgo = Date.from(LocalDateTime.now().minusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
+        if (!isDoctorAvailable(appointment.getDoctor(), appointment.getAppointmentDate(), idToIgnore)) {
+            throw new AppointmentConflictException("Doctor is already booked within this time slot.");
+        }
+        if (!isPatientAvailable(appointment.getPatient(), appointment.getAppointmentDate(), idToIgnore)) {
+            throw new AppointmentConflictException("Patient already has an appointment within this time slot.");
         }
     }
 
     private boolean isDoctorAvailable(Staff doctor, Date appointmentTime, Long idToIgnore) {
-        List<Appointment> existing = appointmentDao.findByDoctorId(doctor.getId()); 
+        List<Appointment> existing = appointmentDao.findByDoctorId(doctor.getId());
+        Instant newStart = appointmentTime.toInstant();
+        Instant newEnd = newStart.plus(Constants.APPOINTMENT_DURATION_MINUTES, ChronoUnit.MINUTES);
+
         return existing.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.SCHEDULED)
-                .filter(a -> !a.isDeleted())
+                .filter(a -> a.getStatus() == AppointmentStatus.SCHEDULED && !a.isDeleted())
                 .filter(a -> idToIgnore == null || !a.getId().equals(idToIgnore))
-                .noneMatch(a -> a.getAppointmentDate().equals(appointmentTime)); 
+                .noneMatch(a -> {
+                    Instant existingStart = a.getAppointmentDate().toInstant();
+                    Instant existingEnd = existingStart.plus(Constants.APPOINTMENT_DURATION_MINUTES, ChronoUnit.MINUTES);
+                    // Check for overlap: (StartA < EndB) and (EndA > StartB)
+                    return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+                });
+    }
+
+    private boolean isPatientAvailable(Patient patient, Date appointmentTime, Long idToIgnore) {
+        List<Appointment> existing = appointmentDao.findByPatientId(patient.getId());
+        Instant newStart = appointmentTime.toInstant();
+        Instant newEnd = newStart.plus(Constants.APPOINTMENT_DURATION_MINUTES, ChronoUnit.MINUTES);
+
+        return existing.stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.SCHEDULED && !a.isDeleted())
+                .filter(a -> idToIgnore == null || !a.getId().equals(idToIgnore))
+                .noneMatch(a -> {
+                    Instant existingStart = a.getAppointmentDate().toInstant();
+                    Instant existingEnd = existingStart.plus(Constants.APPOINTMENT_DURATION_MINUTES, ChronoUnit.MINUTES);
+                    return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+                });
+    }
+    @Override
+    public void handleDeactivatedDoctorAppointments(long doctorId) throws HospitalServiceException {
+        try {
+            List<Appointment> futureAppointments = appointmentDao.findFutureScheduledAppointmentsByDoctor(doctorId);
+            if (futureAppointments.isEmpty()) {
+                return; // Nothing to do
+            }
+
+            for (Appointment appt : futureAppointments) {
+                Appointment original = appointmentDao.getById(appt.getId()); // For auditing
+                appt.setStatus(AppointmentStatus.NEEDS_RESCHEDULING);
+                appointmentDao.update(appt);
+
+                String details = "Appointment status changed to NEEDS_RESCHEDULING because doctor (ID: " + doctorId + ") was deactivated.";
+                auditService.logUpdate(original, appt, getCurrentUserId(), getCurrentUser(), details);
+            }
+            System.out.println("Flagged " + futureAppointments.size() + " future appointments for rescheduling due to doctor deactivation.");
+        } catch (Exception e) {
+            throw new HospitalServiceException("Failed to handle appointments for deactivated doctor.", e);
+        }
     }
 }

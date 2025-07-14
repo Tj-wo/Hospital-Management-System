@@ -1,6 +1,5 @@
 package org.pahappa.model;
 
-import org.pahappa.utils.Role;
 import javax.persistence.*;
 import java.util.Date;
 
@@ -22,17 +21,14 @@ public class Staff extends BaseModel {
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private org.pahappa.model.Role role;
 
     private String specialty;
 
     @OneToOne(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true)
     private User user;
-
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted = false;
 
     public Staff() {}
 
@@ -52,19 +48,16 @@ public class Staff extends BaseModel {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
     public String getFullName() { return firstName + " " + lastName; }
-    public boolean isDeleted() { return deleted; }
-    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 
     @Override
     public String toString() {
         return "Staff{" +
-                ", firstName='" + firstName + '\'' +
+                "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
-                ", role=" + role +
+                ", role=" + (role != null ? role.getName() : "N/A") +
                 ", specialty='" + (specialty != null ? specialty : "N/A") + '\'' +
-                ", deleted=" + deleted +
                 '}';
     }
 }

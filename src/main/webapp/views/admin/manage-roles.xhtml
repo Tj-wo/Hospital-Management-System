@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Manage Roles</ui:define>
+    <ui:define name="content">
+        <h:form id="roleForm">
+            <p:growl id="global-growl" showDetail="true" sticky="false" life="5000" />
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="table-header">
+                        <h3 class="card-title m-0">
+                            <i class="pi pi-lock mr-2"></i>Role Management
+                        </h3>
+                        <p:commandButton id="createRoleButton"
+                                         value="Create New Role"
+                                         icon="pi pi-plus"
+                                         action="#{adminRoleBean.prepareNewRole()}"
+                        update=":roleDialog"
+                        oncomplete="PF('roleDialog').show()"
+                        styleClass="btn-primary" />
+                    </div>
+                </div>
+
+                <div class="card-content table-responsive">
+                    <p:dataTable id="roleTable"
+                                 value="#{adminRoleBean.roles}"
+                                 var="role"
+                                 paginator="true"
+                                 rows="10"
+                                 paginatorPosition="bottom"
+                                 styleClass="modern-table"
+                                 emptyMessage="No roles found."
+                                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries">
+                        <p:column headerText="Role Name" sortBy="#{role.name}" style="width:30%">
+                            <h:outputText value="#{role.name}" style="font-weight: 500;" />
+                        </p:column>
+                        <p:column headerText="Description" sortBy="#{role.description}" style="width:45%">
+                            <h:outputText value="#{role.description}" />
+                        </p:column>
+                        <p:column headerText="Actions" style="width:25%; text-align:center">
+                            <div class="action-buttons">
+                                <p:commandButton id="editRoleButton"
+                                                 icon="pi pi-pencil"
+                                                 title="Edit Role"
+                                                 action="#{adminRoleBean.selectRoleForEdit(role)}"
+                                update=":roleDialog"
+                                oncomplete="PF('roleDialog').show()"
+                                styleClass="p-button-rounded p-button-sm btn-edit" />
+                                <span style="display: inline-block; width: 0.75rem " ></span>
+
+                                <p:commandButton
+                                        icon="pi pi-trash"
+                                        title="Delete Role"
+                                        action="#{adminRoleBean.deleteRole(role.id)}"
+                                        update=":roleForm:roleTable :roleForm:global-growl"
+                                        styleClass="p-button-rounded ui-button-danger">
+                                    <p:confirm header="Delete Role"
+                                               message="Are you sure you want to delete '#{role.name}'? This action cannot be undone."
+                                               icon="pi pi-exclamation-triangle" />
+                                </p:commandButton>
+                            </div>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </div>
+
+            <p:confirmDialog global="true"
+                             showEffect="fade"
+                             hideEffect="fade"
+                             responsive="true"
+                             width="400">
+                <p:commandButton value="Cancel"
+                                 type="button"
+                                 styleClass="btn-outline"
+                                 icon="pi pi-times"
+                                 onclick="PF('confirmDialog').hide()" />
+                <p:commandButton value="Delete"
+                                 type="button"
+                                 styleClass="btn-delete"
+                                 icon="pi pi-check" />
+            </p:confirmDialog>
+        </h:form>
+
+        <!-- FIXED: The dialog now has an ID so it can be updated directly -->
+        <p:dialog id="roleDialog"
+                  header="#{empty adminRoleBean.selectedRole.id ? 'Create New Role' : 'Edit Role'}"
+                  widgetVar="roleDialog"
+                  modal="true"
+                  responsive="true"
+                  draggable="false"
+                  resizable="false"
+                  closeOnEscape="true"
+                  width="500"
+                  styleClass="role-dialog">
+            <h:form id="roleDialogForm">
+                <div class="form-container">
+                    <p:messages id="dialogMessages" showDetail="true" />
+
+                    <div class="ui-fluid">
+                        <div class="p-field">
+                            <p:outputLabel for="roleName" value="Role Name *" />
+                            <p:inputText id="roleName"
+                                         value="#{adminRoleBean.selectedRole.name}"
+                                         required="true"
+                                         requiredMessage="Role name is required"
+                                         placeholder="Enter role name" />
+                        </div>
+
+                        <div class="p-field">
+                            <p:outputLabel for="roleDescription" value="Description" />
+                            <p:inputTextarea id="roleDescription"
+                                             value="#{adminRoleBean.selectedRole.description}"
+                                             rows="3"
+                                             autoResize="false"
+                                             placeholder="Enter role description (optional)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dialog-actions">
+                    <p:commandButton id="cancelButton"
+                                     value="Cancel"
+                                     icon="pi pi-times"
+                                     onclick="PF('roleDialog').hide()"
+                                     type="button"
+                                     styleClass="btn-outline ui-button-danger" />
+                    <p:commandButton id="saveButton"
+                                     value="#{empty adminRoleBean.selectedRole.id ? 'Create Role' : 'Update Role'}"
+                                     icon="pi pi-check"
+                                     action="#{adminRoleBean.saveRole()}"
+                                     update=":roleDialogForm:dialogMessages :roleForm:roleTable :roleForm:global-growl"
+                                     oncomplete="if (!args.validationFailed) PF('roleDialog').hide()"
+                                     styleClass="btn-primary" />
+                </div>
+            </h:form>
+        </p:dialog>
+    </ui:define>
+</ui:composition>
+</html>

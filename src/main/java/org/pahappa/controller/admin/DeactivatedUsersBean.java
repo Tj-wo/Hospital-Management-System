@@ -1,14 +1,7 @@
 package org.pahappa.controller.admin;
 
-import org.pahappa.model.Patient;
-import org.pahappa.model.Staff;
-import org.pahappa.dao.PatientDao;
-import org.pahappa.service.patient.PatientService;
-import org.pahappa.service.staff.StaffService;
-import org.pahappa.utils.Role;
-import org.pahappa.exception.HospitalServiceException;
-import org.pahappa.exception.ValidationException;
-import org.pahappa.exception.ResourceNotFoundException;
+import org.pahappa.model.User;
+import org.pahappa.service.user.UserService;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
@@ -16,11 +9,10 @@ import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Named("deactivatedUsersBean")
@@ -28,138 +20,75 @@ import java.util.stream.Collectors;
 public class DeactivatedUsersBean implements Serializable {
 
     @Inject
-    private PatientDao patientDao; 
-    @Inject
-    private PatientService patientService; 
-    @Inject
-    private StaffService staffService; 
+    private UserService userService;
 
-    private Integer selectedCategory; // 0 for Patients, 1 for Staff
-    private List currentDeactivatedList; 
-    private Object selectedUser; 
+    // No longer need to inject PatientService or StaffService here
+    // private PatientService patientService;
+    // private StaffService staffService;
+
+    private List<User> allDeactivatedUsers;
+    private List<User> filteredUsers;
+    private String filterType = "ALL"; // Default filter
 
     @PostConstruct
     public void init() {
-        selectedCategory = null; 
-        currentDeactivatedList = new ArrayList<>(); 
+        this.allDeactivatedUsers = userService.findDeactivatedUsers();
+        applyFilter();
     }
 
-    public void updateDeactivatedList() {
-        if (selectedCategory == null) { 
-            currentDeactivatedList.clear(); 
-            return; 
-        }
-
-        if (selectedCategory == 0) { // Patients
-            currentDeactivatedList = new ArrayList<>(patientDao.getAllDeleted());
-            System.out.println("Deactivated patients count: " + currentDeactivatedList.size()); 
-        } else if (selectedCategory == 1) { // Staff
-            currentDeactivatedList = new ArrayList<>(staffService.getSoftDeletedStaff()); 
-            System.out.println("Deactivated staff count: " + currentDeactivatedList.size()); 
+    /**
+     * Filters the master list of deactivated users based on the selected filterType.
+     */
+    public void applyFilter() {
+        if ("STAFF".equals(filterType)) {
+            this.filteredUsers = this.allDeactivatedUsers.stream()
+                    .filter(user -> user.getStaff() != null)
+                    .collect(Collectors.toList());
+        } else if ("PATIENT".equals(filterType)) {
+            this.filteredUsers = this.allDeactivatedUsers.stream()
+                    .filter(user -> user.getPatient() != null)
+                    .collect(Collectors.toList());
+        } else {
+            this.filteredUsers = new ArrayList<>(this.allDeactivatedUsers);
         }
     }
 
-    public void restoreUser() {
-        if (selectedUser == null) { 
-            addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No user selected for restoration."); 
-            return; 
-        }
-
+    /**
+     * Reactivates a selected user by making a single, clear call to the UserService.
+     * @param userToReactivate The user object to be reactivated.
+     */
+    public void reactivateUser(User userToReactivate) {
         try {
-            if (selectedCategory == 0 && selectedUser instanceof Patient) { 
-                System.out.println("Patient .." + ((Patient) selectedUser).getFullName()); 
-                patientService.restorePatient(((Patient) selectedUser).getId()); 
-                currentDeactivatedList.remove(selectedUser); 
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient restored successfully."); 
-            } else if (selectedCategory == 1 && selectedUser instanceof Staff) { 
-                staffService.restoreStaff(((Staff) selectedUser).getId()); 
-                currentDeactivatedList.remove(selectedUser); 
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member restored successfully."); 
-            }
-            selectedUser = null;
-        } catch (ValidationException | ResourceNotFoundException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not restore user: " + e.getMessage()); 
-        } catch (HospitalServiceException hse) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
+            // The bean's only job is to call the high-level service method.
+            // All complex logic is now correctly encapsulated in the service layer.
+            userService.reactivateUserAndProfile(userToReactivate.getId());
+
+            // For a snappier UI, remove the user from the in-memory lists
+            allDeactivatedUsers.removeIf(user -> Objects.equals(user.getId(), userToReactivate.getId()));
+            filteredUsers.removeIf(user -> Objects.equals(user.getId(), userToReactivate.getId()));
+
+            String successMessage = String.format("User '%s' has been restored.", userToReactivate.getUsername());
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Success", successMessage));
+
         } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); 
+            String errorMessage = "Failed to restore user: " + e.getMessage();
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", errorMessage));
         }
     }
 
-    public void permanentlyDeleteUser() {
-        if (selectedUser == null) { 
-            addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No user selected for permanent deletion."); 
-            return; 
-        }
+    // --- Getters and Setters ---
 
-        try {
-            if (selectedCategory == 0 && selectedUser instanceof Patient) { 
-                patientService.permanentlyDeletePatient(((Patient) selectedUser).getId()); 
-                currentDeactivatedList.remove(selectedUser); 
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Patient permanently deleted."); 
-            } else if (selectedCategory == 1 && selectedUser instanceof Staff) { 
-                staffService.permanentlyDeleteStaff(((Staff) selectedUser).getId()); 
-                currentDeactivatedList.remove(selectedUser); 
-                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member permanently deleted."); 
-            }
-            selectedUser = null;
-        } catch (ValidationException | ResourceNotFoundException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not permanently delete user: " + e.getMessage()); 
-        } catch (HospitalServiceException hse) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
-        } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support."); 
-        }
+    public List<User> getFilteredUsers() {
+        return filteredUsers;
     }
 
-    public String getUserName() {
-        if (selectedCategory == null || selectedUser == null) return ""; 
-        if (selectedCategory == 0 && selectedUser instanceof Patient) { 
-            return ((Patient) selectedUser).getFullName(); 
-        } else if (selectedCategory == 1 && selectedUser instanceof Staff) { 
-            return ((Staff) selectedUser).getFirstName() + " " + ((Staff) selectedUser).getLastName(); 
-        }
-        return ""; 
+    public String getFilterType() {
+        return filterType;
     }
 
-    public String getUserEmail() {
-        if (selectedUser == null) return ""; 
-        if (selectedCategory == 0 && selectedUser instanceof Patient) { 
-            return ((Patient) selectedUser).getEmail(); 
-        } else if (selectedCategory == 1 && selectedUser instanceof Staff) { 
-            return ((Staff) selectedUser).getEmail(); 
-        }
-        return ""; 
+    public void setFilterType(String filterType) {
+        this.filterType = filterType;
     }
-
-    public String getUserDateOfBirth() {
-        if (selectedUser == null) return ""; 
-        if (selectedCategory == 0 && selectedUser instanceof Patient) { 
-            return ((Patient) selectedUser).getDateOfBirth() != null ? 
-                    new SimpleDateFormat("yyyy-MM-dd").format(((Patient) selectedUser).getDateOfBirth()) : ""; 
-        }
-        return ""; 
-    }
-
-    public String getUserRole() {
-        if (selectedUser == null) return ""; 
-        if (selectedCategory == 1 && selectedUser instanceof Staff) { 
-            Role role = ((Staff) selectedUser).getRole(); 
-            return role != null ? role.name() : ""; 
-        }
-        return ""; 
-    }
-
-    private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail)); 
-    }
-
-    public Integer getSelectedCategory() { return selectedCategory; } 
-    public void setSelectedCategory(Integer selectedCategory) { 
-        this.selectedCategory = selectedCategory; 
-        updateDeactivatedList(); 
-    }
-    public List getCurrentDeactivatedList() { return currentDeactivatedList; } 
-    public Object getSelectedUser() { return selectedUser; } 
-    public void setSelectedUser(Object selectedUser) { this.selectedUser = selectedUser; } 
 }

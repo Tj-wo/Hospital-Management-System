@@ -10,7 +10,8 @@ import java.util.List;
 public interface AppointmentService {
     List <Appointment> getAllAppointments();
     Appointment getAppointmentById(Long appointmentId);
-    void scheduleAppointment(Appointment appointment) throws HospitalServiceException;
+    // The service method now declares what it needs
+    void scheduleAppointment(Appointment appointment, String userId, String username) throws HospitalServiceException;
     void updateAppointment(Appointment appointment) throws HospitalServiceException;
     void cancelAppointment(Long appointmentId, boolean cancelledByPatient) throws HospitalServiceException;
     List <Appointment> getAppointmentsForDoctor(long doctorId);
@@ -18,5 +19,6 @@ public interface AppointmentService {
     void updateAppointmentStatus(Long appointmentId, AppointmentStatus newStatus) throws HospitalServiceException;
     List <Appointment> getAppointmentsByPatient(Patient patient);
     long countAppointments();
+    void handleDeactivatedDoctorAppointments(long doctorId) throws HospitalServiceException;
 
 }

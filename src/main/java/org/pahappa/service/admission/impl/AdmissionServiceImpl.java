@@ -3,11 +3,11 @@ package org.pahappa.service.admission.impl;
 import org.pahappa.dao.AdmissionDao;
 import org.pahappa.model.Admission;
 import org.pahappa.model.Staff;
-import org.pahappa.model.User;
 import org.pahappa.service.audit.AuditService;
 import org.pahappa.service.admission.AdmissionService;
+import org.pahappa.service.role.RoleService;
 import org.pahappa.service.staff.StaffService;
-import org.pahappa.utils.Role;
+import org.pahappa.model.Role;
 import org.pahappa.exception.HospitalServiceException;
 import org.pahappa.exception.ValidationException;
 import org.pahappa.exception.ResourceNotFoundException;
@@ -22,13 +22,17 @@ import org.pahappa.controller.LoginBean;
 @ApplicationScoped
 public class AdmissionServiceImpl implements AdmissionService {
 
-    private final AdmissionDao admissionDao = new AdmissionDao();
+    @Inject
+    private AdmissionDao admissionDao;
 
     @Inject
     private AuditService auditService;
 
     @Inject
     private StaffService staffService;
+
+    @Inject
+    private RoleService roleService;
 
     @Inject
     private LoginBean loginBean;
@@ -142,14 +146,14 @@ public class AdmissionServiceImpl implements AdmissionService {
     }
 
     private Staff findAvailableNurse() {
-        List<Staff> nurses = staffService.getStaffByRole(Role.NURSE);
-        if (nurses.isEmpty()) {
+        Role nurseRole = roleService.getRoleByName("NURSE"); // Fetch NURSE Role entity [53-55]
+        if (nurseRole == null) {
+            System.err.println("Warning: 'NURSE' role not found in the system. Cannot assign nurse.");
             return null;
         }
-        return nurses.stream()
-                .min(Comparator.comparingLong(nurse -> admissionDao.countActiveAdmissionsByNurse(nurse.getId())))
-                .orElse(null);
+        return admissionDao.findLeastBusyNurse(nurseRole);
     }
+
 
     private void validateAdmission(Admission admission) throws ValidationException {
         if (admission == null) throw new ValidationException("Admission object cannot be null.");

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Manage Medical Records</ui:define>
+
+    <ui:define name="content">
+        <h:form id="recordForm">
+            <div class="card">
+                <f:facet name="header"><h2 class="card-title"><i class="pi pi-file-edit"></i> All Medical Records</h2></f:facet>
+                <div class="table-responsive">
+                    <p:dataTable id="recordTable" var="record" value="#{adminMedicalRecordBean.medicalRecords}" paginator="true" rows="10" styleClass="modern-table">
+                        <p:column headerText="Patient" sortBy="#{record.patient.fullName}"><h:outputText value="#{record.patient.fullName}"/></p:column>
+                        <p:column headerText="Doctor" sortBy="#{record.doctor.fullName}"><h:outputText value="#{record.doctor.fullName}"/></p:column>
+                        <p:column headerText="Record Date" sortBy="#{record.recordDate}"><h:outputText value="#{record.recordDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                        <p:column headerText="Diagnosis"><h:outputText value="#{record.diagnosis}"/></p:column>
+                    </p:dataTable>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+</html>

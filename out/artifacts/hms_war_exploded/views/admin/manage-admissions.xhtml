@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Manage Admissions</ui:define>
+    <ui:define name="content">
+        <h:form id="admissionForm">
+            <div class="card">
+                <f:facet name="header"><h2 class="card-title"><i class="pi pi-building"></i> All Hospital Admissions</h2></f:facet>
+                <div class="table-responsive">
+                    <p:dataTable id="admissionTable" var="admission" value="#{adminAdmissionBean.admissions}" paginator="true" rows="10" styleClass="modern-table">
+                        <p:column headerText="Patient" sortBy="#{admission.patient.fullName}"><h:outputText value="#{admission.patient.fullName}"/></p:column>
+                        <p:column headerText="Assigned Nurse" sortBy="#{admission.nurse.fullName}"><h:outputText value="#{admission.nurse.fullName}"/></p:column>
+                        <p:column headerText="Admission Date" sortBy="#{admission.admissionDate}"><h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                        <p:column headerText="Discharge Date" sortBy="#{admission.dischargeDate}"><h:outputText value="#{admission.dischargeDate}" rendered="#{admission.dischargeDate != null}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText><p:tag severity="success" value="Admitted" rendered="#{admission.dischargeDate == null}"/></p:column>
+                        <p:column headerText="Ward"><h:outputText value="#{admission.ward} - #{admission.wardNumber}"/></p:column>
+                    </p:dataTable>
+                </div>
+            </div>
+            <p:confirmDialog global="true">
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/><p:commandButton value="No" type="button" styleClass="ui-button-secondary"/>
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
+</html>

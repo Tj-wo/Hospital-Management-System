@@ -16,6 +16,6 @@ public interface AuditService {
     List<AuditLog> getAuditLogsByUser(String userId);
     List<AuditLog> getAuditLogsByAction(AuditLog.ActionType action);
     List<AuditLog> getAuditLogsByDateRange(Date startDate, Date endDate);
-    public List<AuditLog> getFilteredLogs(Date startDate, Date endDate, AuditLog.ActionType actionType, String entityType);
+    List<AuditLog> getFilteredLogs(Date startDate, Date endDate, AuditLog.ActionType actionType, String entityType);
     List<AuditLog> getRecentLogs(int i);
 }

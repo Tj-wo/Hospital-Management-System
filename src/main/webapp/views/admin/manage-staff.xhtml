@@ -9,33 +9,71 @@
     <ui:define name="title">Manage Staff</ui:define>
     <ui:define name="content">
         <h:form id="staffForm">
+            <p:growl id="global-growl" showDetail="true" life="5000" />
+
             <div class="card">
-                <p:dataTable id="staffTable" var="staff" value="#{adminStaffBean.staffList}" paginator="true" rows="10" emptyMessage="No staff members found." styleClass="modern-table">
+                <!-- ADDED: widgetVar allows us to control the table with JavaScript -->
+                <!-- ADDED: filteredValue will hold the filtered list, improving performance -->
+                <p:dataTable id="staffTable" var="staff" value="#{adminStaffBean.staffList}"
+                             widgetVar="staffTableWidget"
+                             paginator="true" rows="10"
+                             emptyMessage="No staff members found matching your search."
+                             styleClass="modern-table">
+
                     <f:facet name="header">
                         <div class="table-header">
                             <span class="card-title"><i class="pi pi-users"></i> Staff Members</span>
-                            <p:commandButton value="New Staff" icon="pi pi-plus" actionListener="#{adminStaffBean.prepareNewStaff}" oncomplete="PF('staffDialog').show()" update=":dialogForm" process="@this" styleClass="btn-primary"/>
+                            <div class="table-actions">
+                                <!-- ADDED: Global search bar -->
+                                <span class="p-input-icon-left">
+                                    <i class="pi pi-search"></i>
+                                    <p:inputText id="globalFilter"
+                                                 value="#{adminStaffBean.globalFilter}"
+                                                 onkeyup="PF('staffTableWidget').filter()"
+                                                 placeholder="Search..."
+                                                 style="width: 250px;"/>
+                                </span>
+                                <p:commandButton value="New Staff" icon="pi pi-plus"
+                                                 actionListener="#{adminStaffBean.prepareNewStaff}"
+                                                 oncomplete="PF('staffDialog').show()"
+                                                 update=":dialogForm" process="@this" styleClass="btn-primary"/>
+                            </div>
                         </div>
                     </f:facet>
-                    <p:column headerText="Name" sortBy="#{staff.fullName}">
+
+                    <!-- ADDED: filterBy and filterMatchMode to enable searching on this column -->
+                    <p:column headerText="Name" sortBy="#{staff.fullName}" filterBy="#{staff.fullName}" filterMatchMode="contains">
                         <h:outputText value="#{staff.fullName}"/>
                     </p:column>
-                    <p:column headerText="Role" sortBy="#{staff.role}">
-                        <p:tag value="#{staff.role}" severity="#{staff.role == 'DOCTOR' ? 'info' : staff.role == 'NURSE' ? 'success' : 'warning'}"/>
+
+                    <!-- ADDED: filterBy and filterMatchMode to enable searching on this column -->
+                    <p:column headerText="Role" sortBy="#{staff.role.name}" filterBy="#{staff.role.name}" filterMatchMode="contains">
+                        <p:tag value="#{staff.role.name}" severity="#{staff.role.name == 'DOCTOR' ? 'info' : staff.role.name == 'NURSE' ? 'success' : 'warning'}"></p:tag>
                     </p:column>
-                    <p:column headerText="Email">
+
+                    <!-- ADDED: filterBy and filterMatchMode to enable searching on this column -->
+                    <p:column headerText="Email" filterBy="#{staff.email}" filterMatchMode="contains">
                         <h:outputText value="#{staff.email}"/>
                     </p:column>
-                    <p:column headerText="Specialty">
+
+                    <!-- ADDED: filterBy and filterMatchMode to enable searching on this column -->
+                    <p:column headerText="Specialty" filterBy="#{staff.specialty}" filterMatchMode="contains">
                         <h:outputText value="#{staff.specialty != null ? staff.specialty : 'N/A'}"/>
                     </p:column>
-                    <p:column headerText="Actions" style="width:6rem; text-align:center">
+
+                    <p:column headerText="Actions" style="width:6rem; text-align:center" exportable="false">
+                        <p:commandButton icon="pi pi-pencil"
+                                         styleClass="rounded-button ui-button-info mr-2"
+                                         process="@this"
+                                         action="#{adminStaffBean.selectStaffForEdit(staff)}"
+                                         update=":dialogForm"
+                                         oncomplete="PF('staffDialog').show()"
+                                         title="Edit Staff"/>
                         <p:commandButton icon="pi pi-trash"
                                          styleClass="rounded-button ui-button-danger"
                                          process="@this"
-                                         actionListener="#{adminStaffBean.softDeleteStaff()}"
+                                         action="#{adminStaffBean.softDeleteStaff(staff)}"
                                          update="staffForm:staffTable :global-growl">
-                            <f:setPropertyActionListener value="#{staff}" target="#{adminStaffBean.selectedStaff}"/>
                             <p:confirm header="Confirmation" message="Delete #{staff.fullName}? (This is a soft-delete)" icon="pi pi-exclamation-triangle"/>
                         </p:commandButton>
                     </p:column>
@@ -48,67 +86,69 @@
             </p:confirmDialog>
         </h:form>
 
+        <!-- The dialog form remains unchanged -->
         <h:form id="dialogForm">
-            <p:dialog header="Staff Details" widgetVar="staffDialog" modal="true" width="700" resizable="false">
+            <p:dialog header="#{empty adminStaffBean.newStaff.id ? 'New Staff Member' : 'Edit Staff Details'}" widgetVar="staffDialog" modal="true" width="700" resizable="false" styleClass="role-dialog">
                 <p:outputPanel id="staffDetailsPanel" styleClass="ui-fluid">
                     <p:growl id="dialogMessages" showDetail="true"/>
 
-                    <div style="display: flex;gap: 10%" class="formgrid grid">
-                        <div class="field col-6">
+                    <div class="formgrid grid" style="gap: 1rem;">
+                        <div class="field col-12 md:col-6">
                             <p:outputLabel for="firstName" value="First Name:"/>
-                            <p:inputText id="firstName"
-                                         value="#{adminStaffBean.newStaff.firstName}" required="true"
-                                         styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full"/>
+                            <p:inputText id="firstName" value="#{adminStaffBean.newStaff.firstName}" required="true" styleClass="form-input-full"/>
                         </div>
-                        <div class="field col-6">
+                        <div class="field col-12 md:col-6">
                             <p:outputLabel for="lastName" value="Last Name:"/>
-                            <p:inputText id="lastName" value="#{adminStaffBean.newStaff.lastName}" required="true"
-                                         styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full"/>
+                            <p:inputText id="lastName" value="#{adminStaffBean.newStaff.lastName}" required="true" styleClass="form-input-full"/>
                         </div>
                     </div>
 
-                    <div class="formgrid grid">
-                        <div class="field col-6">
+                    <div class="formgrid grid" style="gap: 1rem;">
+                        <div class="field col-12 md:col-6">
                             <p:outputLabel for="email" value="Email (Username):"/>
-                            <p:inputText id="email" value="#{adminStaffBean.newStaff.email}" required="true"
-                                         styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full"/>
+                            <p:inputText id="email" value="#{adminStaffBean.newStaff.email}" required="true" styleClass="form-input-full"/>
                         </div>
-                        <div class="field col-6">
+                        <div class="field col-12 md:col-6">
                             <p:outputLabel for="password" value="Password:"/>
-                            <p:password id="password" value="#{adminStaffBean.password}" required="true" feedback="false" toggleMask="true"
-                                        styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full"/>
+                            <p:password id="password"
+                                        value="#{adminStaffBean.password}"
+                                        required="#{empty adminStaffBean.newStaff.id}"
+                                        feedback="true" toggleMask="true" redisplay="true"
+                                        styleClass="form-input-full"/>
                         </div>
                     </div>
 
-                    <div class="formgrid grid">
-                        <div class="field col-6">
+                    <div class="formgrid grid" style="gap: 1rem;">
+                        <div class="field col-12 md:col-6">
                             <p:outputLabel for="dob" value="Date of Birth:"/>
+                            <!-- FIXED: Replaced direct instantiation with a call to the backing bean property -->
                             <p:calendar id="dob" value="#{adminStaffBean.newStaff.dateOfBirth}" pattern="yyyy-MM-dd" required="true" navigator="true"
-                                        styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full"/>
+                                        styleClass="form-input-full" maxdate="#{adminStaffBean.today}"/>
                         </div>
-                        <div class="field col-6">
+                        <div class="field col-12 md:col-6">
                             <p:outputLabel for="role" value="Role:"/>
-                            <p:selectOneMenu id="role" value="#{adminStaffBean.newStaff.role}" required="true"
-                                             styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full">
-                                <f:selectItems value="#{adminStaffBean.roles}" var="role" itemLabel="#{role}" itemValue="#{role}"/>
+                            <p:selectOneMenu id="role" value="#{adminStaffBean.selectedRoleId}" required="true" label="Role" style="width: 100%;">
+                                <f:selectItem itemLabel="Select Role" itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{adminStaffBean.roles}" var="roleItem" itemLabel="#{roleItem.name}" itemValue="#{roleItem.id}" />
                             </p:selectOneMenu>
                         </div>
                     </div>
-
                     <div class="formgrid grid">
                         <div class="field col-12">
                             <p:outputLabel for="specialty" value="Specialty (for Doctors):"/>
-                            <p:inputText id="specialty" value="#{adminStaffBean.newStaff.specialty}"
-                                         styleClass="text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary w-full"/>
+                            <p:inputText id="specialty" value="#{adminStaffBean.newStaff.specialty}" styleClass="form-input-full"/>
                         </div>
                     </div>
                 </p:outputPanel>
 
                 <f:facet name="footer">
-                    <p:commandButton value="Save" icon="pi pi-check" actionListener="#{adminStaffBean.addStaff}"
-                                     update="dialogMessages staffDetailsPanel" styleClass="btn-primary text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary"/>
+                    <p:commandButton value="#{empty adminStaffBean.newStaff.id ? 'Create' : 'Update'}"
+                                     icon="pi pi-check"
+                                     action="#{adminStaffBean.saveStaff()}"
+                                     update=":staffForm:staffTable :global-growl dialogForm:dialogMessages"
+                                     oncomplete="if (args &amp;&amp; !args.validationFailed) PF('staffDialog').hide()"/>
                     <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('staffDialog').hide()"
-                                     styleClass="ui-button-secondary text-base text-color surface-overlay p-2 border-1 border-solid surface-border border-round appearance-none outline-none focus:border-primary"/>
+                                     type="button" styleClass="ui-button-secondary"/>
                 </f:facet>
             </p:dialog>
         </h:form>

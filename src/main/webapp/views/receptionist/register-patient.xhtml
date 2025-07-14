@@ -38,7 +38,7 @@
                                 <div class="p-field p-col">
                                     <p:outputLabel for="dob" value="Date of Birth"/>
                                     <p:calendar id="dob" value="#{receptionistPatientBean.newPatient.dateOfBirth}"
-                                                pattern="yyyy-MM-dd" required="true" navigator="true" yearRange="c-100:c"/>
+                                                pattern="yyyy-MM-dd" required="true" navigator="true" yearRange="c-100:c" maxdate="#{new java.util.Date()}"/>
                                 </div>
                                 </div>
 

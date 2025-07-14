@@ -11,33 +11,48 @@
     <ui:define name="content">
         <h:form id="patientForm">
             <div class="card">
-                <p:dataTable id="patientTable" var="patient" value="#{adminPatientBean.patients}" paginator="true" rows="10" styleClass="modern-table">
-                    <f:facet name="header">
-                        <h2 class="card-title"><i class="pi pi-user-plus"></i> All Patient Records</h2>
-                    </f:facet>
-
-                    <p:column headerText="Name" sortBy="#{patient.fullName}">
-                        <h:outputText value="#{patient.fullName}"/>
-                    </p:column>
-                    <p:column headerText="Email">
-                        <h:outputText value="#{patient.email}"/>
-                    </p:column>
-                    <p:column headerText="Date of Birth" sortBy="#{patient.dateOfBirth}">
-                        <h:outputText value="#{patient.dateOfBirth}">
-                            <f:convertDateTime pattern="yyyy-MM-dd"/>
-                        </h:outputText>
-                    </p:column>
-                    <p:column headerText="Actions" style="width:6rem; text-align:center">
-                        <p:commandButton icon="pi pi-trash"
-                                         action="#{adminPatientBean.softDeletePatient}"
-                                         process="@this"
-                                         update="patientForm:patientTable :global-growl"
-                                         styleClass="rounded-button ui-button-danger">
-                            <f:setPropertyActionListener value="#{patient}" target="#{adminPatientBean.selectedPatient}"/>
-                            <p:confirm header="Confirmation" message="Delete patient #{patient.fullName}? (This is a soft-delete)" icon="pi pi-exclamation-triangle"/>
-                        </p:commandButton>
-                    </p:column>
-                </p:dataTable>
+                <div class="table-responsive">
+                    <p:dataTable id="patientTable" var="patient" value="#{adminPatientBean.patients}"
+                                 widgetVar="patientTableWidget"
+                                 paginator="true" rows="10"
+                                 emptyMessage="No patients found matching your search."
+                                 styleClass="modern-table">
+                        <f:facet name="header">
+                            <div class="table-header">
+                                <h2 class="card-title m-0"><i class="pi pi-user-plus"></i> All Patient Records</h2>
+                                <div class="table-actions">
+                                     <span class="p-input-icon-left">
+                                        <i class="pi pi-search"></i>
+                                        <p:inputText id="globalFilter" value="#{adminPatientBean.globalFilter}"
+                                                     onkeyup="PF('patientTableWidget').filter()"
+                                                     placeholder="Search..." style="width: 250px;"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </f:facet>
+                        <p:column headerText="Name" sortBy="#{patient.fullName}" filterBy="#{patient.fullName}" filterMatchMode="contains">
+                            <h:outputText value="#{patient.fullName}"/>
+                        </p:column>
+                        <p:column headerText="Email" filterBy="#{patient.email}" filterMatchMode="contains">
+                            <h:outputText value="#{patient.email}"/>
+                        </p:column>
+                        <p:column headerText="Date of Birth" sortBy="#{patient.dateOfBirth}">
+                            <h:outputText value="#{patient.dateOfBirth}">
+                                <f:convertDateTime pattern="yyyy-MM-dd"/>
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Actions" style="width:6rem; text-align:center">
+                            <p:commandButton icon="pi pi-trash"
+                                             action="#{adminPatientBean.softDeletePatient}"
+                                             process="@this"
+                                             update="patientForm:patientTable :global-growl"
+                                             styleClass="rounded-button ui-button-danger">
+                                <f:setPropertyActionListener value="#{patient}" target="#{adminPatientBean.selectedPatient}"/>
+                                <p:confirm header="Confirmation" message="Delete patient #{patient.fullName}? (This is a soft-delete)" icon="pi pi-exclamation-triangle"/>
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </div>
             </div>
 
             <p:confirmDialog global="true">

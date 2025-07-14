@@ -13,7 +13,7 @@
                 <p:dataTable id="appointmentTable" var="appt" value="#{doctorAppointmentBean.appointments}" paginator="true" rows="10" emptyMessage="No appointments found." styleClass="modern-table">
                     <f:facet name="header"><h2 class="card-title"><i class="pi pi-calendar-check"></i> My Scheduled Appointments</h2></f:facet>
                     <p:column headerText="Patient" sortBy="#{appt.patient.fullName}"><h:outputText value="#{appt.patient.fullName}"/></p:column>
-                    <p:column headerText="Date &amp; Time" sortBy="#{appt.appointmentDate}"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm"/></h:outputText></p:column>
+                    <p:column headerText="Date &amp; Time" sortBy="#{appt.appointmentDate}"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd HH:mm" timeZone="Africa/Kampala"/></h:outputText></p:column>
                     <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
                     <p:column headerText="Status" sortBy="#{appt.status}"><p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : appt.status == 'COMPLETED' ? 'success' : 'danger'}"/></p:column>
                     <p:column headerText="Update Status" style="width:8rem; text-align:center">

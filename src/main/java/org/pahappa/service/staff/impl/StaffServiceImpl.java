@@ -3,110 +3,115 @@ package org.pahappa.service.staff.impl;
 import org.mindrot.jbcrypt.BCrypt;
 import org.pahappa.dao.StaffDao;
 import org.pahappa.dao.UserDao;
+import org.pahappa.model.Appointment;
 import org.pahappa.model.Staff;
 import org.pahappa.model.User;
+import org.pahappa.service.appointment.AppointmentService;
 import org.pahappa.service.audit.AuditService;
+import org.pahappa.service.role.RoleService;
 import org.pahappa.service.staff.StaffService;
+import org.pahappa.utils.AppointmentStatus;
 import org.pahappa.utils.Constants;
-import org.pahappa.utils.Role;
+import org.pahappa.model.Role;
 import org.pahappa.exception.HospitalServiceException;
 import org.pahappa.exception.ValidationException;
 import org.pahappa.exception.ResourceNotFoundException;
 import org.pahappa.exception.DuplicateEntryException;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.time.Instant;
+import java.util.*;
+import java.time.temporal.ChronoUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.pahappa.controller.LoginBean;
 
 @ApplicationScoped
 public class StaffServiceImpl implements StaffService {
 
     @Inject
-    private StaffDao staffDao; 
+    private StaffDao staffDao;
 
     @Inject
-    private UserDao userDao; 
+    private UserDao userDao;
 
     @Inject
-    private AuditService auditService; 
+    private AppointmentService appointmentService;
 
     @Inject
-    private LoginBean loginBean; 
+    private AuditService auditService;
+
+    @Inject
+    private RoleService roleService;
+
+    @Inject
+    private LoginBean loginBean;
 
     private String getCurrentUser() {
         if (loginBean != null && loginBean.getLoggedInUser() != null) {
-            return loginBean.getLoggedInUser().getUsername(); 
+            return loginBean.getLoggedInUser().getUsername();
         }
         return "system";
     }
 
     private String getCurrentUserId() {
         if (loginBean != null && loginBean.getLoggedInUser() != null && loginBean.getLoggedInUser().getId() != null) {
-            return loginBean.getLoggedInUser().getId().toString(); 
+            return loginBean.getLoggedInUser().getId().toString();
         }
         return "0";
     }
 
     @Override
-    public List getAllStaff() {
-        List<Staff> allStaff = staffDao.getAll(); 
-        List<Staff> activeStaff = new ArrayList<>();
-        for (Staff staff : allStaff) {
-            if (!staff.isDeleted()) {
-                activeStaff.add(staff);
-            }
-        }
-        return activeStaff;
+    public List<Staff> getAllStaff() {
+        // FIXED: The DAO already filters for active staff. No need for an extra loop.
+        return staffDao.getAll();
     }
 
     @Override
-    public List getSoftDeletedStaff() {
-        List<Staff> allStaff = staffDao.getAllDeleted();
-        List<Staff> deletedStaff = new ArrayList<>();
-        for (Staff staff : allStaff) {
-            if (staff.isDeleted()) {
-                deletedStaff.add(staff);
-            }
-        }
-        return deletedStaff;
+    public List<Staff> getSoftDeletedStaff() {
+        // FIXED: The DAO already filters for deleted staff. No need for an extra loop.
+        return staffDao.getAllDeleted();
     }
 
     @Override
     public Staff getStaff(Long id) {
-        return staffDao.getById(id); 
+        return staffDao.getById(id);
     }
 
     @Override
     public void addStaff(Staff staff, String password) throws HospitalServiceException {
         try {
-            validateStaff(staff); 
+            validateStaff(staff);
             if (password == null || password.trim().isEmpty()) {
-                throw new ValidationException("A password is required to create a staff user account."); 
+                throw new ValidationException("A password is required to create a staff user account.");
             }
 
             String username = staff.getEmail();
             if (userDao.findByUsername(username) != null) {
-                throw new DuplicateEntryException("An account with the email '" + username + "' already exists."); 
+                throw new DuplicateEntryException("An account with the email '" + username + "' already exists.");
             }
 
-            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt()); 
-            User user = new User(); 
-            user.setUsername(username); 
-            user.setPassword(hashedPassword); 
-            user.setRole(staff.getRole()); 
-            user.setStaff(staff); 
-            staff.setUser(user); 
-            staff.setDeleted(false); 
-            staffDao.save(staff); 
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(hashedPassword);
 
-            String details = "Name: " + staff.getFirstName() + " " + staff.getLastName() + ", Role: " + staff.getRole().name();
-            auditService.logCreate(staff, getCurrentUserId(), getCurrentUser(), details); 
-        } catch (ValidationException e) {
+            org.pahappa.model.Role staffRoleEntity = roleService.getRoleById(staff.getRole().getId());
+            if (staffRoleEntity == null) {
+                throw new ResourceNotFoundException("Role not found for staff: " + staff.getRole().getName());
+            }
+
+            user.setRole(staffRoleEntity);
+            staff.setRole(staffRoleEntity);
+
+            user.setStaff(staff);
+            staff.setUser(user);
+            staff.setDeleted(false);
+
+            staffDao.save(staff);
+            String details = "Name: " + staff.getFirstName() + " " + staff.getLastName() + ", Role: " + staff.getRole().getName();
+            auditService.logCreate(staff, getCurrentUserId(), getCurrentUser(), details);
+        } catch (ValidationException | ResourceNotFoundException e) {
             throw e;
         } catch (RuntimeException e) {
             throw new HospitalServiceException("Failed to add staff: " + e.getMessage(), e);
@@ -116,12 +121,12 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public void updateStaff(Staff staff) throws HospitalServiceException {
         try {
-            Staff original = staffDao.getById(staff.getId()); 
+            Staff original = staffDao.getById(staff.getId());
             if (original == null) {
-                throw new ResourceNotFoundException("Original Staff not found for ID: " + staff.getId()); 
+                throw new ResourceNotFoundException("Original Staff not found for ID: " + staff.getId());
             }
             if (staff.getId() == null) {
-                throw new ValidationException("Staff ID is required for an update."); 
+                throw new ValidationException("Staff ID is required for an update.");
             }
             if (!original.getEmail().equalsIgnoreCase(staff.getEmail()) &&
                     staffDao.getAll().stream().anyMatch(s -> s.getEmail().equalsIgnoreCase(staff.getEmail()) && !s.isDeleted() && !s.getId().equals(staff.getId()))) {
@@ -129,10 +134,24 @@ public class StaffServiceImpl implements StaffService {
             }
 
             validateStaff(staff);
-            staffDao.update(staff); 
+
+            // Ensure the Role on the staff object is a managed entity
+            Role managedRole = roleService.getRoleById(staff.getRole().getId());
+            if(managedRole == null) {
+                throw new ResourceNotFoundException("Role with ID " + staff.getRole().getId() + " not found.");
+            }
+            staff.setRole(managedRole);
+
+            User user = staff.getUser();
+            if (user != null && !user.getRole().getId().equals(staff.getRole().getId())) {
+                user.setRole(staff.getRole());
+                userDao.update(user);
+            }
+
+            staffDao.update(staff);
 
             String details = "Staff ID: " + staff.getId() + ", New Name: " + staff.getFirstName() + " " + staff.getLastName();
-            auditService.logUpdate(original, staff, getCurrentUserId(), getCurrentUser(), details); 
+            auditService.logUpdate(original, staff, getCurrentUserId(), getCurrentUser(), details);
         } catch (ValidationException | ResourceNotFoundException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -142,16 +161,16 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public void deleteStaff(Long id) throws HospitalServiceException {
-        softDeleteStaff(id); 
+        softDeleteStaff(id);
     }
 
     @Override
     public void softDeleteStaff(Long id) throws HospitalServiceException {
         try {
             if (id == null || id <= 0) {
-                throw new ValidationException("Invalid ID for soft deletion."); 
+                throw new ValidationException("Invalid ID for soft deletion.");
             }
-            Staff staff = staffDao.getById(id); 
+            Staff staff = staffDao.getById(id);
             if (staff == null) {
                 throw new ResourceNotFoundException("Staff not found with ID: " + id);
             }
@@ -159,11 +178,15 @@ public class StaffServiceImpl implements StaffService {
                 throw new ValidationException("Staff is already soft-deleted.");
             }
 
-            staff.setDeleted(true); 
-            staffDao.update(staff); 
+            if (staff.getRole() != null && "DOCTOR".equalsIgnoreCase(staff.getRole().getName())) {
+                appointmentService.handleDeactivatedDoctorAppointments(staff.getId());
+            }
 
-            String details = "Soft Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details); 
+            staff.setDeleted(true);
+            staffDao.update(staff);
+
+            String details = "Soft Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFullName();
+            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details);
         } catch (ValidationException | ResourceNotFoundException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -175,9 +198,9 @@ public class StaffServiceImpl implements StaffService {
     public void restoreStaff(Long id) throws HospitalServiceException {
         try {
             if (id == null || id <= 0) {
-                throw new ValidationException("Invalid ID for restoration."); 
+                throw new ValidationException("Invalid ID for restoration.");
             }
-            Staff staff = staffDao.getById(id); 
+            Staff staff = staffDao.getByIdIncludingDeleted(id);
             if (staff == null) {
                 throw new ResourceNotFoundException("Staff not found with ID: " + id);
             }
@@ -185,11 +208,11 @@ public class StaffServiceImpl implements StaffService {
                 throw new ValidationException("Staff is not soft-deleted and cannot be restored.");
             }
 
-            staff.setDeleted(false); 
-            staffDao.update(staff); 
+            staff.setDeleted(false);
+            staffDao.update(staff);
 
             String details = "Restored Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-            auditService.logUpdate(staff, staff, getCurrentUserId(), getCurrentUser(), details); 
+            auditService.logUpdate(staff, staff, getCurrentUserId(), getCurrentUser(), details);
         } catch (ValidationException | ResourceNotFoundException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -201,69 +224,101 @@ public class StaffServiceImpl implements StaffService {
     public void permanentlyDeleteStaff(Long id) throws HospitalServiceException {
         try {
             if (id == null || id <= 0) {
-                throw new ValidationException("Invalid ID for permanent deletion."); 
+                throw new ValidationException("Invalid ID for permanent deletion.");
             }
-            Staff staff = staffDao.getById(id); 
+            Staff staff = staffDao.getByIdIncludingDeleted(id);
             if (staff == null) {
                 throw new ResourceNotFoundException("Staff not found with ID: " + id);
             }
-            staffDao.delete(id); // This performs a soft-delete based on BaseDao
 
-            String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFirstName() + " " + staff.getLastName();
-            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details); 
-        } catch (ValidationException | ResourceNotFoundException e) {
-            throw e;
-        } catch (RuntimeException e) {
-            throw new HospitalServiceException("Failed to permanently delete staff: " + e.getMessage(), e);
+            staffDao.hardDelete(id);
+
+            String details = "Permanently Deleted Staff ID: " + staff.getId() + ", Name: " + staff.getFullName();
+            auditService.logDelete(staff, getCurrentUserId(), getCurrentUser(), details);
+        } catch (Exception e) {
+            throw new HospitalServiceException("Failed to permanently delete staff", e);
         }
     }
 
     @Override
-    public List getStaffByRole(Role role) {
-        List<Staff> allStaff = getAllStaff(); 
-        List<Staff> staffByRole = new ArrayList<>();
-        for (Staff staff : allStaff) {
-            if (staff.getRole() == role) {
-                staffByRole.add(staff); 
-            }
-        }
-        return staffByRole;
+    public List<Staff> getStaffByRole(org.pahappa.model.Role role) {
+        // Use a stream on the already filtered list of active staff
+        return getAllStaff().stream()
+                .filter(staff -> staff.getRole() != null && staff.getRole().getId().equals(role.getId()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public long countDoctors() {
-        return getStaffByRole(Role.DOCTOR).size(); 
+        Role doctorRole = roleService.getRoleByName("DOCTOR");
+        return doctorRole != null ? staffDao.countByRole(doctorRole) : 0;
     }
-
     @Override
     public long countNurses() {
-        return getStaffByRole(Role.NURSE).size(); 
+        Role nurseRole = roleService.getRoleByName("NURSE");
+        return nurseRole != null ? staffDao.countByRole(nurseRole) : 0;
     }
 
     @Override
     public long countReceptionists() {
-        return getStaffByRole(Role.RECEPTIONIST).size(); 
+        Role receptionistRole = roleService.getRoleByName("RECEPTIONIST");
+        return receptionistRole != null ? staffDao.countByRole(receptionistRole) : 0;
     }
 
-    private void validateStaff(Staff staff) throws ValidationException { // Added throws
-        if (staff == null) throw new ValidationException("Staff object cannot be null."); 
+    private void validateStaff(Staff staff) throws ValidationException {
+        if (staff == null) throw new ValidationException("Staff object cannot be null.");
         if (staff.getFirstName() == null || staff.getFirstName().trim().isEmpty())
-            throw new ValidationException("First Name is required."); 
+            throw new ValidationException("First Name is required.");
         if (staff.getLastName() == null || staff.getLastName().trim().isEmpty())
-            throw new ValidationException("Last Name is required."); 
+            throw new ValidationException("Last Name is required.");
         if (staff.getEmail() == null || !Pattern.matches(Constants.EMAIL_REGEX, staff.getEmail()))
-            throw new ValidationException(Constants.ERROR_INVALID_EMAIL); 
+            throw new ValidationException(Constants.ERROR_INVALID_EMAIL);
         if (staff.getDateOfBirth() == null)
-            throw new ValidationException("Date of Birth is required."); 
+            throw new ValidationException("Date of Birth is required.");
         if (staff.getDateOfBirth().after(new Date()))
-            throw new ValidationException("Date of birth cannot be in the future."); 
-        if (staff.getRole() == null)
-            throw new ValidationException("Role is required."); 
-        if (staff.getRole() == Role.DOCTOR && (staff.getSpecialty() == null || staff.getSpecialty().trim().isEmpty())) {
-            throw new ValidationException("Specialty is required for doctors."); 
+            throw new ValidationException("Date of birth cannot be in the future.");
+
+        if (staff.getRole() == null || staff.getRole().getId() == null) {
+            throw new ValidationException("Role is required.");
         }
-        if (staff.getRole() != Role.DOCTOR && staff.getSpecialty() != null && !staff.getSpecialty().trim().isEmpty()) {
-            throw new ValidationException("Specialty should only be set for doctors."); 
+
+        Role role = roleService.getRoleById(staff.getRole().getId());
+        if (role == null) {
+            throw new ValidationException("Invalid role selected.");
         }
+
+        if (role.getName().equalsIgnoreCase("DOCTOR") && (staff.getSpecialty() == null || staff.getSpecialty().trim().isEmpty())) {
+            throw new ValidationException("Specialty is required for doctors.");
+        }
+        if (!role.getName().equalsIgnoreCase("DOCTOR") && staff.getSpecialty() != null && !staff.getSpecialty().trim().isEmpty()) {
+            staff.setSpecialty(null); // Automatically clear specialty for non-doctors
+        }
+    }
+
+    @Override
+    public List<Staff> findAvailableDoctorsForSlot(Date startTime) {
+        Role doctorRole = roleService.getRoleByName("DOCTOR");
+        if (doctorRole == null) {
+            return Collections.emptyList();
+        }
+
+        List<Staff> allDoctors = getStaffByRole(doctorRole);
+        List<Appointment> allAppointments = appointmentService.getAllAppointments();
+
+        Set<Long> busyDoctorIds = allAppointments.stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.SCHEDULED)
+                .filter(a -> {
+                    Instant slotStart = startTime.toInstant();
+                    Instant slotEnd = slotStart.plus(Constants.APPOINTMENT_DURATION_MINUTES, ChronoUnit.MINUTES);
+                    Instant existingStart = a.getAppointmentDate().toInstant();
+                    Instant existingEnd = existingStart.plus(Constants.APPOINTMENT_DURATION_MINUTES, ChronoUnit.MINUTES);
+                    return slotStart.isBefore(existingEnd) && slotEnd.isAfter(existingStart);
+                })
+                .map(a -> a.getDoctor().getId())
+                .collect(Collectors.toSet());
+
+        return allDoctors.stream()
+                .filter(doctor -> !busyDoctorIds.contains(doctor.getId()))
+                .collect(Collectors.toList());
     }
 }

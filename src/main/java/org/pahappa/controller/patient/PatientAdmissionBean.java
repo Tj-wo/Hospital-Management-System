@@ -33,8 +33,10 @@ public class PatientAdmissionBean implements Serializable {
     private boolean isPatientLoggedIn() {
         return loginBean != null && loginBean.isLoggedIn() &&
                 loginBean.getLoggedInUser().getPatient() != null &&
-                loginBean.getLoggedInUser().getRole() == org.pahappa.utils.Role.PATIENT;
+                loginBean.getLoggedInUser().getRole() != null &&
+                loginBean.getLoggedInUser().getRole().getName().equalsIgnoreCase("PATIENT");
     }
+
 
     // --- Getter ---
     public List<Admission> getAdmissions() {

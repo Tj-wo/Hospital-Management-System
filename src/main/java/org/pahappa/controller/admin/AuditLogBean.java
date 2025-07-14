@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-
 @Named
 @ViewScoped
 public class AuditLogBean implements Serializable {
@@ -26,6 +25,16 @@ public class AuditLogBean implements Serializable {
     private String selectedEntityType;
     private AuditLog selectedLog;
 
+    // Dummy methods for export functionality to avoid compilation errors
+    // You should implement the actual logic for these.
+    public void exportToCSV() {
+        System.out.println("Export to CSV action called.");
+    }
+
+    public void exportToPDF() {
+        System.out.println("Export to PDF action called.");
+    }
+
     @PostConstruct
     public void init() {
         filterLogs();
@@ -35,15 +44,25 @@ public class AuditLogBean implements Serializable {
         filteredLogs = auditService.getFilteredLogs(startDate, endDate, selectedAction, selectedEntityType);
     }
 
+    /**
+     * Clears all filter fields and reloads the data table.
+     */
+    public void clearFilters() {
+        startDate = null;
+        endDate = null;
+        selectedAction = null;
+        selectedEntityType = null;
+        filterLogs(); // Reload the logs with no filters
+    }
+
     public void selectLog(AuditLog log) {
         this.selectedLog = log;
     }
 
-    public String getBriefDetails(String fullDetails, Long maxLengthLong) {
+    public String getBriefDetails(String fullDetails, int maxLength) {
         if (fullDetails == null || fullDetails.isEmpty()) {
             return "";
         }
-        int maxLength = maxLengthLong.intValue();
         if (fullDetails.length() <= maxLength) {
             return fullDetails;
         }

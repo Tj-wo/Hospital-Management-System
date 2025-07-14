@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core">
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title><ui:insert name="title">HMS</ui:insert> - Hospital Management System</title>
+    <h:outputStylesheet library="css" name="style.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+</h:head>
+
+<h:body>
+    <div class="app-layout">
+        <div class="mobile-nav-toggle">
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="mobile-overlay"></div>
+
+        <p:outputPanel rendered="#{loginBean.isLoggedIn()}">
+            <aside class="sidebar" id="mainSidebar">
+                <div class="sidebar-header">
+                    <i class="pi pi-heart-fill brand-icon"></i>
+                    <span class="brand-text">HMS Portal</span>
+                </div>
+                <div class="sidebar-content">
+                    <h:form>
+                        <div class="nav-section">
+                            <div class="nav-header">Main</div>
+                            <h:link outcome="dashboard" styleClass="nav-item #{view.viewId.contains('dashboard') ? 'active' : ''}"
+                                    rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD')}">
+                                <i class="pi pi-home nav-icon"></i>
+                                <span>Dashboard</span>
+                            </h:link>
+                        </div>
+
+                        <h:panelGroup layout="block" styleClass="nav-section"
+                                      rendered="#{menuSecurityBean.hasAnyPermission('VIEW_STAFF_MANAGEMENT', 'VIEW_PATIENT_MANAGEMENT', 'VIEW_APPOINTMENT_MANAGEMENT', 'VIEW_ADMISSION_MANAGEMENT', 'VIEW_MEDICAL_RECORDS_ADMIN', 'VIEW_DEACTIVATED_USERS', 'VIEW_AUDIT_LOGS', 'MANAGE_ROLES_PERMISSIONS')}">
+                            <div class="nav-header">Administration</div>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_STAFF_MANAGEMENT')}">
+                                <h:link outcome="manage-staff" styleClass="nav-item #{view.viewId.contains('manage-staff') ? 'active' : ''}">
+                                    <i class="pi pi-users nav-icon"></i>
+                                    <span>Staff</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_PATIENT_MANAGEMENT')}">
+                                <h:link outcome="manage-patients" styleClass="nav-item #{view.viewId.contains('manage-patients') ? 'active' : ''}">
+                                    <i class="pi pi-id-card nav-icon"></i>
+                                    <span>Patients</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_APPOINTMENT_MANAGEMENT')}">
+                                <h:link outcome="manage-appointments" styleClass="nav-item #{view.viewId.contains('manage-appointments') ? 'active' : ''}">
+                                    <i class="pi pi-calendar nav-icon"></i>
+                                    <span>Appointments</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_ADMISSION_MANAGEMENT')}">
+                                <h:link outcome="manage-admissions" styleClass="nav-item #{view.viewId.contains('manage-admissions') ? 'active' : ''}">
+                                    <i class="pi pi-building nav-icon"></i>
+                                    <span>Admissions</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_MEDICAL_RECORDS_ADMIN')}">
+                                <h:link outcome="manage-medical-records" styleClass="nav-item #{view.viewId.contains('manage-medical-records') ? 'active' : ''}">
+                                    <i class="pi pi-folder-open nav-icon"></i>
+                                    <span>Records</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DEACTIVATED_USERS')}">
+                                <h:link outcome="manage-deactivated-users" styleClass="nav-item #{view.viewId.contains('deactivatedUsers') ? 'active' : ''}">
+                                    <i class="pi pi-user-minus nav-icon"></i>
+                                    <span>Deactivated Users</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_AUDIT_LOGS')}">
+                                <h:link outcome="manage-audit-logs" styleClass="nav-item #{view.viewId.contains('audit-logs') ? 'active' : ''}">
+                                    <i class="pi pi-file-excel nav-icon"></i>
+                                    <span>Audit Logs</span>
+                                </h:link>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{menuSecurityBean.hasPermission('MANAGE_ROLES_PERMISSIONS')}">
+                                <!-- FIXED: Simplified outcome to 'manage-roles' -->
+                                <h:link outcome="manage-roles" styleClass="nav-item #{view.viewId.contains('manage-roles') ? 'active' : ''}">
+                                    <i class="pi pi-lock nav-icon"></i> <span>Roles</span>
+                                </h:link>
+                                <h:link outcome="manage-permissions" styleClass="nav-item #{view.viewId.contains('manage-permissions') ? 'active' : ''}">
+                                    <i class="pi pi-th-large nav-icon"></i> <span>Permissions Matrix</span>
+                                </h:link>
+                            </h:panelGroup>
+                        </h:panelGroup>
+
+                        <!-- ... other menu sections remain the same ... -->
+
+                        <div class="logout-section">
+                            <p:commandLink action="#{loginBean.logout()}" ajax="false" styleClass="logout-button nav-item">
+                                <i class="pi pi-sign-out nav-icon"></i><span>Logout</span>
+                            </p:commandLink>
+                        </div>
+                    </h:form>
+                </div>
+            </aside>
+        </p:outputPanel>
+
+        <main class="main-content">
+            <p:growl id="global-growl" showDetail="true" life="5000" />
+            <ui:insert name="content">
+                <p>Page content goes here.</p>
+            </ui:insert>
+        </main>
+    </div>
+    <h:outputScript library="js" name="script.js"/>
+</h:body>
+</html>
