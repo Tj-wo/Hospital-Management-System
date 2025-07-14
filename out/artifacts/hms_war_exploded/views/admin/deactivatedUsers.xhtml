@@ -1,0 +1,70 @@
+<ui:composition template="/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
+
+    <ui:define name="title">Deactivated Users</ui:define>
+
+    <ui:define name="content">
+        <div class="card">
+            <h:form id="deactivatedUsersForm">
+                <p:growl id="growl" showDetail="true" skipDetailIfEqualsSummary="true"/>
+
+                <p:dataTable id="usersTable" var="user" value="#{deactivatedUsersBean.filteredUsers}"
+                             paginator="true" rows="10" paginatorPosition="bottom"
+                             emptyMessage="No deactivated users found matching the criteria."
+                             styleClass="modern-table">
+
+                    <f:facet name="header">
+                        <div class="table-header">
+                            <span class="card-title">Deactivated User Accounts</span>
+                            <div class="filter-controls">
+                                <p:selectOneButton id="filter" value="#{deactivatedUsersBean.filterType}">
+                                    <f:selectItem itemLabel="All" itemValue="ALL" />
+                                    <f:selectItem itemLabel="Staff" itemValue="STAFF" />
+                                    <f:selectItem itemLabel="Patients" itemValue="PATIENT" />
+                                    <p:ajax event="change" listener="#{deactivatedUsersBean.applyFilter}" update="usersTable" />
+                                </p:selectOneButton>
+                            </div>
+                        </div>
+                    </f:facet>
+
+                    <p:column headerText="Username" sortBy="#{user.username}" filterBy="#{user.username}" filterMatchMode="contains">
+                        <h:outputText value="#{user.username}" />
+                    </p:column>
+
+                    <p:column headerText="Full Name" sortBy="#{user.staff != null ? user.staff.fullName : user.patient.fullName}">
+                        <h:outputText value="#{user.staff != null ? user.staff.fullName : user.patient.fullName}" />
+                    </p:column>
+
+                    <p:column headerText="Role" sortBy="#{user.role.name}" style="width: 150px;">
+                        <p:tag styleClass="role-tag-#{user.role.name.toLowerCase()}" value="#{user.role.name}" />
+                    </p:column>
+
+                    <p:column headerText="Date Deactivated" sortBy="#{user.dateDeactivated}" style="width: 180px;">
+                        <h:outputText value="#{user.dateDeactivated}">
+                            <f:convertDateTime pattern="MMM dd, yyyy 'at' hh:mm a" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Actions" style="width:120px; text-align: center;">
+                        <p:commandButton icon="pi pi-check-circle" title="Restore User"
+                                         action="#{deactivatedUsersBean.reactivateUser(user)}"
+                                         update="usersTable growl"
+                                         styleClass="ui-button-success ui-button-flat">
+                            <p:confirm header="Confirmation" message="Are you sure you want to restore #{user.username}?" icon="pi pi-exclamation-triangle" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" />
+                </p:confirmDialog>
+
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

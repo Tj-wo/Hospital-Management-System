@@ -1,0 +1,59 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+        template="/template.xhtml">
+    <ui:define name="title">Register Patient</ui:define>
+    <ui:define name="content">
+        <div class="card" style="max-width: 900px; margin: auto;">
+            <div class="card-header">
+                <h2 class="card-title"><i class="pi pi-user-plus"></i> Register New Patient</h2>
+            </div>
+            <div class="card-content">
+                <h:form id="registerForm">
+                    <div class="p-grid ui-fluid">
+
+                        <p:fieldset legend="Patient Information">
+
+                            <div style="display: flex;gap: 20%" class="p-formgrid p-grid">
+                                <div class="p-field p-col">
+                                    <p:outputLabel for="firstName" value="First Name"/>
+                                    <p:inputText id="firstName" value="#{receptionistPatientBean.newPatient.firstName}" required="true"/>
+                                </div>
+
+                                <div class="p-field p-col">
+                                    <p:outputLabel for="lastName" value="Last Name"/>
+                                    <p:inputText id="lastName" value="#{receptionistPatientBean.newPatient.lastName}" required="true"/>
+                                </div>
+                            </div>
+                                <div class="p-formgrid p-grid">
+                                <div class="p-field p-col">
+                                    <p:outputLabel for="email" value="Email Address"/>
+                                    <p:inputText id="email" value="#{receptionistPatientBean.newPatient.email}" required="true"
+                                                 validatorMessage="Invalid email format">
+                                        <f:validateRegex pattern="^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$"/>
+                                    </p:inputText>
+                                </div>
+                                <div class="p-field p-col">
+                                    <p:outputLabel for="dob" value="Date of Birth"/>
+                                    <p:calendar id="dob" value="#{receptionistPatientBean.newPatient.dateOfBirth}"
+                                                pattern="yyyy-MM-dd" required="true" navigator="true" yearRange="c-100:c" maxdate="#{new java.util.Date()}"/>
+                                </div>
+                                </div>
+
+                                <div class="p-field p-col" style="grid-column: span 2;">
+                                    <p:outputLabel for="password" value="Enter Password"/>
+                                    <p:password id="password" value="#{receptionistPatientBean.password}" required="true" feedback="false" toggleMask="true"/>
+                                </div>
+
+                        </p:fieldset>
+                        <p:commandButton value="Register Patient" icon="pi pi-check"
+                                         actionListener="#{receptionistPatientBean.registerPatient}"
+                                         update="@form :global-growl" styleClass="btn-primary mt-4"/>
+                    </div>
+                </h:form>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>

@@ -14,5 +14,6 @@ public interface PatientService {
     void permanentlyDeletePatient(Long id) throws HospitalServiceException;
     Patient getPatient(Long id);
     List <Patient> getAllPatients();
+    List<Patient> getSoftDeletedPatients();
     long countPatients();
 }

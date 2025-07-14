@@ -11,24 +11,41 @@
 </h:head>
 
 <h:body class="login-body">
-    <div class="login-container">
+    <!-- The main container for the split-screen layout -->
+    <div class="login-wrapper">
+
+        <!-- 1. The Showcase Panel (Left Side) -->
+        <div class="login-showcase">
+            <div class="showcase-content">
+                <div class="showcase-logo">
+                    <i class="pi pi-heart-fill"></i>
+                    <span>HMS Portal</span>
+                </div>
+                <h1 class="showcase-title">Advanced Care, Right at Your Fingertips.</h1>
+                <p class="showcase-subtitle">
+                    Manage patient records, appointments, and hospital operations with unparalleled efficiency and security.
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. The Form Panel (Right Side) -->
         <div class="login-card">
             <h:form id="loginForm">
                 <div class="login-header">
-                    <i class="pi pi-heart-fill"></i>
-                    <h3>Hospital Management Portal</h3>
+                    <h3>Welcome Back!</h3>
+                    <p>Sign in to access your dashboard.</p>
                 </div>
 
                 <p:growl id="messages" showDetail="true" closable="true"/>
 
                 <div class="ui-fluid">
-                    <div class="p-field" style="margin-bottom: 1.5rem;">
+                    <div class="p-field mb-3">
                         <p:outputLabel for="username" value="Username/Email"/>
                         <p:inputText id="username" value="#{loginBean.username}" required="true"
                                      requiredMessage="Username is required"
                                      placeholder="e.g., admin@email.com"/>
                     </div>
-                    <div class="p-field" style="margin-bottom: 1.5rem;">
+                    <div class="p-field mb-4">
                         <p:outputLabel for="password" value="Password"/>
                         <p:password id="password" value="#{loginBean.password}" required="true"
                                     requiredMessage="Password is required"

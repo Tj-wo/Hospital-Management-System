@@ -5,6 +5,7 @@ import org.pahappa.model.Appointment;
 import org.pahappa.service.HibernateUtil;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.Date;
 import java.util.List;
 
 @ApplicationScoped
@@ -63,6 +64,20 @@ public class AppointmentDao extends BaseDao<Appointment, Long> {
                     "ORDER BY a.appointmentDate ASC";
             return session.createQuery(hql, Appointment.class)
                     .setParameter("doctorId", doctorId)
+                    .list();
+        }
+    }
+
+    public List<Appointment> findFutureScheduledAppointmentsByDoctor(Long doctorId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "FROM Appointment a " +
+                    "WHERE a.doctor.id = :doctorId " +
+                    "AND a.appointmentDate > :now " +
+                    "AND a.status = 'SCHEDULED' " +
+                    "AND a.deleted = false";
+            return session.createQuery(hql, Appointment.class)
+                    .setParameter("doctorId", doctorId)
+                    .setParameter("now", new Date()) // Compare against the current time
                     .list();
         }
     }

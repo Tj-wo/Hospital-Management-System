@@ -1,107 +1,70 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:ui="http://java.sun.com/jsf/facelets"
-      xmlns:p="http://primefaces.org/ui"
-      xmlns:f="http://java.sun.com/jsf/core">
+<ui:composition template="/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
 
-<ui:composition template="/template.xhtml">
-    <ui:define name="title">Manage Deactivated Users</ui:define>
+    <ui:define name="title">Deactivated Users</ui:define>
 
     <ui:define name="content">
-        <h:form id="deactivatedUsersForm">
-            <div class="card">
+        <div class="card">
+            <h:form id="deactivatedUsersForm">
+                <p:growl id="growl" showDetail="true" skipDetailIfEqualsSummary="true"/>
 
-                <!-- Dropdown for selecting category -->
-                <p:selectOneMenu value="#{deactivatedUsersBean.selectedCategory}"
-                                 style="margin-bottom: 1rem"
-                                 converter="javax.faces.Integer"
-                                 required="true">
-                    <f:selectItem itemLabel="Select Category" itemValue="#{null}" noSelectionOption="true"/>
-                    <f:selectItem itemLabel="Patients" itemValue="0"/>
-                    <f:selectItem itemLabel="Staff" itemValue="1"/>
-                    <p:ajax event="change" update="deactivatedUsersForm" process="@this"/>
-                </p:selectOneMenu>
-
-                <!-- Data Table for Deactivated Users -->
-                <p:dataTable id="deactivatedTable"
-                             var="user"
-                             value="#{deactivatedUsersBean.currentDeactivatedList}"
-                             paginator="true"
-                             rows="10"
-                             rendered="#{not empty deactivatedUsersBean.currentDeactivatedList}"
+                <p:dataTable id="usersTable" var="user" value="#{deactivatedUsersBean.filteredUsers}"
+                             paginator="true" rows="10" paginatorPosition="bottom"
+                             emptyMessage="No deactivated users found matching the criteria."
                              styleClass="modern-table">
 
                     <f:facet name="header">
-                        <h2 class="card-title">
-                            <i class="pi pi-user-minus"></i>
-                            #{deactivatedUsersBean.selectedCategory == 0 ? 'Deactivated Patients' : 'Deactivated Staff'}
-                        </h2>
+                        <div class="table-header">
+                            <span class="card-title">Deactivated User Accounts</span>
+                            <div class="filter-controls">
+                                <p:selectOneButton id="filter" value="#{deactivatedUsersBean.filterType}">
+                                    <f:selectItem itemLabel="All" itemValue="ALL" />
+                                    <f:selectItem itemLabel="Staff" itemValue="STAFF" />
+                                    <f:selectItem itemLabel="Patients" itemValue="PATIENT" />
+                                    <p:ajax event="change" listener="#{deactivatedUsersBean.applyFilter}" update="usersTable" />
+                                </p:selectOneButton>
+                            </div>
+                        </div>
                     </f:facet>
 
-                    <!-- Name -->
-                    <p:column headerText="Name">
-                        <h:outputText value="#{deactivatedUsersBean.selectedCategory == 0 ? user.fullName : user.firstName.concat(' ').concat(user.lastName)}"/>
+                    <p:column headerText="Username" sortBy="#{user.username}" filterBy="#{user.username}" filterMatchMode="contains">
+                        <h:outputText value="#{user.username}" />
                     </p:column>
 
-                    <!-- Email -->
-                    <p:column headerText="Email">
-                        <h:outputText value="#{user.email}"/>
+                    <p:column headerText="Full Name" sortBy="#{user.staff != null ? user.staff.fullName : user.patient.fullName}">
+                        <h:outputText value="#{user.staff != null ? user.staff.fullName : user.patient.fullName}" />
                     </p:column>
 
-                    <!-- Date of Birth for Patients -->
-                    <p:column headerText="Date of Birth" rendered="#{deactivatedUsersBean.selectedCategory == 0}">
-                        <h:outputText value="#{user.dateOfBirth}">
-                            <f:convertDateTime pattern="yyyy-MM-dd"/>
+                    <p:column headerText="Role" sortBy="#{user.role.name}" style="width: 150px;">
+                        <p:tag styleClass="role-tag-#{user.role.name.toLowerCase()}" value="#{user.role.name}" />
+                    </p:column>
+
+                    <p:column headerText="Date Deactivated" sortBy="#{user.dateDeactivated}" style="width: 180px;">
+                        <h:outputText value="#{user.dateDeactivated}">
+                            <f:convertDateTime pattern="MMM dd, yyyy 'at' hh:mm a" />
                         </h:outputText>
                     </p:column>
 
-                    <!-- Role for Staff -->
-                    <p:column headerText="Role" rendered="#{deactivatedUsersBean.selectedCategory == 1}">
-                        <h:outputText value="#{user.role}"/>
-                    </p:column>
-
-                    <!-- Actions -->
-                    <p:column headerText="Actions" style="width:12rem; text-align:center">
-                        <p:commandButton icon="pi pi-refresh"
-                                         action="#{deactivatedUsersBean.restoreUser}"
-                                         process="@this"
-                                         update="deactivatedUsersForm global-growl"
-                                         styleClass="rounded-button ui-button-success">
-                            <f:setPropertyActionListener value="#{user}" target="#{deactivatedUsersBean.selectedUser}"/>
-                            <p:confirm header="Confirmation"
-                                       message="Restore #{deactivatedUsersBean.selectedCategory == 0 ? user.fullName : user.firstName.concat(' ').concat(user.lastName)}?"
-                                       icon="pi pi-exclamation-triangle"/>
-                        </p:commandButton>
-
-                        <p:commandButton icon="pi pi-trash"
-                                         actionListener="#{deactivatedUsersBean.permanentlyDeleteUser}"
-                                         process="@this"
-                                         update="deactivatedUsersForm global-growl"
-                                         styleClass="rounded-button ui-button-danger">
-                            <f:setPropertyActionListener value="#{user}" target="#{deactivatedUsersBean.selectedUser()}"/>
-                            <p:confirm header="Confirmation"
-                                       message="Permanently delete #{deactivatedUsersBean.selectedCategory == 0 ? user.fullName : user.firstName.concat(' ').concat(user.lastName)}?"
-                                       icon="pi pi-exclamation-triangle"/>
+                    <p:column headerText="Actions" style="width:120px; text-align: center;">
+                        <p:commandButton icon="pi pi-check-circle" title="Restore User"
+                                         action="#{deactivatedUsersBean.reactivateUser(user)}"
+                                         update="usersTable growl"
+                                         styleClass="ui-button-success ui-button-flat">
+                            <p:confirm header="Confirmation" message="Are you sure you want to restore #{user.username}?" icon="pi pi-exclamation-triangle" />
                         </p:commandButton>
                     </p:column>
                 </p:dataTable>
 
-                <!-- No data message -->
-                <h:outputText value="No deactivated users found."
-                              rendered="#{empty deactivatedUsersBean.currentDeactivatedList}"
-                              style="color: #666; text-align: center; display: block; padding: 1rem;"/>
-
-                <!-- Global Confirmation Dialog -->
-                <p:confirmDialog global="true">
-                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" />
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
                     <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" />
+                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" />
                 </p:confirmDialog>
 
-                <!-- Global Growl Messages -->
-                <p:growl id="global-growl" showDetail="true" sticky="false"/>
-            </div>
-        </h:form>
+            </h:form>
+        </div>
     </ui:define>
 </ui:composition>
-</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Manage Admissions</ui:define>
+    <ui:define name="content">
+        <h:form id="admissionForm">
+            <div class="card">
+                <p:dataTable id="admissionTable" var="admission" value="#{doctorAdmissionBean.admissions}" paginator="true" rows="10" styleClass="modern-table">
+                    <f:facet name="header">
+                        <div class="table-header">
+                            <span class="card-title"><i class="pi pi-building"></i> Hospital Admissions</span>
+                            <p:commandButton value="Admit Patient" icon="pi pi-plus" oncomplete="PF('admissionDialog').show()" update=":dialogForm" process="@this" styleClass="btn-primary"/>
+                        </div>
+                    </f:facet>
+                    <p:column headerText="Patient"><h:outputText value="#{admission.patient.fullName}"/></p:column>
+                    <p:column headerText="Assigned Nurse"><h:outputText value="#{admission.nurse.fullName}"/></p:column>
+                    <p:column headerText="Admission Date"><h:outputText value="#{admission.admissionDate}"><f:convertDateTime pattern="yyyy-MM-dd"/></h:outputText></p:column>
+                    <p:column headerText="Status"><p:tag value="#{admission.dischargeDate == null ? 'Admitted' : 'Discharged'}" severity="#{admission.dischargeDate == null ? 'success' : 'secondary'}"/></p:column>
+                    <p:column headerText="Actions" style="width:6rem; text-align:center">
+                        <p:commandButton icon="pi pi-sign-out" actionListener="#{doctorAdmissionBean.dischargePatient}" update="admissionTable :global-growl" styleClass="rounded-button ui-button-success" title="Discharge Patient" rendered="#{admission.dischargeDate == null}">
+                            <f:setPropertyActionListener value="#{admission}" target="#{doctorAdmissionBean.selectedAdmission}"/>
+                            <p:confirm header="Confirmation" message="Discharge #{admission.patient.fullName}?" icon="pi pi-question-circle"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+            <p:confirmDialog global="true"><p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/><p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/></p:confirmDialog>
+        </h:form>
+
+        <h:form id="dialogForm">
+            <p:dialog header="Admit New Patient" widgetVar="admissionDialog" modal="true" width="500" resizable="false">
+                <p:outputPanel id="admissionDialogContent" class="ui-fluid p-4">
+                    <div class="p-field mb-4"><p:outputLabel for="patient" value="Select Patient:"/><p:selectOneMenu id="patient" value="#{doctorAdmissionBean.newAdmission.patient}" converter="omnifaces.SelectItemsConverter" required="true" filter="true"><f:selectItem itemLabel="-- Select --" noSelectionOption="true"/><f:selectItems value="#{doctorAdmissionBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/></p:selectOneMenu></div>
+                    <div class="p-field mb-4"><p:outputLabel for="ward" value="Ward:"/><p:inputText id="ward" value="#{doctorAdmissionBean.newAdmission.ward}" required="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="wardNumber" value="Ward/Bed Number:"/><p:inputText id="wardNumber" value="#{doctorAdmissionBean.newAdmission.wardNumber}" required="true"/></div>
+                    <div class="p-field mb-4"><p:outputLabel for="reason" value="Reason for Admission:"/><p:inputTextarea id="reason" value="#{doctorAdmissionBean.newAdmission.reason}" required="true" rows="4"/></div>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    <p:commandButton value="Admit" icon="pi pi-check" actionListener="#{doctorAdmissionBean.admitPatient}" update=":admissionForm:admissionTable :global-growl" oncomplete="if (args &amp;&amp; !args.validationFailed) PF('admissionDialog').hide();" styleClass="btn-primary"/>
+                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('admissionDialog').hide()" styleClass="ui-button-secondary"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hospital_db?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=UTC</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">database</property>
+
+        <!-- C3P0 Connection Pool Settings -->
+        <property name="hibernate.c3p0.min_size">5</property>
+        <property name="hibernate.c3p0.max_size">20</property>
+        <property name="hibernate.c3p0.acquire_increment">2</property>
+        <property name="hibernate.c3p0.timeout">300</property> <!-- Reduced from 1800 -->
+        <property name="hibernate.c3p0.max_statements">50</property>
+        <property name="hibernate.c3p0.idle_test_period">100</property> <!-- Reduced from 300 -->
+        <property name="hibernate.c3p0.preferredTestQuery">SELECT 1</property>
+        <property name="hibernate.c3p0.testConnectionOnCheckout">true</property>
+
+        <!-- SQL Dialect -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+
+        <!-- Show SQL (for debugging) -->
+        <property name="hibernate.show_sql">false</property>
+        <property name="hibernate.format_sql">false</property>
+
+        <!-- Schema management -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Entity mappings -->
+        <mapping class="org.pahappa.model.Patient"/>
+        <mapping class="org.pahappa.model.Staff"/>
+        <mapping class="org.pahappa.model.MedicalRecord"/>
+        <mapping class="org.pahappa.model.Appointment"/>
+        <mapping class="org.pahappa.model.Admission"/>
+        <mapping class="org.pahappa.model.User"/>
+        <mapping class="org.pahappa.model.AuditLog"/>
+        <mapping class="org.pahappa.model.Role"/>
+        <mapping class="org.pahappa.model.RolePermission"/>
+    </session-factory>
+</hibernate-configuration>

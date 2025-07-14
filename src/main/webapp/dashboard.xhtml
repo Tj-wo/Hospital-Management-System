@@ -13,217 +13,238 @@
                 <div class="welcome-section">
                     <div>
                         <h1 class="dashboard-title">Welcome, #{loginBean.loggedInUser.username}!</h1>
-                        <p class="text-secondary">Here's a summary for your role: <strong>#{loginBean.loggedInUser.role}</strong>.</p>
+                        <p class="text-secondary">Here's a summary for your role: <strong>#{loginBean.loggedInUser.role.description}</strong>.</p>
                     </div>
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
-                        <div class="quick-actions">
-                            <p:link outcome="/views/patient/appointments" styleClass="btn-primary">
-                                <i class="pi pi-calendar-plus"></i> Book an Appointment
+                    <p:commandButton value="Refresh" icon="pi pi-refresh" action="#{dashboardBean.init}" update="@form" styleClass="btn-outline ml-2"/>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+
+                <div class="dashboard-row-stat-cards">
+                    <div class="stats-grid">
+                        <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_ADMIN_STATS')}">
+                            <p:link outcome="manage-patients" styleClass="stat-card patients-card">
+                                <div class="stat-icon"><i class="pi pi-users"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalPatients}</h2>
+                                    <p class="stat-label">Total Patients</p>
+                                </div>
                             </p:link>
-                        </div>
-                        <p:commandButton value="Refresh" icon="pi pi-refresh" action="#{dashboardBean.init}" update="@form" styleClass="btn-outline ml-2"/>
-                    </h:panelGroup>
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role != 'PATIENT'}">
-                        <p:commandButton value="Refresh" icon="pi pi-refresh" action="#{dashboardBean.init}" update="@form" styleClass="btn-outline"/>
-                    </h:panelGroup>
-                </div>
-            </div>
+                            <p:link outcome="manage-appointments" styleClass="stat-card appointments-card">
+                                <div class="stat-icon"><i class="pi pi-calendar"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalAppointments}</h2>
+                                    <p class="stat-label">Total Appointments</p>
+                                </div>
+                            </p:link>
+                            <p:link outcome="manage-staff" styleClass="stat-card staff-card">
+                                <div class="stat-icon"><i class="pi pi-id-card"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalStaff}</h2>
+                                    <p class="stat-label">Active Staff</p>
+                                </div>
+                            </p:link>
+                            <p:link outcome="manage-medical-records" styleClass="stat-card revenue-card">
+                                <div class="stat-icon"><i class="pi pi-folder-open"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalMedicalRecords}</h2>
+                                    <p class="stat-label">Medical Records</p>
+                                </div>
+                            </p:link>
+                        </h:panelGroup>
 
-            <div class="stats-section">
-                <div class="stats-grid">
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role == 'ADMIN'}">
-                        <p:link outcome="manage-patients" styleClass="stat-card patients-card">
-                            <div class="stat-icon"><i class="pi pi-users"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalPatients}</h2>
-                                <p class="stat-label">Total Patients</p>
+                        <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_DOCTOR_STATS')}">
+                            <p:link outcome="doctor-appointments" styleClass="stat-card appointments-card">
+                                <div class="stat-icon"><i class="pi pi-calendar"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.todaysAppointments.size()}</h2>
+                                    <p class="stat-label">Today's Appointments</p>
+                                </div>
+                            </p:link>
+                            <div class="stat-card patients-card">
+                                <div class="stat-icon"><i class="pi pi-users"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalPatientsSeenByDoctor}</h2>
+                                    <p class="stat-label">Total Patients Seen</p>
+                                </div>
                             </div>
-                        </p:link>
-                        <p:link outcome="manage-appointments" styleClass="stat-card appointments-card">
-                            <div class="stat-icon"><i class="pi pi-calendar"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalAppointments}</h2>
-                                <p class="stat-label">Total Appointments</p>
+                            <div class="stat-card success-card">
+                                <div class="stat-icon"><i class="pi pi-verified"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.doctorAppointmentStatusCounts['COMPLETED']}</h2>
+                                    <p class="stat-label">My Completed Appointments</p>
+                                </div>
                             </div>
-                        </p:link>
-                        <p:link outcome="manage-staff" styleClass="stat-card staff-card">
-                            <div class="stat-icon"><i class="pi pi-id-card"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalStaff}</h2>
-                                <p class="stat-label">Active Staff</p>
-                            </div>
-                        </p:link>
+                        </h:panelGroup>
 
-                        <p:link outcome="manage-staff" styleClass="stat-card staff-card">
-                            <div class="stat-icon"><i class="pi pi-user-plus"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalDoctors}</h2>
-                                <p class="stat-label">Total Doctors</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="manage-staff" styleClass="stat-card staff-card">
-                            <div class="stat-icon"><i class="pi pi-heart-fill"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalNurses}</h2>
-                                <p class="stat-label">Total Nurses</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="manage-staff" styleClass="stat-card staff-card">
-                            <div class="stat-icon"><i class="pi pi-user"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalReceptionists}</h2>
-                                <p class="stat-label">Total Receptionists</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="manage-admissions" styleClass="stat-card revenue-card">
-                            <div class="stat-icon"><i class="pi pi-prime"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.activeAdmissionsCount}</h2>
-                                <p class="stat-label">Active Admissions</p>
-                            </div>
-                        </p:link>
+                        <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_PATIENT_STATS')}">
+                            <p:link outcome="patient-appointments" styleClass="stat-card appointments-card">
+                                <div class="stat-icon"><i class="pi pi-calendar"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.upcomingAppointments.size()}</h2>
+                                    <p class="stat-label">Your Upcoming Appointments</p>
+                                </div>
+                            </p:link>
+                            <p:link outcome="patient-admissions" styleClass="stat-card revenue-card">
+                                <div class="stat-icon"><i class="pi pi-building"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalPatientAdmissions}</h2>
+                                    <p class="stat-label">Total Admissions History</p>
+                                </div>
+                            </p:link>
+                            <p:link outcome="patient-medical-records" styleClass="stat-card patients-card">
+                                <div class="stat-icon"><i class="pi pi-file"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalPatientMedicalRecords}</h2>
+                                    <p class="stat-label">Total Medical Records</p>
+                                </div>
+                            </p:link>
+                        </h:panelGroup>
 
-                        <p:link outcome="manage-admissions" styleClass="stat-card appointments-card">
-                            <div class="stat-icon"><i class="pi pi-history"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.dischargedAdmissionsCount}</h2>
-                                <p class="stat-label">Discharged Admissions</p>
-                            </div>
-                        </p:link>
+                        <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_NURSE_STATS')}">
+                            <p:link outcome="nurse-admissions" styleClass="stat-card patients-card">
+                                <div class="stat-icon"><i class="pi pi-bed"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.myActivePatientCount}</h2>
+                                    <p class="stat-label">My Active Patients</p>
+                                </div>
+                            </p:link>
+                            <p:link outcome="nurse-admissions" styleClass="stat-card revenue-card">
+                                <div class="stat-icon"><i class="pi pi-clipboard"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.totalAdmissionsManagedByNurse}</h2>
+                                    <p class="stat-label">Total Admissions Managed</p>
+                                </div>
+                            </p:link>
+                        </h:panelGroup>
 
-                        <p:link outcome="manage-appointments" styleClass="stat-card success-card">
-                            <div class="stat-icon"><i class="pi pi-check-circle"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.appointmentStatusCounts['COMPLETED']}</h2>
-                                <p class="stat-label">Completed Appointments</p>
-                            </div>
-                        </p:link>
-
-                        <p:link outcome="manage-appointments" styleClass="stat-card danger-card">
-                            <div class="stat-icon"><i class="pi pi-times-circle"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.appointmentStatusCounts['CANCELLED_BY_PATIENT'] + dashboardBean.appointmentStatusCounts['CANCELLED_BY_DOCTOR']}</h2>
-                                <p class="stat-label">Cancelled Appointments</p>
-                            </div>
-                        </p:link>
-                    </h:panelGroup>
-
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
-                        <p:link outcome="doctor-appointments" styleClass="stat-card appointments-card">
-                            <div class="stat-icon"><i class="pi pi-calendar"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.todaysAppointments.size()}</h2>
-                                <p class="stat-label">Today's Appointments</p>
-                            </div>
-                        </p:link>
-                        <div class="stat-card patients-card">
-                            <div class="stat-icon"><i class="pi pi-users"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalPatientsSeenByDoctor}</h2>
-                                <p class="stat-label">Total Patients Seen</p>
-                            </div>
-                        </div>
-                        <div class="stat-card success-card">
-                            <div class="stat-icon"><i class="pi pi-verified"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.doctorAppointmentStatusCounts['COMPLETED']}</h2>
-                                <p class="stat-label">My Completed Appointments</p>
-                            </div>
-                        </div>
-                    </h:panelGroup>
-
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
-                        <p:link outcome="patient-appointments" styleClass="stat-card appointments-card">
-                            <div class="stat-icon"><i class="pi pi-calendar"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.upcomingAppointments.size()}</h2>
-                                <p class="stat-label">Your Upcoming Appointments</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="patient-admissions" styleClass="stat-card revenue-card">
-                            <div class="stat-icon"><i class="pi pi-building nav-icon"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalPatientAdmissions}</h2>
-                                <p class="stat-label">Total Admissions History</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="patient-medical-records" styleClass="stat-card patients-card">
-                            <div class="stat-icon"><i class="pi pi-file nav-icon"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalPatientMedicalRecords}</h2>
-                                <p class="stat-label">Total Medical Records</p>
-                            </div>
-                        </p:link>
-                    </h:panelGroup>
-
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role == 'NURSE'}">
-                        <p:link outcome="nurse-admissions" styleClass="stat-card patients-card">
-                            <div class="stat-icon"><i class="pi pi-bed"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.myActivePatientCount}</h2>
-                                <p class="stat-label">My Active Patients</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="nurse-admissions" styleClass="stat-card revenue-card">
-                            <div class="stat-icon"><i class="pi pi-clipboard"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.totalAdmissionsManagedByNurse}</h2>
-                                <p class="stat-label">Total Admissions Managed</p>
-                            </div>
-                        </p:link>
-                    </h:panelGroup>
-
-                    <h:panelGroup rendered="#{loginBean.loggedInUser.role == 'RECEPTIONIST'}">
-                        <p:link outcome="receptionist-appointments" styleClass="stat-card appointments-card">
-                            <div class="stat-icon"><i class="pi pi-calendar"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.allTodaysAppointmentsCount}</h2>
-                                <p class="stat-label">Total Appointments Today</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="manage-patients" styleClass="stat-card patients-card">
-                            <div class="stat-icon"><i class="pi pi-user-plus"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.newPatientsToday}</h2>
-                                <p class="stat-label">New Patients Today</p>
-                            </div>
-                        </p:link>
-                        <p:link outcome="manage-patients" styleClass="stat-card success-card">
-                            <div class="stat-icon"><i class="pi pi-users"></i></div>
-                            <div class="stat-content">
-                                <h2 class="stat-number">#{dashboardBean.newPatientsThisWeek}</h2>
-                                <p class="stat-label">New Patients This Week</p>
-                            </div>
-                        </p:link>
-                    </h:panelGroup>
-                </div>
-            </div>
-
-            <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'DOCTOR'}">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title"><i class="pi pi-list"></i>Today's Schedule</h2></div>
-                    <div class="card-content">
-                        <p:dataTable var="appt" value="#{dashboardBean.todaysAppointments}" rows="5" paginator="true" styleClass="modern-table" emptyMessage="No appointments scheduled for today">
-                            <p:column headerText="Patient"><h:outputText value="#{appt.patient.fullName}"/></p:column>
-                            <p:column headerText="Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="HH:mm"/></h:outputText></p:column>
-                            <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
-                        </p:dataTable>
+                        <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_RECEPTIONIST_STATS')}">
+                            <p:link outcome="receptionist-appointments" styleClass="stat-card appointments-card">
+                                <div class="stat-icon"><i class="pi pi-calendar"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.allTodaysAppointmentsCount}</h2>
+                                    <p class="stat-label">Total Appointments Today</p>
+                                </div>
+                            </p:link>
+                            <p:link outcome="receptionist-register-patient" styleClass="stat-card patients-card">
+                                <div class="stat-icon"><i class="pi pi-user-plus"></i></div>
+                                <div class="stat-content">
+                                    <h2 class="stat-number">#{dashboardBean.newPatientsToday}</h2>
+                                    <p class="stat-label">New Patients Today</p>
+                                </div>
+                            </p:link>
+                        </h:panelGroup>
                     </div>
                 </div>
-            </p:outputPanel>
 
-            <p:outputPanel rendered="#{loginBean.loggedInUser.role == 'PATIENT'}">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title"><i class="pi pi-calendar-plus"></i>Your Upcoming Appointments</h2></div>
-                    <div class="card-content">
-                        <p:dataTable var="appt" value="#{dashboardBean.upcomingAppointments}" rows="5" paginator="true" styleClass="modern-table" emptyMessage="You have no upcoming appointments.">
-                            <p:column headerText="Doctor"><h:outputText value="Dr. #{appt.doctor.fullName}"/></p:column>
-                            <p:column headerText="Date &amp; Time"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="MMM dd,yyyy 'at' HH:mm"/></h:outputText></p:column>
-                            <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
-                        </p:dataTable>
-                    </div>
+                <div class="dashboard-row-charts-tables">
+                    <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_ADMIN_STATS')}">
+                        <div class="chart-card">
+                            <div class="card-title">
+                                <i class="pi pi-chart-bar"></i>
+                                Appointment Status Distribution
+                            </div>
+                            <p:barChart type="bar" model="#{dashboardBean.statusDistributionBarChart}"
+                                        style="height:100%; min-height:250px; max-height:320px;"
+                                        responsive="true"/>
+                        </div>
+                    </h:panelGroup>
+
+                    <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_ADMIN_STATS')}">
+                        <div class="card">
+                            <p:dataTable var="appt" value="#{dashboardBean.adminUpcomingAppointments}" styleClass="modern-table" rows="5" emptyMessage="No upcoming appointments.">
+                                <f:facet name="header">
+                                    <div class="table-header">
+                                        <span class="card-title"><i class="pi pi-forward"></i> Upcoming Appointments</span>
+                                    </div>
+                                </f:facet>
+                                <p:column headerText="Patient"><h:outputText value="#{appt.patient.fullName}"/></p:column>
+                                <p:column headerText="Date"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="MMM dd, hh:mm a" timeZone="Africa/Kampala"/></h:outputText></p:column>
+                            </p:dataTable>
+                        </div>
+                    </h:panelGroup>
                 </div>
-            </p:outputPanel>
+
+                <div class="dashboard-row-donuts">
+                    <p:outputPanel rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_ADMIN_STATS')}">
+                        <div style="display: flex !important;" class="side-charts-container">
+                            <div class="chart-card">
+                                <p:donutChart type="donut" model="#{dashboardBean.staffDistributionChart}" style="height:100%; min-height:200px; max-height:250px;" responsive="true"/>
+                            </div>
+
+                            <div class="chart-card">
+                                <p:donutChart type="donut" model="#{dashboardBean.admissionStatusChart}" style="height:100%; min-height:200px; max-height:250px;" responsive="true"/>
+                            </div>
+                        </div>
+                    </p:outputPanel>
+                </div>
+
+                <div class="dashboard-other-tables">
+                    <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_DOCTOR_STATS')}">
+                        <div class="card">
+                            <p:dataTable var="appt" value="#{dashboardBean.todaysAppointments}"
+                                         styleClass="modern-table"
+                                         rows="5"
+                                         paginator="true"
+                                         emptyMessage="No appointments scheduled for today."
+                                         scrollable="true"
+                                         scrollHeight="300px">
+                                <f:facet name="header">
+                                    <div class="table-header">
+                                        <span class="card-title">
+                                            <i class="pi pi-calendar-check"></i> Today's Appointments
+                                        </span>
+                                    </div>
+                                </f:facet>
+                                <p:column headerText="Time">
+                                    <h:outputText value="#{appt.appointmentDate}">
+                                        <f:convertDateTime type="time" timeStyle="short"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Patient">
+                                    <h:outputText value="#{appt.patient.fullName}"/>
+                                </p:column>
+                                <p:column headerText="Reason">
+                                    <h:outputText value="#{appt.reason}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </h:panelGroup>
+
+                    <h:panelGroup rendered="#{menuSecurityBean.hasPermission('VIEW_DASHBOARD_PATIENT_STATS')}">
+                        <div class="card">
+                            <p:dataTable var="appt" value="#{dashboardBean.upcomingAppointments}"
+                                         styleClass="modern-table"
+                                         rows="5"
+                                         paginator="true"
+                                         emptyMessage="You have no upcoming appointments."
+                                         scrollable="true"
+                                         scrollHeight="300px">
+                                <f:facet name="header">
+                                    <div class="table-header">
+                                        <span class="card-title">
+                                            <i class="pi pi-calendar-clock"></i> Your Upcoming Appointments
+                                        </span>
+                                    </div>
+                                </f:facet>
+                                <p:column headerText="Date &amp; Time">
+                                    <h:outputText value="#{appt.appointmentDate}">
+                                        <f:convertDateTime pattern="EEE, MMM dd, yyyy 'at' hh:mm a"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Doctor">
+                                    <h:outputText value="#{appt.doctor.fullName}"/>
+                                </p:column>
+                                <p:column headerText="Reason">
+                                    <h:outputText value="#{appt.reason}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </h:panelGroup>
+                </div>
+
+            </div>
         </h:form>
     </ui:define>
 </ui:composition>

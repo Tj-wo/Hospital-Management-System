@@ -9,7 +9,7 @@ import javax.persistence.*;
         uniqueConstraints = @UniqueConstraint(columnNames = {"role_id", "permission_type"}))
 public class RolePermission extends BaseModel {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 

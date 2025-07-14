@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+<ui:composition template="/template.xhtml">
+    <ui:define name="title">Audit Logs</ui:define>
+
+    <ui:define name="content">
+        <h:form id="auditLogForm">
+            <div class="card">
+                <!-- *** CHANGED: Made panel toggleable and initially collapsed *** -->
+                <p:panel id="filterPanel" header="Filter Audit Logs" styleClass="filter-panel mb-4"
+                         toggleable="true" collapsed="true" toggleSpeed="300">
+                    <div class="formgrid grid p-3 align-items-end">
+                        <div class="field col-12 md:col-6 lg:col-3">
+                            <p:outputLabel for="startDate" value="From:"/>
+                            <p:calendar id="startDate" value="#{auditLogBean.startDate}"
+                                        pattern="yyyy-MM-dd" navigator="true"/>
+                        </div>
+                        <div class="field col-12 md:col-6 lg:col-3">
+                            <p:outputLabel for="endDate" value="To:"/>
+                            <p:calendar id="endDate" value="#{auditLogBean.endDate}"
+                                        pattern="yyyy-MM-dd" navigator="true"/>
+                        </div>
+                        <div class="field col-12 md:col-6 lg:col-3">
+                            <p:outputLabel for="actionType" value="Action:"/>
+                            <p:selectOneMenu id="actionType" value="#{auditLogBean.selectedAction}">
+                                <f:selectItem itemLabel="All Actions" itemValue="#{null}"/>
+                                <f:selectItem itemLabel="Create" itemValue="CREATE"/>
+                                <f:selectItem itemLabel="Update" itemValue="UPDATE"/>
+                                <f:selectItem itemLabel="Delete" itemValue="DELETE"/>
+                                <f:selectItem itemLabel="Login" itemValue="LOGIN"/>
+                            </p:selectOneMenu>
+                        </div>
+                        <div class="field col-12 md:col-6 lg:col-3">
+                            <p:outputLabel for="entityType" value="Entity:"/>
+                            <p:selectOneMenu id="entityType" value="#{auditLogBean.selectedEntityType}">
+                                <f:selectItem itemLabel="All Entities" itemValue="#{null}"/>
+                                <f:selectItem itemLabel="User" itemValue="User"/>
+                                <f:selectItem itemLabel="Patient" itemValue="Patient"/>
+                                <f:selectItem itemLabel="Staff" itemValue="Staff"/>
+                                <f:selectItem itemLabel="Appointment" itemValue="Appointment"/>
+                                <f:selectItem itemLabel="Medical Record" itemValue="MedicalRecord"/>
+                                <f:selectItem itemLabel="Admission" itemValue="Admission"/>
+                            </p:selectOneMenu>
+                        </div>
+
+                        <!-- *** CHANGED: Added a Clear button and grouped actions *** -->
+                        <div class="field col-12 flex justify-content-end gap-2">
+                            <p:commandButton value="Clear" action="#{auditLogBean.clearFilters}"
+                                             update=":auditLogForm:filterPanel :auditLogForm:auditTable"
+                                             styleClass="btn-outline ui-button-secondary" icon="pi-times" process="@this"/>
+                            <p:commandButton value="Apply Filters" action="#{auditLogBean.filterLogs}"
+                                             update="auditTable" styleClass="btn-primary" icon="pi pi-filter"/>
+                        </div>
+                    </div>
+                </p:panel>
+
+                <div class="table-responsive">
+                    <p:dataTable id="auditTable" var="log" value="#{auditLogBean.filteredLogs}"
+                                 paginator="true" rows="10" styleClass="modern-table"
+                                 paginatorPosition="bottom" rowsPerPageTemplate="5,10,15,20"
+                                 emptyMessage="No audit logs found matching criteria">
+                        <p:column headerText="Timestamp" sortBy="#{log.dateCreated}">
+                            <h:outputText value="#{log.dateCreated}">
+                                <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" timeZone="Africa/Nairobi" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="User" sortBy="#{log.username}">
+                            <h:outputText value="#{log.username}" />
+                        </p:column>
+                        <p:column headerText="Action" sortBy="#{log.action}">
+                            <p:tag value="#{log.action}"
+                                   severity="#{log.action == 'CREATE' ? 'success' : log.action == 'UPDATE' ? 'info' : log.action == 'LOGIN' ? 'warning' : 'danger'}"/>
+                        </p:column>
+                        <p:column headerText="Entity" sortBy="#{log.entityType}">
+                            <h:outputText value="#{log.entityType}" />
+                        </p:column>
+                        <p:column headerText="Details">
+                            <h:panelGroup>
+                                <h:outputText value="#{auditLogBean.getBriefDetails(log.details, 50)}" />
+                                <p:commandButton value="View" icon="pi pi-eye" styleClass="ui-button-flat ui-button-sm ml-2"
+                                                 action="#{auditLogBean.selectLog(log)}"
+                                                 oncomplete="PF('detailsDialog').show()"
+                                                 update=":auditLogForm:detailsDialogContent"/>
+                            </h:panelGroup>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div class="export-buttons mt-3">
+                    <p:commandButton value="Export to CSV" action="#{auditLogBean.exportToCSV}"
+                                     ajax="false" styleClass="btn-outline" icon="pi pi-file-excel"/>
+                    <p:commandButton value="Export to PDF" action="#{auditLogBean.exportToPDF}"
+                                     ajax="false" styleClass="btn-outline" icon="pi pi-file-pdf"/>
+                </div>
+            </div>
+
+            <p:dialog header="Audit Log Details" widgetVar="detailsDialog" modal="true" resizable="false" styleClass="role-dialog">
+                <p:outputPanel id="detailsDialogContent">
+                    <h:panelGrid columns="2" styleClass="details-grid" style="width: 100%;" rendered="#{not empty auditLogBean.selectedLog}">
+                        <h:outputText value="Timestamp:" styleClass="detail-label"/>
+                        <h:outputText value="#{auditLogBean.selectedLog.dateCreated}">
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" />
+                        </h:outputText>
+
+                        <h:outputText value="User:" styleClass="detail-label"/>
+                        <h:outputText value="#{auditLogBean.selectedLog.username} (ID: #{auditLogBean.selectedLog.userId})"/>
+
+                        <h:outputText value="Action:" styleClass="detail-label"/>
+                        <p:tag value="#{auditLogBean.selectedLog.action}"
+                               severity="#{auditLogBean.selectedLog.action == 'CREATE' ? 'success' : auditLogBean.selectedLog.action == 'UPDATE' ? 'info' : auditLogBean.selectedLog.action == 'LOGIN' ? 'warning' : 'danger'}"/>
+
+                        <h:outputText value="Entity:" styleClass="detail-label"/>
+                        <h:outputText value="#{auditLogBean.selectedLog.entityType} (ID: #{auditLogBean.selectedLog.entityId})"/>
+
+                        <h:outputText value="Details Message:" styleClass="detail-label"/>
+                        <p:inputTextarea value="#{auditLogBean.selectedLog.details}"
+                                         rows="3" readonly="true"
+                                         style="width:100%; font-family: monospace;"/>
+
+                        <h:outputText value="Old Values:" styleClass="detail-label"
+                                      rendered="#{auditLogBean.selectedLog.action == 'UPDATE' or auditLogBean.selectedLog.action == 'DELETE'}"/>
+                        <p:outputPanel rendered="#{auditLogBean.selectedLog.action == 'UPDATE' or auditLogBean.selectedLog.action == 'DELETE'}">
+                            <p:inputTextarea value="#{auditLogBean.selectedLog.oldValues}"
+                                             rows="5" readonly="true"
+                                             style="width:100%; font-family: monospace;"/>
+                        </p:outputPanel>
+
+                        <h:outputText value="New Values:" styleClass="detail-label"
+                                      rendered="#{auditLogBean.selectedLog.action == 'CREATE' or auditLogBean.selectedLog.action == 'UPDATE'}"/>
+                        <p:outputPanel rendered="#{auditLogBean.selectedLog.action == 'CREATE' or auditLogBean.selectedLog.action == 'UPDATE'}">
+                            <p:inputTextarea value="#{auditLogBean.selectedLog.newValues}"
+                                             rows="5" readonly="true"
+                                             style="width:100%; font-family: monospace;"/>
+                        </p:outputPanel>
+
+                        <h:outputText value="Changed Fields:" styleClass="detail-label"
+                                      rendered="#{auditLogBean.selectedLog.action == 'UPDATE'}"/>
+                        <p:outputPanel rendered="#{auditLogBean.selectedLog.action == 'UPDATE'}">
+                            <h:outputText value="#{auditLogBean.selectedLog.changedFields}"
+                                          style="font-family: monospace;"/>
+                        </p:outputPanel>
+                    </h:panelGrid>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
+</html>

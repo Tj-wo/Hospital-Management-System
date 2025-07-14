@@ -18,7 +18,7 @@ public class NurseAdmissionBean implements Serializable {
     private AdmissionService admissionService;
 
     @Inject
-    private LoginBean loginBean; // Needed to get the current nurse's ID
+    private LoginBean loginBean;
 
     private List<Admission> assignedAdmissions;
 
@@ -34,8 +34,10 @@ public class NurseAdmissionBean implements Serializable {
     private boolean isNurseLoggedIn() {
         return loginBean != null && loginBean.isLoggedIn() &&
                 loginBean.getLoggedInUser().getStaff() != null &&
-                loginBean.getLoggedInUser().getRole() == org.pahappa.utils.Role.NURSE;
+                loginBean.getLoggedInUser().getRole() != null &&
+                loginBean.getLoggedInUser().getRole().getName().equalsIgnoreCase("NURSE");
     }
+
 
     public List<Admission> getAdmissions() {
         return assignedAdmissions;

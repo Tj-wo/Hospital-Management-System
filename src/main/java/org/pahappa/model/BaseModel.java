@@ -1,64 +1,57 @@
 package org.pahappa.model;
 
-import javax.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * An abstract base class for all entity models to inherit from.
- * It provides common fields like id, creation/modification timestamps, and a soft-delete flag.
- * The @MappedSuperclass annotation ensures that these fields are mapped to the columns
- * of the subclass tables.
- */
 @MappedSuperclass
 public abstract class BaseModel implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "date_created", updatable = false)
-    private Date dateCreated;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "date_modified")
-    private Date dateModified;
-
-    /**
-     * The soft-delete flag. When true, the record is considered deleted
-     * and should not be retrieved in standard queries.
-     */
     @Column(name = "deleted", nullable = false)
     private boolean deleted = false;
 
-    /**
-     * This method is called by JPA/Hibernate before a new entity is saved (persisted).
-     * It sets the initial creation and modification dates.
-     */
-    @PrePersist
-    protected void onCreate() {
-        this.dateCreated = new Date();
-        this.dateModified = new Date();
-    }
+    @CreationTimestamp
+    @Column(name = "date_created", nullable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateCreated;
 
-    /**
-     * This method is called by JPA/Hibernate before an existing entity is updated.
-     * It updates the modification date.
-     */
-    @PreUpdate
-    protected void onUpdate() {
-        this.dateModified = new Date();
-    }
+    @Column(name = "created_by")
+    private Long createdBy;
 
-    // --- Getters and Setters ---
+    @UpdateTimestamp
+    @Column(name = "date_updated")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateUpdated;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public Date getDateCreated() {
@@ -69,19 +62,40 @@ public abstract class BaseModel implements Serializable {
         this.dateCreated = dateCreated;
     }
 
-    public Date getDateModified() {
-        return dateModified;
+    public Long getCreatedBy() {
+        return createdBy;
     }
 
-    public void setDateModified(Date dateModified) {
-        this.dateModified = dateModified;
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
     }
 
-    public boolean isDeleted() {
-        return deleted;
+    public Date getDateUpdated() {
+        return dateUpdated;
     }
 
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public void setDateUpdated(Date dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BaseModel baseModel = (BaseModel) o;
+        return id != null && id.equals(baseModel.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

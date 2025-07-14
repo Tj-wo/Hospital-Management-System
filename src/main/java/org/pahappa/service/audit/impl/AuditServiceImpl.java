@@ -74,8 +74,7 @@ public class AuditServiceImpl implements AuditService {
             auditLogDao.save(log);
         } else {
             System.err.println("### FATAL: auditLogDao is NULL during logCreate! Cannot save log.");
-            // Optionally, re-throw a runtime exception to fail fast if this happens
-            // throw new RuntimeException("AuditLogDao was not injected correctly for logCreate.");
+
         }
     }
 

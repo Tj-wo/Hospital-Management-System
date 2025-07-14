@@ -38,5 +38,7 @@
         <mapping class="org.pahappa.model.Admission"/>
         <mapping class="org.pahappa.model.User"/>
         <mapping class="org.pahappa.model.AuditLog"/>
+        <mapping class="org.pahappa.model.Role"/>
+        <mapping class="org.pahappa.model.RolePermission"/>
     </session-factory>
 </hibernate-configuration>

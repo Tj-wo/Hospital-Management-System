@@ -1,0 +1,97 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                template="/template.xhtml">
+    <ui:define name="title">Medical Records</ui:define>
+    <ui:define name="content">
+        <!-- Main form for patient selection and record display -->
+        <h:form id="recordForm">
+            <div class="card">
+                <div class="card-content">
+                    <p:panel header="Select Patient to View or Add Records">
+                        <div class="ui-fluid">
+                            <p:selectOneMenu id="patientSelect" value="#{doctorMedicalRecordBean.selectedPatient}" converter="omnifaces.SelectItemsConverter" filter="true" filterMatchMode="contains">
+                                <f:selectItem itemLabel="--- Select a patient ---" noSelectionOption="true"/>
+                                <f:selectItems value="#{doctorMedicalRecordBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/>
+                                <!-- Update the records panel and the button in the header -->
+                                <p:ajax listener="#{doctorMedicalRecordBean.onPatientChange}" update="recordsPanel"/>
+                            </p:selectOneMenu>
+                        </div>
+                    </p:panel>
+                </div>
+            </div>
+
+            <p:outputPanel id="recordsPanel">
+                <h:panelGroup rendered="#{not empty doctorMedicalRecordBean.selectedPatient}">
+                    <div class="card">
+                        <p:dataTable var="record" value="#{doctorMedicalRecordBean.selectedPatientRecords}" paginator="true" rows="5" styleClass="modern-table" emptyMessage="No medical records found for this patient.">
+                            <f:facet name="header">
+                                <div class="table-header">
+                                    <span class="card-title">
+                                        <i class="pi pi-list"></i> Medical History for #{doctorMedicalRecordBean.selectedPatient.fullName}
+                                    </span>
+                                    <!-- FIXED: Button is now in the header and opens a dialog -->
+                                    <p:commandButton value="Add New Record" icon="pi pi-plus"
+                                                     oncomplete="PF('recordDialog').show()"
+                                                     process="@this"
+                                                     update=":dialogForm"
+                                                     styleClass="btn-primary"
+                                                     disabled="#{doctorMedicalRecordBean.selectedPatient == null}" />
+                                </div>
+                            </f:facet>
+                            <p:column headerText="Record Date" sortBy="#{record.recordDate}">
+                                <h:outputText value="#{record.recordDate}">
+                                    <f:convertDateTime pattern="yyyy-MM-dd"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Attending Doctor" sortBy="#{record.doctor.fullName}">
+                                <h:outputText value="#{record.doctor.fullName}"/>
+                            </p:column>
+                            <p:column headerText="Diagnosis">
+                                <h:outputText value="#{record.diagnosis}"/>
+                            </p:column>
+                            <p:column headerText="Treatment">
+                                <h:outputText value="#{record.treatment}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </h:panelGroup>
+            </p:outputPanel>
+        </h:form>
+        <h:form id="dialogForm">
+            <p:dialog header="Add Medical Record for #{doctorMedicalRecordBean.selectedPatient.fullName}"
+                      widgetVar="recordDialog" modal="true" resizable="false" width="600" styleClass="role-dialog">
+                <div class="ui-fluid p-4">
+                    <p:growl id="dialogMessages" showDetail="true" />
+                    <div class="p-field mb-3">
+                        <p:outputLabel for="recordDate" value="Record Date"/>
+                        <p:calendar id="recordDate" value="#{doctorMedicalRecordBean.newRecord.recordDate}"
+                                    pattern="yyyy-MM-dd" required="true" navigator="true"
+                                    maxdate="#{doctorMedicalRecordBean.today}"
+                                    mindate="#{doctorMedicalRecordBean.today}"/>
+                    </div>
+                    <div class="p-field mb-3">
+                        <p:outputLabel for="diagnosis" value="Diagnosis"/>
+                        <p:inputTextarea id="diagnosis" value="#{doctorMedicalRecordBean.newRecord.diagnosis}"
+                                         rows="4" autoResize="false" required="true" style="width:100%"/>
+                    </div>
+                    <div class="p-field">
+                        <p:outputLabel for="treatment" value="Treatment Plan"/>
+                        <p:inputTextarea id="treatment" value="#{doctorMedicalRecordBean.newRecord.treatment}"
+                                         rows="4" autoResize="false" required="true" style="width:100%"/>
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="Save Record" icon="pi pi-save"
+                                     action="#{doctorMedicalRecordBean.addRecord}"
+                                     update=":recordForm:recordsPanel :dialogForm:dialogMessages :global-growl"
+                                     oncomplete="if (args &amp;&amp; !args.validationFailed) PF('recordDialog').hide()"
+                                     styleClass="btn-primary"/>
+                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('recordDialog').hide()" type="button" styleClass="ui-button-secondary"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

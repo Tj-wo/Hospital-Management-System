@@ -21,9 +21,6 @@ public class Patient extends BaseModel {
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted = false;
-
     @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
     private User user;
 
@@ -41,8 +38,6 @@ public class Patient extends BaseModel {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
     public String getFullName() { return firstName + " " + lastName; }
-    public boolean isDeleted() { return deleted; }
-    public void setDeleted(boolean deleted) { this.deleted = deleted; }
 
 
     @Override
@@ -52,7 +47,6 @@ public class Patient extends BaseModel {
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
-                ", deleted=" + deleted +
                 '}';
     }
 }

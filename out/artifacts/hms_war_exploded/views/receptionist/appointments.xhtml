@@ -1,0 +1,69 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:h="http://java.sun.com/jsf/html"
+        xmlns:ui="http://java.sun.com/jsf/facelets"
+        xmlns:p="http://primefaces.org/ui"
+        xmlns:f="http://java.sun.com/jsf/core"
+        template="/template.xhtml">
+
+    <ui:define name="title">Receptionist Appointments</ui:define>
+
+    <ui:define name="content">
+        <h:form id="receptionistAppointmentForm">
+            <div class="card">
+                <p:dataTable id="appointmentTable" var="appt" value="#{receptionistAppointmentBean.allAppointments}" paginator="true" rows="10" styleClass="modern-table">
+                    <f:facet name="header">
+                        <div class="table-header">
+                            <span class="card-title"><i class="pi pi-calendar"></i> All Appointments</span>
+                            <p:commandButton value="Schedule New" icon="pi pi-plus" actionListener="#{receptionistAppointmentBean.scheduleAppointment}" update=":dialogForm" oncomplete="PF('appointmentDialog').show()" styleClass="btn-primary"/>
+                        </div>
+                    </f:facet>
+                    <p:column headerText="Patient"><h:outputText value="#{appt.patient.fullName}"/></p:column>
+                    <p:column headerText="Doctor"><h:outputText value="#{appt.doctor.fullName}"/></p:column>
+                    <p:column headerText="Date"><h:outputText value="#{appt.appointmentDate}"><f:convertDateTime pattern="yyyy-MM-dd hh:mm a"/></h:outputText></p:column>
+                    <p:column headerText="Reason"><h:outputText value="#{appt.reason}"/></p:column>
+                    <p:column headerText="Status"><p:tag value="#{appt.status}" severity="#{appt.status == 'SCHEDULED' ? 'info' : (appt.status == 'COMPLETED' ? 'success' : 'danger')}"/></p:column>
+                    <p:column headerText="Actions" style="text-align:center">
+                        <p:commandButton icon="pi pi-pencil" title="Edit" actionListener="#{receptionistAppointmentBean.selectAppointment(appt)}" update=":dialogForm" oncomplete="PF('appointmentDialog').show()" styleClass="rounded-button ui-button-warning"/>
+                        <p:commandButton icon="pi pi-times" title="Cancel" actionListener="#{receptionistAppointmentBean.cancelAppointment}" update="appointmentTable :global-growl" styleClass="rounded-button ui-button-danger">
+                            <f:setPropertyActionListener target="#{receptionistAppointmentBean.selectedAppointment}" value="#{appt}"/>
+                            <p:confirm header="Cancel Appointment" message="Are you sure?" icon="pi pi-exclamation-triangle"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+            <p:confirmDialog global="true">
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes"/>
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form id="dialogForm">
+            <p:dialog header="Appointment Details" widgetVar="appointmentDialog" modal="true" resizable="false" width="450">
+                <div class="ui-fluid p-4">
+                    <p:growl id="dialogMessages" />
+                    <p:outputLabel for="patient" value="Patient:"/>
+                    <p:selectOneMenu id="patient" value="#{receptionistAppointmentBean.newAppointment.patient}" converter="omnifaces.SelectItemsConverter" filter="true" required="true">
+                        <f:selectItem itemLabel="-- Select Patient --" noSelectionOption="true"/>
+                        <f:selectItems value="#{receptionistAppointmentBean.allPatients}" var="p" itemValue="#{p}" itemLabel="#{p.fullName}"/>
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="doctor" value="Doctor:"/>
+                    <p:selectOneMenu id="doctor" value="#{receptionistAppointmentBean.newAppointment.doctor}" converter="omnifaces.SelectItemsConverter" filter="true" required="true">
+                        <f:selectItem itemLabel="-- Select Doctor --" noSelectionOption="true"/>
+                        <f:selectItems value="#{receptionistAppointmentBean.allDoctors}" var="d" itemValue="#{d}" itemLabel="#{d.fullName}"/>
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="datetime" value="Date &amp; Time:"/>
+                    <p:calendar id="datetime" value="#{receptionistAppointmentBean.newAppointment.appointmentDate}" pattern="yyyy-MM-dd hh:mm a" showTime="true" required="true" maxdate="#{new java.util.Date()}"/>
+
+                    <p:outputLabel for="reason" value="Reason:"/>
+                    <p:inputTextarea id="reason" value="#{receptionistAppointmentBean.newAppointment.reason}" rows="3" required="true"/>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="Save" icon="pi pi-check" actionListener="#{receptionistAppointmentBean.scheduleAppointment}" update=":receptionistAppointmentForm:appointmentTable :global-growl dialogMessages" oncomplete="if (args &amp;&amp; !args.validationFailed) PF('appointmentDialog').hide();" styleClass="btn-primary"/>
+                    <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('appointmentDialog').hide()" styleClass="ui-button-secondary"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

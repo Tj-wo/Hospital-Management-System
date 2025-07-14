@@ -1,7 +1,8 @@
 package org.pahappa.model;
 
-import org.pahappa.utils.Role;
+
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "users")
@@ -13,9 +14,9 @@ public class User extends BaseModel {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private org.pahappa.model.Role role;
 
     @OneToOne
     @JoinColumn(name = "patient_id", unique = true)
@@ -25,6 +26,14 @@ public class User extends BaseModel {
     @JoinColumn(name = "staff_id", unique = true)
     private Staff staff;
 
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "date_deactivated")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateDeactivated;
+
     public User() {}
 
     // Getters and Setters for User-specific fields
@@ -32,10 +41,25 @@ public class User extends BaseModel {
     public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public org.pahappa.model.Role getRole() { return role; }
+    public void setRole(org.pahappa.model.Role role) { this.role = role; }
     public Staff getStaff() { return staff; }
     public void setStaff(Staff staff) { this.staff = staff; }
     public Patient getPatient() { return patient; }
     public void setPatient(Patient patient) { this.patient = patient; }
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public Date getDateDeactivated() {
+        return dateDeactivated;
+    }
+
+    public void setDateDeactivated(Date dateDeactivated) {
+        this.dateDeactivated = dateDeactivated;
+    }
 }

@@ -81,8 +81,10 @@ public class NurseRecordBean implements Serializable {
     private boolean isNurseLoggedIn() {
         return loginBean != null && loginBean.isLoggedIn() &&
                 loginBean.getLoggedInUser().getStaff() != null &&
-                loginBean.getLoggedInUser().getRole() == org.pahappa.utils.Role.NURSE;
+                loginBean.getLoggedInUser().getRole() != null &&
+                loginBean.getLoggedInUser().getRole().getName().equalsIgnoreCase("NURSE");
     }
+
 
     private void addMessage(FacesMessage.Severity severity, String summary, String detail) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));

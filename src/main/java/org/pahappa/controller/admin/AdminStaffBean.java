@@ -1,12 +1,12 @@
 package org.pahappa.controller.admin;
 
 import org.pahappa.model.Staff;
+import org.pahappa.model.Role;
+import org.pahappa.service.role.RoleService;
 import org.pahappa.service.staff.StaffService;
-import org.pahappa.utils.Role;
 import org.pahappa.exception.HospitalServiceException;
 import org.pahappa.exception.ValidationException;
 import org.pahappa.exception.ResourceNotFoundException;
-import org.pahappa.exception.DuplicateEntryException;
 
 import org.primefaces.PrimeFaces;
 
@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Named("adminStaffBean")
@@ -27,105 +28,89 @@ public class AdminStaffBean implements Serializable {
     @Inject
     private StaffService staffService;
 
+    @Inject
+    private RoleService roleService;
+
     private List<Staff> staffList;
-    private List<Staff> softDeletedStaffList;
     private Staff newStaff;
-    private Staff selectedStaff;
-    private Staff selectedSoftDeletedStaff;
     private String password;
+    private Long selectedRoleId;
+    private List<Role> availableRoles;
+
+    // ADDED: Field to hold the global filter text
+    private String globalFilter;
 
     @PostConstruct
     public void init() {
         staffList = staffService.getAllStaff();
-        softDeletedStaffList = staffService.getSoftDeletedStaff();
+        availableRoles = roleService.getAllRoles();
         prepareNewStaff();
-        System.out.println("Soft deleted staff count: " + softDeletedStaffList.size());//debug
     }
 
     public void prepareNewStaff() {
         newStaff = new Staff();
-        password = null; // This clears password only when preparing for a NEW staff entry
+        password = null;
+        selectedRoleId = null;
     }
 
-    public void addStaff() {
+    public void selectStaffForEdit(Staff staff) {
+        this.newStaff = staffService.getStaff(staff.getId());
+        if (this.newStaff != null && this.newStaff.getRole() != null) {
+            this.selectedRoleId = this.newStaff.getRole().getId();
+        } else {
+            this.selectedRoleId = null;
+        }
+        this.password = null;
+    }
+
+    public void saveStaff() {
         try {
-            staffService.addStaff(newStaff, password);
-            init(); // Re-initialize (and clear) only on SUCCESS
-            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + newStaff.getFirstName() + " " + newStaff.getLastName() + "' was added.");
-            PrimeFaces.current().executeScript("PF('staffDialog').hide()");
-            PrimeFaces.current().ajax().update("staffForm:messages", "staffForm:staffTable", "staffForm:softDeletedStaffTable");
-        } catch (ValidationException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not add staff: " + e.getMessage());
-            // Update the growl and the panel containing the inputs. The bean values are preserved.
-            PrimeFaces.current().ajax().update("dialogForm:dialogMessages", "dialogForm:staffDetailsPanel");
+            if (selectedRoleId == null) {
+                throw new ValidationException("Please select a role for the staff member.");
+            }
+            Role role = roleService.getRoleById(selectedRoleId);
+            if (role == null) {
+                throw new ResourceNotFoundException("Selected role not found. Please refresh and try again.");
+            }
+            newStaff.setRole(role);
+
+            String staffName = newStaff.getFullName();
+
+            if (newStaff.getId() == null) {
+                staffService.addStaff(newStaff, password);
+                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + staffName + "' was added.");
+            } else {
+                staffService.updateStaff(newStaff);
+                addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + staffName + "' was updated.");
+            }
+
+            init(); // Reload all data from the database and reset the form state
+
+        } catch (ValidationException | ResourceNotFoundException e) {
+            addMessage(FacesMessage.SEVERITY_ERROR, "Validation Failed", e.getMessage());
+            PrimeFaces.current().ajax().update("dialogForm:dialogMessages");
         } catch (HospitalServiceException hse) {
             addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
             PrimeFaces.current().ajax().update("dialogForm:dialogMessages");
         } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
+            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred.");
             PrimeFaces.current().ajax().update("dialogForm:dialogMessages");
+            e.printStackTrace();
         }
     }
 
-    public void softDeleteStaff() {
-        if (selectedStaff == null) {
-            addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No staff member selected for soft deletion.");
+    public void softDeleteStaff(Staff staffToDelete) {
+        if (staffToDelete == null) {
+            addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No staff member selected for deletion.");
             return;
         }
         try {
-            staffService.softDeleteStaff(selectedStaff.getId());
-            staffList.remove(selectedStaff);
-            softDeletedStaffList.add(selectedStaff);
-            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + selectedStaff.getFirstName() + " " + selectedStaff.getLastName() + "' was soft-deleted.");
-            selectedStaff = null;
-            PrimeFaces.current().ajax().update("staffForm:messages", "staffForm:staffTable", "staffForm:staffTable", "staffForm:softDeletedStaffTable");
-        } catch (ValidationException | ResourceNotFoundException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not soft-delete staff: " + e.getMessage());
-        } catch (HospitalServiceException hse) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
+            staffService.softDeleteStaff(staffToDelete.getId());
+            staffList.remove(staffToDelete);
+            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + staffToDelete.getFullName() + "' was soft-deleted.");
         } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
-        }
-    }
-
-    public void restoreStaff() {
-        if (selectedSoftDeletedStaff == null) {
-            addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No staff member selected for restoration.");
-            return;
-        }
-        try {
-            staffService.restoreStaff(selectedSoftDeletedStaff.getId());
-            softDeletedStaffList.remove(selectedSoftDeletedStaff);
-            staffList.add(selectedSoftDeletedStaff);
-            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + selectedSoftDeletedStaff.getFirstName() + " " + selectedSoftDeletedStaff.getLastName() + "' was restored.");
-            selectedSoftDeletedStaff = null;
-            PrimeFaces.current().ajax().update("staffForm:messages", "staffForm:staffTable", "staffForm:softDeletedStaffTable");
-        } catch (ValidationException | ResourceNotFoundException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not restore staff: " + e.getMessage());
-        } catch (HospitalServiceException hse) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
-        } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
-        }
-    }
-
-    public void permanentlyDeleteStaff() {
-        if (selectedSoftDeletedStaff == null) {
-            addMessage(FacesMessage.SEVERITY_WARN, "Warning", "No staff member selected for permanent deletion.");
-            return;
-        }
-        try {
-            staffService.permanentlyDeleteStaff(selectedSoftDeletedStaff.getId());
-            softDeletedStaffList.remove(selectedSoftDeletedStaff);
-            addMessage(FacesMessage.SEVERITY_INFO, "Success", "Staff member '" + selectedSoftDeletedStaff.getFirstName() + " " + selectedSoftDeletedStaff.getLastName() + "' was permanently deleted.");
-            selectedSoftDeletedStaff = null;
-            PrimeFaces.current().ajax().update("staffForm:messages", "staffForm:softDeletedStaffTable");
-        } catch (ValidationException | ResourceNotFoundException e) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not permanently delete staff: " + e.getMessage());
-        } catch (HospitalServiceException hse) {
-            addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", hse.getMessage());
-        } catch (Exception e) {
-            addMessage(FacesMessage.SEVERITY_FATAL, "System Error", "An unexpected error occurred. Please contact support.");
+            addMessage(FacesMessage.SEVERITY_ERROR, "Operation Failed", "Could not soft-delete staff: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -133,15 +118,22 @@ public class AdminStaffBean implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severity, summary, detail));
     }
 
+    // --- Getters and Setters ---
+
+    public Date getToday() {
+        return new Date();
+    }
+
     public List<Staff> getStaffList() { return staffList; }
-    public List<Staff> getSoftDeletedStaffList() { return softDeletedStaffList; }
     public Staff getNewStaff() { return newStaff; }
     public void setNewStaff(Staff newStaff) { this.newStaff = newStaff; }
-    public Staff getSelectedStaff() { return selectedStaff; }
-    public void setSelectedStaff(Staff selectedStaff) { this.selectedStaff = selectedStaff; }
-    public Staff getSelectedSoftDeletedStaff() { return selectedSoftDeletedStaff; }
-    public void setSelectedSoftDeletedStaff(Staff selectedSoftDeletedStaff) { this.selectedSoftDeletedStaff = selectedSoftDeletedStaff; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-    public Role[] getRoles() { return Role.values(); }
+    public List<Role> getRoles() { return availableRoles; }
+    public Long getSelectedRoleId() { return selectedRoleId; }
+    public void setSelectedRoleId(Long selectedRoleId) { this.selectedRoleId = selectedRoleId; }
+
+    // ADDED: Getter and Setter for the global filter
+    public String getGlobalFilter() { return globalFilter; }
+    public void setGlobalFilter(String globalFilter) { this.globalFilter = globalFilter; }
 }

@@ -11,14 +11,8 @@
     <navigation-rule>
         <from-view-id>*</from-view-id>
 
-        <navigation-case>
-            <from-outcome>dashboard</from-outcome>
-            <to-view-id>/dashboard.xhtml</to-view-id>
-            <redirect/>
-        </navigation-case>
-
         <!-- General Navigation -->
-        <navigation-case><from-outcome>index</from-outcome><to-view-id>/dashboard.xhtml</to-view-id><redirect/></navigation-case>
+        <navigation-case><from-outcome>dashboard</from-outcome><to-view-id>/dashboard.xhtml</to-view-id><redirect/></navigation-case>
         <navigation-case><from-outcome>login</from-outcome><to-view-id>/login.xhtml</to-view-id><redirect/></navigation-case>
 
         <!-- ADMIN -->
@@ -29,7 +23,9 @@
         <navigation-case><from-outcome>manage-medical-records</from-outcome><to-view-id>/views/admin/manage-medical-records.xhtml</to-view-id></navigation-case>
         <navigation-case><from-outcome>manage-deactivated-users</from-outcome><to-view-id>/views/admin/deactivatedUsers.xhtml</to-view-id></navigation-case>
         <navigation-case><from-outcome>manage-audit-logs</from-outcome><to-view-id>/views/admin/audit-logs.xhtml</to-view-id></navigation-case>
-
+        <!-- FIXED: Simplified outcome for roles -->
+        <navigation-case><from-outcome>manage-roles</from-outcome><to-view-id>/views/admin/manage-roles.xhtml</to-view-id></navigation-case>
+        <navigation-case><from-outcome>manage-permissions</from-outcome><to-view-id>/views/admin/manage-permissions.xhtml</to-view-id></navigation-case>
 
         <!-- DOCTOR -->
         <navigation-case><from-outcome>doctor-appointments</from-outcome><to-view-id>/views/doctor/appointments.xhtml</to-view-id></navigation-case>
