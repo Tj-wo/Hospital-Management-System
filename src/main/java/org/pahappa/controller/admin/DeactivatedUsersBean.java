@@ -78,6 +78,26 @@ public class DeactivatedUsersBean implements Serializable {
         }
     }
 
+    public void runLegacyCleanup() {
+        try {
+            int fixedCount = userService.cleanupLegacyDeletedUsers();
+            if (fixedCount > 0) {
+                // Reload the list to include the newly fixed users
+                init();
+                String successMessage = String.format("Successfully found and migrated %d previously deleted user(s). They are now visible in this list.", fixedCount);
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_INFO, "Cleanup Complete", successMessage));
+            } else {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_INFO, "Cleanup Complete", "No legacy users found to migrate."));
+            }
+        } catch (Exception e) {
+            String errorMessage = "Cleanup failed: " + e.getMessage();
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", errorMessage));
+        }
+    }
+
     // --- Getters and Setters ---
 
     public List<User> getFilteredUsers() {

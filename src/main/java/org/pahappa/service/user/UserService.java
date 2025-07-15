@@ -12,4 +12,5 @@ public interface UserService {
     List<User> findDeactivatedUsers();
     void reactivateUserAndProfile(Long userId) throws HospitalServiceException;
     void deactivateUserAndProfile(Long userId) throws HospitalServiceException;
+    int cleanupLegacyDeletedUsers() throws HospitalServiceException;
 }

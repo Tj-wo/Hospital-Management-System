@@ -4,6 +4,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.pahappa.dao.UserDao;
 import org.pahappa.exception.ResourceNotFoundException;
 import org.pahappa.model.Patient;
+import org.pahappa.model.Staff;
 import org.pahappa.model.User;
 import org.pahappa.service.audit.AuditService;
 import org.pahappa.service.patient.PatientService;
@@ -18,6 +19,8 @@ import org.pahappa.exception.DuplicateEntryException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.pahappa.controller.LoginBean;
+
+import java.util.Date;
 import java.util.List;
 
 @ApplicationScoped
@@ -41,7 +44,6 @@ public class UserServiceImpl implements UserService {
     @Inject
     private LoginBean loginBean;
 
-    // ... (getCurrentUser and getCurrentUserId methods remain the same) ...
     private String getCurrentUser() {
         if (loginBean != null && loginBean.getLoggedInUser() != null) {
             return loginBean.getLoggedInUser().getUsername();
@@ -59,7 +61,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User login(String username, String password) {
-        // This method is fine as it doesn't throw checked exceptions
         if (username == null || password == null) {
             return null;
         }
@@ -76,7 +77,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void registerPatient(Patient patient, String password) throws HospitalServiceException {
-        // This method is already correct
         try {
             if (patient == null || password == null || password.trim().isEmpty()) {
                 throw new ValidationException("Patient data and password are required for registration.");
@@ -110,59 +110,100 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findDeactivatedUsers() {
-        // This method is fine as it doesn't throw checked exceptions
         return userDao.findDeactivated();
     }
 
+    /**
+     * CORRECTED: Reactivates a user.
+     * This now correctly fetches the user even if they were previously soft-deleted by the old logic.
+     * It also ensures the associated profile is not deleted.
+     */
     @Override
     public void reactivateUserAndProfile(Long userId) throws HospitalServiceException {
         try {
-            User user = userDao.getById(userId);
-            if (user == null || user.isActive()) {
-                throw new ResourceNotFoundException("Deactivated user not found with ID: " + userId);
+            // Use getByIdIncludingDeleted to find the user even if the old logic soft-deleted them.
+            User user = userDao.getByIdIncludingDeleted(userId);
+            if (user == null) {
+                throw new ResourceNotFoundException("User not found with ID: " + userId);
+            }
+            if (user.isActive()) {
+                throw new ValidationException("User is already active.");
             }
 
             user.setActive(true);
             user.setDateDeactivated(null);
+            user.setDeleted(false); // Explicitly mark as not deleted
             userDao.update(user);
 
-            if (user.getPatient() != null) {
+            // Also ensure the associated profile is not deleted
+            if (user.getPatient() != null && user.getPatient().isDeleted()) {
                 patientService.restorePatient(user.getPatient().getId());
-            } else if (user.getStaff() != null) {
+            } else if (user.getStaff() != null && user.getStaff().isDeleted()) {
                 staffService.restoreStaff(user.getStaff().getId());
             }
-        } catch (ResourceNotFoundException e) {
-            // Re-throw the specific exception to be handled by the controller
+
+            String details = "User account reactivated for: " + user.getUsername();
+            auditService.logUpdate(user, user, getCurrentUserId(), getCurrentUser(), details);
+
+        } catch (ValidationException | ResourceNotFoundException e) {
             throw e;
         } catch (RuntimeException e) {
-            // Wrap any unexpected runtime errors in our main service exception
             throw new HospitalServiceException("An unexpected error occurred while reactivating user.", e);
         }
     }
 
+    /**
+     * CORRECTED: Deactivates a user by only setting their `isActive` flag to false.
+     * It no longer soft-deletes the associated Patient or Staff profile.
+     */
     @Override
     public void deactivateUserAndProfile(Long userId) throws HospitalServiceException {
         try {
             User user = userDao.getById(userId);
-            if (user == null || !user.isActive()) {
+            if (user == null) {
                 throw new ResourceNotFoundException("Active user not found with ID: " + userId);
+            }
+            if (!user.isActive()) {
+                throw new ValidationException("User is already deactivated.");
             }
 
             user.setActive(false);
-            user.setDateDeactivated(new java.util.Date());
+            user.setDateDeactivated(new Date());
             userDao.update(user);
 
-            if (user.getPatient() != null) {
-                patientService.softDeletePatient(user.getPatient().getId());
-            } else if (user.getStaff() != null) {
-                staffService.softDeleteStaff(user.getStaff().getId());
-            }
-        } catch (ResourceNotFoundException e) {
-            // Re-throw the specific exception
+            String details = "User account deactivated for: " + user.getUsername();
+            auditService.logUpdate(user, user, getCurrentUserId(), getCurrentUser(), details);
+
+        } catch (ValidationException | ResourceNotFoundException e) {
             throw e;
         } catch (RuntimeException e) {
-            // Wrap unexpected runtime errors
             throw new HospitalServiceException("An unexpected error occurred while deactivating user.", e);
+        }
+    }
+
+    @Override
+    public int cleanupLegacyDeletedUsers() throws HospitalServiceException {
+        try {
+            List<User> legacyUsers = userDao.findLegacyDeletedUsers();
+            if (legacyUsers.isEmpty()) {
+                return 0; // Nothing to fix
+            }
+
+            for (User user : legacyUsers) {
+                user.setActive(false);       // Mark as deactivated
+                user.setDeleted(false);      // Mark as NOT deleted (so it appears in the list)
+                if (user.getDateDeactivated() == null) {
+                    user.setDateDeactivated(user.getDateUpdated() != null ? user.getDateUpdated() : new Date());
+                }
+                userDao.update(user);
+            }
+
+            String details = String.format("Cleaned up %d legacy soft-deleted user accounts.", legacyUsers.size());
+            auditService.logUpdate(null, null, getCurrentUserId(), getCurrentUser(), details);
+
+            return legacyUsers.size();
+        } catch (Exception e) {
+            throw new HospitalServiceException("An error occurred during legacy user cleanup.", e);
         }
     }
 }

@@ -2,6 +2,7 @@ package org.pahappa.service.patient.impl;
 
 import org.pahappa.dao.PatientDao;
 import org.pahappa.model.Patient;
+import org.pahappa.dao.UserDao;
 import org.pahappa.model.User;
 import org.pahappa.service.audit.AuditService;
 import org.pahappa.service.patient.PatientService;
@@ -16,7 +17,6 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.pahappa.controller.LoginBean;
 
 @ApplicationScoped
@@ -24,6 +24,9 @@ public class PatientServiceImpl implements PatientService {
 
     @Inject
     private PatientDao patientDao;
+
+    @Inject
+    private UserDao userDao;
 
     @Inject
     private AuditService auditService;
@@ -47,8 +50,6 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public List<Patient> getAllPatients() {
-        // FIXED: The stream and filter here was redundant because BaseDao.getAll() already filters for non-deleted.
-        // This is a minor performance improvement.
         return patientDao.getAll();
     }
 
@@ -136,6 +137,13 @@ public class PatientServiceImpl implements PatientService {
                 throw new ValidationException("Patient is already soft-deleted.");
             }
 
+            User user = patient.getUser();
+            if (user != null && user.isActive()) {
+                user.setActive(false);
+                user.setDateDeactivated(new Date());
+                userDao.update(user);
+            }
+
             patient.setDeleted(true);
             patientDao.update(patient);
 
@@ -162,8 +170,17 @@ public class PatientServiceImpl implements PatientService {
                 throw new ValidationException("Patient is not soft-deleted and cannot be restored.");
             }
 
+            User user = patient.getUser();
+            if (user != null && !user.isActive()) {
+                user.setActive(true);
+                user.setDateDeactivated(null);
+                user.setDeleted(false); // Also ensure the user is not marked as deleted
+                userDao.update(user);
+            }
+
             patient.setDeleted(false);
             patientDao.update(patient);
+
 
             String details = "Restored Patient ID: " + patient.getId() + ", Name: " + patient.getFirstName() + " " + patient.getLastName();
             auditService.logUpdate(patient, patient, getCurrentUserId(), getCurrentUser(), details);

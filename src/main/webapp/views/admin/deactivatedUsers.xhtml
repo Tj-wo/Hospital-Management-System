@@ -10,7 +10,6 @@
     <ui:define name="content">
         <div class="card">
             <h:form id="deactivatedUsersForm">
-                <p:growl id="growl" showDetail="true" skipDetailIfEqualsSummary="true"/>
 
                 <p:dataTable id="usersTable" var="user" value="#{deactivatedUsersBean.filteredUsers}"
                              paginator="true" rows="10" paginatorPosition="bottom"
@@ -52,7 +51,7 @@
                     <p:column headerText="Actions" style="width:120px; text-align: center;">
                         <p:commandButton icon="pi pi-check-circle" title="Restore User"
                                          action="#{deactivatedUsersBean.reactivateUser(user)}"
-                                         update="usersTable growl"
+                                         update="usersTable :global-growl"
                                          styleClass="ui-button-success ui-button-flat">
                             <p:confirm header="Confirmation" message="Are you sure you want to restore #{user.username}?" icon="pi pi-exclamation-triangle" />
                         </p:commandButton>
