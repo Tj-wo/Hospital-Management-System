@@ -178,6 +178,13 @@ public class StaffServiceImpl implements StaffService {
                 throw new ValidationException("Staff is already soft-deleted.");
             }
 
+            User user = staff.getUser();
+            if (user != null && user.isActive()) {
+                user.setActive(false);
+                user.setDateDeactivated(new Date());
+                userDao.update(user);
+            }
+
             if (staff.getRole() != null && "DOCTOR".equalsIgnoreCase(staff.getRole().getName())) {
                 appointmentService.handleDeactivatedDoctorAppointments(staff.getId());
             }
@@ -206,6 +213,14 @@ public class StaffServiceImpl implements StaffService {
             }
             if (!staff.isDeleted()) {
                 throw new ValidationException("Staff is not soft-deleted and cannot be restored.");
+            }
+
+            User user = staff.getUser();
+            if (user != null && !user.isActive()) {
+                user.setActive(true);
+                user.setDateDeactivated(null);
+                user.setDeleted(false);
+                userDao.update(user);
             }
 
             staff.setDeleted(false);
