@@ -247,7 +247,7 @@ public class DashboardBean implements Serializable {
         barDataSet.setData(values);
 
         List<String> bgColor = new ArrayList<>();
-        bgColor.add("rgba(255, 99, 132, 0.5)");
+        bgColor.add("rgba(239, 68, 68, 0.5)");
         bgColor.add("rgba(255, 159, 64, 0.5)");
         bgColor.add("rgba(16, 185, 129, 0.5)");
         bgColor.add("rgba(75, 192, 192, 0.5)");

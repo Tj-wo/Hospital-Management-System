@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 /* --- CSS Variables --- */
 :root {
     /* Primary Blue Palette */
@@ -21,7 +19,6 @@
     --medical-teal-400: #2dd4bf;
     --medical-teal-500: #14b8a6;
     --medical-teal-600: #0d9488;
-
     /* Status Colors */
     --danger-50: #fef2f2;
     --danger-100: #fecaca;
@@ -33,7 +30,6 @@
     --info-500: #06b6d4;
     --info-600: #0891b2;
     --info-700: #0e7490;
-
     --success-50: #ecfdf5;
     --success-100: #d1fae5;
     --success-500: #10b981;
@@ -65,7 +61,6 @@
     --info-color: var(--info-600);
     --warning-color: var(--warning-600);
     --danger-color: var(--danger-600);
-
     /* Backgrounds */
     --bg-primary: var(--gray-25);
     --bg-secondary: var(--gray-50);
@@ -87,7 +82,7 @@
     --border-light: var(--gray-100);
     --border-accent: var(--primary-200);
     /* Shadows */
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-none: none;
     --shadow-sm: 0 1px 3px 0 rgb(59 130 246 / 0.08), 0 1px 2px -1px rgb(59 130 246 / 0.08);
     --shadow-md: 0 4px 6px -1px rgb(59 130 246 / 0.1), 0 2px 4px -2px rgb(59 130 246 / 0.08);
     --shadow-lg: 0 10px 15px -3px rgb(59 130 246 / 0.12), 0 4px 6px -4px rgb(59 130 246 / 0.08);
@@ -122,21 +117,24 @@ body {
     line-height: 1.6;
 }
 
-/* --- Login Page --- */
+/* --- Mobile-First Base Styles --- */
+
+/* Login Page */
 .login-body {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 2rem;
+    padding: 1rem;
     background: var(--bg-secondary);
 }
 
 .login-wrapper {
     display: flex;
+    flex-direction: column;
     width: 100%;
-    max-width: 1200px;
-    min-height: 700px;
+    max-width: 100%;
+    min-height: auto;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-2xl);
@@ -145,19 +143,21 @@ body {
 }
 
 .login-showcase {
-    flex: 1;
+    flex: none;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 4rem;
+    justify-content: center;
+    padding: 2rem 1.5rem;
     color: white;
     background: linear-gradient(rgba(29, 78, 216, 0.8), rgba(13, 148, 136, 0.8)), url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
     background-size: cover;
+    text-align: center;
 }
 
 .showcase-logo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.75rem;
     font-size: 1.25rem;
     font-weight: 600;
@@ -169,18 +169,18 @@ body {
 }
 
 .showcase-content {
-    max-width: 450px;
+    max-width: 100%;
 }
 
 .showcase-title {
-    font-size: 2.75rem;
+    font-size: 1.75rem;
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 1rem;
 }
 
 .showcase-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
     line-height: 1.6;
     opacity: 0.8;
 }
@@ -190,7 +190,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 3rem;
+    padding: 2rem 1.5rem;
 }
 
 .login-card h:form {
@@ -199,7 +199,7 @@ body {
 }
 
 .login-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     text-align: left;
 }
 
@@ -207,13 +207,13 @@ body {
     margin: 0;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     font-weight: 600;
 }
 
 .login-header p {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .login-button {
@@ -251,25 +251,31 @@ body {
 /* --- Main Application Layout --- */
 .app-layout {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
     position: relative;
     background: var(--gradient-secondary);
 }
 
 .sidebar {
-    width: 280px;
+    width: 100%;
+    max-width: 280px;
     display: flex;
     flex-direction: column;
     position: fixed;
     top: 0;
-    left: 0;
+    left: -100%;
     bottom: 0;
     height: 100%;
     background: var(--bg-primary);
     border-right: 1px solid var(--border-color);
     box-shadow: var(--shadow-lg);
-    transition: var(--transition-base);
+    transition: left var(--transition-base);
     z-index: 1000;
+}
+
+.sidebar.mobile-open {
+    left: 0;
 }
 
 .sidebar::before {
@@ -284,26 +290,25 @@ body {
 
 .main-content {
     flex: 1;
-    padding: 2rem;
-    margin-left: 280px;
+    padding: 1rem;
+    margin-left: 0;
     background: var(--gradient-secondary);
     transition: var(--transition-base);
 }
 
 /* --- Mobile Navigation --- */
 .mobile-nav-toggle {
-    display: none;
-    /* Hidden by default, shown in media queries */
+    display: flex;
     position: fixed;
     top: 1rem;
     left: 1rem;
-    z-index: 1001;
-    padding: 0.75rem;
-    font-size: 1.25rem;
+    z-index: 1002;
+    padding: 0.5rem;
+    font-size: 1rem;
     color: white;
     background: var(--gradient-primary);
     border: none;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     cursor: pointer;
     transition: var(--transition-bounce);
@@ -318,8 +323,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    width: 20px;
-    height: 16px;
+    width: 18px;
+    height: 14px;
 }
 
 .mobile-nav-toggle .hamburger span {
@@ -346,18 +351,20 @@ body {
 
 .mobile-overlay {
     display: none;
-    /* Hidden by default, shown when active */
     position: fixed;
     inset: 0;
     z-index: 999;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
     opacity: 0;
-    transition: var(--transition-base);
+    transition: opacity var(--transition-base);
+    pointer-events: none;
 }
 
 .mobile-overlay.active {
+    display: block;
     opacity: 1;
+    pointer-events: auto;
 }
 
 /* --- Sidebar --- */
@@ -365,7 +372,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
     background: var(--gradient-card);
     border-bottom: 1px solid var(--border-light);
 }
@@ -380,7 +387,7 @@ body {
 
 .sidebar-header .brand-text {
     color: var(--text-primary);
-    font-size: 1.375rem;
+    font-size: 1.25rem;
     font-weight: 700;
 }
 
@@ -397,10 +404,10 @@ body {
 }
 
 .nav-header {
-    padding: 0.5rem 1.5rem;
+    padding: 0.5rem 1rem;
     margin-bottom: 0.75rem;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -411,8 +418,8 @@ body {
     align-items: center;
     gap: 1rem;
     margin: 0 0.75rem;
-    padding: 0.875rem 1.5rem;
-    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-secondary);
     text-decoration: none;
@@ -465,12 +472,12 @@ body {
 .nav-icon {
     width: 24px;
     text-align: center;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
 }
 
 .logout-section {
     margin-top: auto;
-    padding: 1.5rem;
+    padding: 1rem;
     border-top: 1px solid var(--border-light);
 }
 
@@ -508,7 +515,7 @@ body {
 }
 
 .card-header {
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 1.5rem;
     background: var(--gradient-card);
     border-bottom: 1px solid var(--border-light);
 }
@@ -519,12 +526,12 @@ body {
     gap: 0.75rem;
     margin: 0;
     color: var(--text-primary);
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
 }
 
 .card-content {
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 /* --- Enhanced Buttons --- */
@@ -584,7 +591,7 @@ body {
     overflow-x: auto;
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-sm);
-    -webkit-overflow-scrolling: touch; /* For smoother scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
 .table-responsive::-webkit-scrollbar {
@@ -664,8 +671,7 @@ body {
 
 /* --- Mobile Table Cards --- */
 .mobile-table-cards {
-    display: none;
-    /* Hidden by default, shown in media queries */
+    display: block;
 }
 
 .mobile-table-card {
@@ -714,21 +720,23 @@ body {
 
 /* --- Dashboard Specific --- */
 .dashboard-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
 }
 
 .welcome-section {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 2.5rem;
-    padding: 2.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
     background: var(--gradient-card);
     border: 1px solid var(--border-accent);
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-md);
     overflow: hidden;
     position: relative;
+    text-align: center;
 }
 
 .welcome-section::before {
@@ -743,7 +751,7 @@ body {
 
 .dashboard-title {
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -752,20 +760,20 @@ body {
 }
 
 .stats-section {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 2rem;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
 }
 
 .stat-card {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 1.5rem;
+    gap: 1rem;
+    padding: 1rem;
     text-decoration: none;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
@@ -803,9 +811,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 4rem;
-    height: 4rem;
-    font-size: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
     font-weight: 600;
     border-radius: var(--radius-xl);
     position: relative;
@@ -817,7 +825,7 @@ body {
 
 .stat-number {
     margin: 0;
-    font-size: 2.25rem;
+    font-size: 1.8rem;
     font-weight: 700;
     line-height: 1;
     color: var(--text-primary);
@@ -825,7 +833,7 @@ body {
 
 .stat-label {
     margin: 0.5rem 0 0 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-secondary);
 }
@@ -963,7 +971,7 @@ body {
     color: white !important;
     background: linear-gradient(135deg, var(--danger-500), var(--danger-600)) !important;
     border: none !important;
-    border-radius: var(--radius-lg) !important;
+>    border-radius: var(--radius-lg) !important;
     overflow: hidden;
     position: relative;
     transition: var(--transition-bounce) !important;
@@ -992,17 +1000,13 @@ body {
     display: inline-block;
     width: 100%;
     margin-bottom: 1rem;
-    /* Added for better spacing */
     position: relative !important;
-    /* Changed from absolute to relative */
 }
 
 .ui-password input {
     width: 100% !important;
-    /* Ensures full width */
     padding-right: 3rem !important;
     box-sizing: border-box !important;
-    /* Includes padding in width calculation */
 }
 
 .ui-password .ui-password-toggle {
@@ -1058,14 +1062,12 @@ body {
 
 .filter-panel .p-panel-header {
     padding: 1.25rem 1.5rem !important;
-    /* Consistent padding */
     background: transparent;
     border: none;
     color: var(--text-primary);
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    /* Indicates it's clickable */
     transition: var(--transition-base);
 }
 
@@ -1073,20 +1075,17 @@ body {
     background-color: var(--bg-tertiary);
 }
 
-/* Style the toggle icon */
 .filter-panel .p-panel-header-icon {
     transition: transform var(--transition-slow) !important;
     color: var(--text-accent) !important;
 }
 
-/* Rotate icon when panel is open */
 .filter-panel .p-panel-header.ui-state-active .p-panel-header-icon {
     transform: rotate(90deg);
 }
 
 .filter-panel .p-panel-content {
     padding: 0 1.5rem 1.5rem 1.5rem !important;
-    /* Adjust padding for when it's open */
     border: none !important;
     border-top: 1px solid var(--border-light) !important;
 }
@@ -1107,7 +1106,6 @@ body {
     color: var(--text-secondary);
 }
 
-/* Style for the new 'Clear' button */
 .btn-outline.ui-button-secondary {
     border-color: var(--gray-300) !important;
     color: var(--gray-600) !important;
@@ -1125,7 +1123,6 @@ body {
     justify-content: flex-end;
     gap: 0.75rem;
     padding: 1.5rem 2rem 0 2rem;
-    /* Aligns with table content */
 }
 
 /* Details Dialog */
@@ -1139,7 +1136,6 @@ body {
 
 .detail-label {
     padding-top: 0.25rem;
-    /* Aligns better with multiline values */
     text-align: right;
     white-space: nowrap;
     font-weight: 600;
@@ -1177,7 +1173,6 @@ body {
     color: white;
 }
 
-/* Style for readonly textareas in dialog */
 .p-dialog .p-inputtextarea[readonly] {
     background: var(--bg-tertiary) !important;
     border-color: var(--border-light) !important;
@@ -1208,10 +1203,8 @@ body {
     padding: 0.5rem 1rem;
 }
 
-/* This is the magic part: makes the permissions list scrollable */
 .role-dialog .permissions-container {
     max-height: 350px;
-    /* You can adjust this height */
     margin-top: 0.5rem;
     padding: 1rem;
     background-color: var(--bg-secondary);
@@ -1220,7 +1213,6 @@ body {
     overflow-y: auto;
 }
 
-/* Nicer spacing for checkboxes */
 .role-dialog .permissions-container .ui-selectmanycheckbox-item {
     display: flex;
     align-items: center;
@@ -1231,299 +1223,143 @@ body {
     margin-right: 0.75rem;
 }
 
-/* Styles the footer buttons for consistent layout */
 .role-dialog .dialog-actions {
     display: flex;
     gap: 0.75rem;
     border-top: 1px solid var(--border-light);
 }
 
-/* --- Responsive Design --- */
+/* --- Media Queries for Larger Screens --- */
 
-/* For large tablets and small desktops */
-@media (max-width: 1200px) {
-    .main-content {
-        padding: 1.5rem;
-    }
-
-    .card-content {
-        padding: 1.5rem;
-    }
-
-    .welcome-section {
-        padding: 2rem;
-    }
-
-    .dashboard-title {
-        font-size: 1.75rem;
-    }
-
-    /*.side-charts-container {*/
-    /*    display: grid;*/
-    /*    grid-template-columns: 1fr 1fr;*/
-    /*    gap: 2rem;*/
-    /*    margin-top: 1.5rem;*/
-    /*}*/
-
-    .stats-grid {
-        gap: 1.5rem;
-    }
-
-    .stat-card {
-        padding: 1.5rem;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-    }
-}
-
-/* For medium tablets */
-@media (max-width: 992px) {
-    .dashboard-row-charts-tables {
-        grid-template-columns: 1fr; /* Stack columns vertically on smaller screens */
-    }
-}
-
-/* For medium tablets */
-@media (max-width: 768px) {
-    .dashboard-title {
-        font-size: 1.5rem;
-        /* Even smaller title */
-    }
-
-    .stat-number {
-        font-size: 1.5rem;
-        /* Smaller stat numbers */
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-        /* Single column for stat cards */
-    }
-}
-
-
-/* For small tablets and larger phones */
-@media (max-width: 576px) {
-    .sidebar {
-        position: fixed;
-        left: -280px;
-        /* Hide sidebar off-screen */
-        top: 0;
-        bottom: 0;
-        height: 100%;
-        box-shadow: var(--shadow-xl);
-        background: var(--bg-primary);
-    }
-
-    .sidebar.active {
-        left: 0;
-        /* Show sidebar */
-    }
-
-    .mobile-nav-toggle {
-        display: flex;
-        /* Show toggle button */
-    }
-
-    .main-content {
-        margin-left: 0;
-        /* Reset margin for main content */
-    }
-
+/* For small tablets and larger phones (min-width: 577px) */
+@media (min-width: 577px) {
     .login-wrapper {
-        flex-direction: column;
-        min-height: auto;
+        flex-direction: row;
+        max-width: 1200px;
+        min-height: 700px;
     }
 
     .login-showcase {
-        flex: none;
-        /* Reset flex grow */
-        min-height: 300px;
-        padding: 3rem 2rem;
-        text-align: center;
-        justify-content: center;
-    }
-
-    .showcase-content {
-        max-width: 100%;
+        flex: 1;
+        padding: 4rem;
+        text-align: left;
     }
 
     .showcase-title {
-        font-size: 2rem;
+        font-size: 2.75rem;
     }
 
     .login-card {
-        padding: 2.5rem 2rem;
+        flex: 1;
+        padding: 3rem;
     }
 
-    /* Adjust dashboard layout for smaller screens */
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-        /* Single column layout */
+    .login-header h3 {
+        font-size: 1.75rem;
     }
 
-    .side-charts-container {
-        display: flex !important;
-       /* grid-template-columns: 1fr 1fr;*/
-        gap: 2rem !important;
-        margin-top: 1.5rem;
+    .dashboard-title {
+        font-size: 2rem;
     }
 
-    /* Hide modern table, show mobile table cards */
-    .modern-table {
-        display: none;
-    }
-
-    .mobile-table-cards {
-        display: block;
-    }
-}
-
-/* For mobile phones */
-@media (max-width: 576px) {
-    .dashboard-header {
-        /* REDUCED WELCOME BAR HEIGHT */
-        padding: 0.5rem;
-        /* Adjusted from 0.75rem */
-    }
-
-    .dashboard-grid {
-        padding: 0 0.5rem 0.5rem 0.5rem;
-        /* Minimal padding */
-    }
-
-    .chart-card,
-    .card {
-        padding: 0.75rem;
-    }
-
-    .card-title {
-        font-size: 1.1rem;
-        flex-wrap: wrap;
-        /* Allow title and icon to wrap if needed */
-        margin-bottom: 0.75rem;
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
 
     .stat-card {
-        /* REDUCED STAT CARD PADDING */
-        padding: 1rem;
-        /* Adjusted from 1.5rem */
+        padding: 1.5rem;
     }
 
     .stat-icon {
-        /* SMALLER STAT ICON */
-        width: 3rem;
-        /* Adjusted from 4rem */
-        height: 3rem;
-        /* Adjusted from 4rem */
-        font-size: 1.25rem;
-        /* Adjusted from 1.5rem */
+        width: 4rem;
+        height: 4rem;
+        font-size: 1.5rem;
     }
 
     .stat-number {
-        /* SMALLER STAT NUMBER */
-        font-size: 1.8rem;
-        /* Adjusted from 2.25rem */
+        font-size: 2.25rem;
     }
 
     .welcome-section {
-        padding: 1.5rem;
-        /* Smaller padding for welcome section */
-        flex-direction: column;
-        /* Stack content vertically */
-        text-align: center;
-        gap: 1rem;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 2.5rem;
     }
 
-    .welcome-section .btn-primary {
-        width: 100%;
-        /* Full width button */
-    }
-
-    .login-body {
-        padding: 1rem;
-    }
-
-    .login-showcase {
-        min-height: 250px;
-        padding: 2rem 1.5rem;
-    }
-
-    .showcase-title {
-        font-size: 1.75rem;
-    }
-
-    .login-card {
-        padding: 2rem 1.5rem;
-    }
-
-    .p-dialog .p-dialog-header,
-    .p-dialog .p-dialog-footer {
-        padding: 1rem 1.5rem;
-        /* Smaller dialog header/footer padding */
-    }
-
-    .p-dialog .p-dialog-content {
-        padding: 1.5rem;
-        /* Smaller dialog content padding */
-    }
-}
-
-/* Dashboard Layout for new row structure */
-
-/* Row for Stat Cards - just spacing */
-.dashboard-row-stat-cards {
-    margin-bottom: 2rem;
-    /* Space below the stat cards row */
-}
-
-/* Row for Bar Graph and Admin Table */
-.dashboard-row-charts-tables {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal columns */
-    gap: 2rem;
-    /* Space between the chart and table */
-    margin-bottom: 2rem;
-    /* Space below this row */
-}
-
-/* Row for Donut Charts - side-charts-container already handles its internal grid, just spacing here */
-.dashboard-row-donuts {
-    margin-bottom: 0.5rem;
-    /* Space below the donut charts row */
-}
-
-/* Other Tables section to stack vertically below the main rows */
-.dashboard-other-tables {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; /* Space between the cards/tables in this section */
-}
-
-/* Responsive adjustments for the new rows */
-@media (max-width: 992px) {
-    .sidebar {
-        left: -280px;
-    }
-    .sidebar.active {
-        left: 0;
-        /* Show sidebar on mobile when toggle button is active */
-    }
     .main-content {
-        margin-left: 0;
-        /* On mobile, reset margin so content fills the screen */
-    }
-    .dashboard-row-charts-tables {
-        grid-template-columns: 1fr;
-        /* Stack columns vertically on smaller screens */
+        padding: 2rem;
     }
 
-    /*.side-charts-container {*/
-    /*    display: grid;*/
-    /*    grid-template-columns: 1fr 1fr;*/
-    /*    gap: 2rem;*/
-    /*    margin-top: 1.5rem;*/
-    /*}*/
+    .card-content {
+        padding: 2rem;
+    }
+
+    .mobile-table-cards {
+        display: none;
+    }
+
+    .modern-table {
+        display: table;
+    }
+}
+
+/* For large tablets and small desktops (min-width: 993px) */
+@media (min-width: 993px) {
+    .app-layout {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 280px;
+        left: 0;
+        position: fixed;
+    }
+
+    .main-content {
+        margin-left: 280px;
+    }
+
+    .mobile-nav-toggle {
+        display: none;
+    }
+
+    .mobile-overlay {
+        display: none;
+    }
+
+    .dashboard-row-charts-tables {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+}
+
+/* For medium tablets (min-width: 769px) */
+@media (min-width: 769px) {
+    .dashboard-title {
+        font-size: 2rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+/* For larger desktops (min-width: 1201px) */
+@media (min-width: 1201px) {
+    .login-wrapper {
+        max-width: 1200px;
+    }
+
+    .main-content {
+        padding: 2.5rem;
+    }
+
+    .card-content {
+        padding: 2.5rem;
+    }
 }
