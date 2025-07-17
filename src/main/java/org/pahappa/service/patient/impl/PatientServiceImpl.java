@@ -15,8 +15,12 @@ import org.pahappa.exception.DuplicateEntryException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.LinkedHashMap;
 import org.pahappa.controller.LoginBean;
 
 @ApplicationScoped
@@ -216,6 +220,22 @@ public class PatientServiceImpl implements PatientService {
     public long countPatients() {
         return getAllPatients().size();
     }
+
+    @Override
+    public Map<String, Long> getMonthlyPatientRegistrations(int months) {
+        Map<String, Long> rawData = patientDao.getMonthlyPatientRegistrations(months);
+        Map<String, Long> completeData = new LinkedHashMap<>();
+
+        LocalDate startMonth = LocalDate.now().minusMonths(months - 1).withDayOfMonth(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+
+        for (int i = 0; i < months; i++) {
+            String monthKey = startMonth.plusMonths(i).format(formatter);
+            completeData.put(monthKey, rawData.getOrDefault(monthKey, 0L));
+        }
+        return completeData;
+    }
+
 
     private void validatePatient(Patient patient) throws ValidationException {
         if (patient == null) throw new ValidationException("Patient object cannot be null.");
