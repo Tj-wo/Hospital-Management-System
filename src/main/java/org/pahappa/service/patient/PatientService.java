@@ -4,6 +4,7 @@ import org.pahappa.exception.HospitalServiceException;
 import org.pahappa.model.Patient;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PatientService {
     void addPatient(Patient patient) throws HospitalServiceException;
@@ -16,4 +17,5 @@ public interface PatientService {
     List <Patient> getAllPatients();
     List<Patient> getSoftDeletedPatients();
     long countPatients();
+    Map<String, Long> getMonthlyPatientRegistrations(int months);
 }

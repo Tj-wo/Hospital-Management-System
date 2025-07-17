@@ -5,7 +5,9 @@ import org.pahappa.model.Appointment;
 import org.pahappa.model.Patient;
 import org.pahappa.utils.AppointmentStatus;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface AppointmentService {
     List <Appointment> getAllAppointments();
@@ -20,5 +22,8 @@ public interface AppointmentService {
     List <Appointment> getAppointmentsByPatient(Patient patient);
     long countAppointments();
     void handleDeactivatedDoctorAppointments(long doctorId) throws HospitalServiceException;
+    Map<String, Long> getMonthlyAppointmentCreations(int months);
+    Map<String, Long> getDoctorPerformance(int days);
+    Map<LocalDate, Long> getDailyAppointmentCountForDoctor(Long doctorId, int days);
 
 }
