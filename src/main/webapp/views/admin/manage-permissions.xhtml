@@ -25,34 +25,25 @@
                 </div>
 
                 <div class="card-content">
-                    <!--
-                        REFACTORED UI STRUCTURE:
-                        Replaced the ui:repeat and p:fieldset with a p:accordionPanel.
-                        This component naturally handles the collapsible sections for a cleaner UX.
-                        - 'multiple="true"' allows more than one panel to be open at a time.
-                        - 'activeIndex="-1"' ensures all panels are collapsed by default.
-                    -->
-                    <p:accordionPanel value="#{permissionMatrixBean.groupedPermissions.entrySet().toArray()}" var="entry"
+                    <p:accordionPanel value="#{permissionMatrixBean.groupedPermissionsList}" var="entry"
                                       multiple="true" activeIndex="-1" styleClass="permission-accordion">
 
                         <p:tab title="#{entry.key}">
                             <div class="table-responsive">
-                                <p:dataTable var="role" value="#{permissionMatrixBean.allRoles}"
+                                <p:dataTable var="row" value="#{permissionMatrixBean.permissionRows}"
                                              styleClass="modern-table permission-matrix-table"
                                              emptyMessage="No roles found.">
 
                                     <p:column headerText="Role" style="width:20%; font-weight: 600; background-color: var(--bg-secondary);" frozen="true">
-                                        <h:outputText value="#{role.name}" />
+                                        <h:outputText value="#{row.role.name}" />
                                     </p:column>
 
                                     <!-- This now only creates columns for the permissions within the current category -->
                                     <p:columns value="#{entry.value}" var="permission"
                                                headerText="#{permission.displayName}"
                                                style="text-align:center; min-width: 180px;">
-
-                                        <p:selectBooleanCheckbox value="#{permissionMatrixBean.permissionsMap[role.id].contains(permission)}">
-                                            <p:ajax event="change" listener="#{permissionMatrixBean.togglePermission(role, permission)}" />
-                                        </p:selectBooleanCheckbox>
+                                        <!-- This correctly binds a single boolean checkbox to the map for each permission -->
+                                        <p:selectBooleanCheckbox value="#{row.permissions[permission]}" />
                                     </p:columns>
                                 </p:dataTable>
                             </div>

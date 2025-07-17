@@ -17,12 +17,16 @@ import org.pahappa.exception.AppointmentConflictException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.pahappa.controller.LoginBean;
+import java.util.LinkedHashMap;
 import org.pahappa.utils.Constants;
 
 @ApplicationScoped
@@ -256,5 +260,42 @@ public class AppointmentServiceImpl implements AppointmentService {
         } catch (Exception e) {
             throw new HospitalServiceException("Failed to handle appointments for deactivated doctor.", e);
         }
+    }
+
+    @Override
+    public Map<String, Long> getMonthlyAppointmentCreations(int months) {
+        Map<String, Long> rawData = appointmentDao.getMonthlyAppointmentCreations(months);
+        Map<String, Long> completeData = new LinkedHashMap<>();
+
+        LocalDate startMonth = LocalDate.now().minusMonths(months - 1).withDayOfMonth(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+
+        for (int i = 0; i < months; i++) {
+            String monthKey = startMonth.plusMonths(i).format(formatter);
+            completeData.put(monthKey, rawData.getOrDefault(monthKey, 0L));
+        }
+        return completeData;
+    }
+
+    @Override
+    public Map<String, Long> getDoctorPerformance(int days) {
+        return appointmentDao.getDoctorPerformance(days);
+    }
+
+    @Override
+    public Map<LocalDate, Long> getDailyAppointmentCountForDoctor(Long doctorId, int days) {
+        Map<LocalDate, Long> rawData = appointmentDao.getDailyAppointmentCountForDoctor(doctorId, days);
+        Map<LocalDate, Long> completeData = new LinkedHashMap<>();
+        LocalDate startDate = LocalDate.now().minusDays(days - 1);
+
+        for (int i = 0; i < days; i++) {
+            LocalDate date = startDate.plusDays(i);
+            if (rawData.containsKey(date)) {
+                completeData.put(date, rawData.get(date));
+            } else {
+                completeData.put(date, 0L);
+            }
+        }
+        return completeData;
     }
 }

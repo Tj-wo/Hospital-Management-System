@@ -14,6 +14,7 @@ import org.pahappa.utils.PermissionType;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.HashSet;
@@ -115,53 +116,62 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void assignPermissionToRole(Long roleId, PermissionType permissionType, Long performedByUserId, String performedByUsername) throws HospitalServiceException {
-        if (roleId == null || permissionType == null) throw new ValidationException("Role ID and Permission Type are required.");
+        if (roleId == null || permissionType == null)
+            throw new ValidationException("Role ID and Permission Type are required.");
 
-        Role role = roleDao.getById(roleId);
-        if (role == null) {
-            throw new ResourceNotFoundException("Role not found with ID: " + roleId);
-        }
-
-        RolePermission existingPermission = rolePermissionDao.findByRoleIdAndPermissionType(roleId, permissionType);
-        if (existingPermission != null) {
-            if (!existingPermission.isDeleted()) {
-                throw new DuplicateEntryException("Permission '" + permissionType.name() + "' already assigned to role '" + role.getName() + "'.");
-            } else {
-                existingPermission.setDeleted(false);
-                existingPermission.setDateUpdated(new Date());
-                existingPermission.setUpdatedBy(performedByUserId);
-                rolePermissionDao.update(existingPermission);
-                auditService.logUpdate(existingPermission, existingPermission, String.valueOf(performedByUserId), performedByUsername,
-                        "Reactivated permission '" + permissionType.name() + "' for role '" + role.getName() + "'.");
-                return;
+        try {
+            Role role = roleDao.getById(roleId);
+            if (role == null) {
+                throw new ResourceNotFoundException("Role not found with ID: " + roleId);
             }
-        }
 
-        RolePermission rolePermission = new RolePermission(role, permissionType);
-        rolePermission.setDateCreated(new Date());
-        rolePermission.setCreatedBy(performedByUserId);
-        rolePermissionDao.save(rolePermission);
-        auditService.logCreate(rolePermission, String.valueOf(performedByUserId), performedByUsername,
-                "Permission '" + permissionType.name() + "' assigned to role '" + role.getName() + "'.");
+            RolePermission existingPermission = rolePermissionDao.findByRoleIdAndPermissionTypeIncludingDeleted(roleId, permissionType);
+            if (existingPermission != null) {
+                if (!existingPermission.isDeleted()) {
+                    return;
+                } else {
+                    existingPermission.setDeleted(false);
+                    existingPermission.setDateUpdated(new Date());
+                    existingPermission.setUpdatedBy(performedByUserId);
+                    rolePermissionDao.update(existingPermission);
+                    auditService.logUpdate(existingPermission, existingPermission, String.valueOf(performedByUserId), performedByUsername,
+                            "Reactivated permission '" + permissionType.name() + "' for role '" + role.getName() + "'.");
+                    return;
+                }
+            }
+
+            RolePermission rolePermission = new RolePermission(role, permissionType);
+            rolePermission.setDateCreated(new Date());
+            rolePermission.setCreatedBy(performedByUserId);
+            System.out.println("Permission" +permissionType+" assigned to role " +role);
+            rolePermissionDao.save(rolePermission);
+            auditService.logCreate(rolePermission, String.valueOf(performedByUserId), performedByUsername,
+                    "Permission '" + permissionType.name() + "' assigned to role '" + role.getName() + "'.");
+
+        } catch (PersistenceException pe) {
+            throw new HospitalServiceException("A database error occurred. The permission might already exist.", pe);
+        } catch (HospitalServiceException hse) {
+            throw hse;
+        } catch (Exception e) {
+            throw new HospitalServiceException("An unexpected error occurred while assigning permission.", e);
+        }
     }
 
     @Override
     public void revokePermissionFromRole(Long roleId, PermissionType permissionType, Long performedByUserId, String performedByUsername) throws HospitalServiceException {
         if (roleId == null || permissionType == null) throw new ValidationException("Role ID and Permission Type are required.");
 
-        Role role = roleDao.getById(roleId);
-        if (role == null) {
-            throw new ResourceNotFoundException("Role not found with ID: " + roleId);
+        try {
+            RolePermission rolePermission = rolePermissionDao.findByRoleIdAndPermissionType(roleId, permissionType);
+            if (rolePermission == null) {
+                // Permission is not active, so nothing to do.
+                return;
+            }
+            rolePermissionDao.delete(rolePermission.getId());
+            auditService.logDelete(rolePermission, String.valueOf(performedByUserId), performedByUsername, "Permission '" + rolePermission.getPermission().name() + "' revoked from role '" + rolePermission.getRole().getName() + "'.");
+        } catch (Exception e) {
+            throw new HospitalServiceException("An unexpected error occurred while revoking permission.", e);
         }
-
-        RolePermission rolePermission = rolePermissionDao.findByRoleIdAndPermissionType(roleId, permissionType);
-        if (rolePermission == null || rolePermission.isDeleted()) {
-            throw new ResourceNotFoundException("Permission '" + permissionType.name() + "' not found or already revoked for role '" + role.getName() + "'.");
-        }
-
-        rolePermissionDao.delete(rolePermission.getId());
-        auditService.logDelete(rolePermission, String.valueOf(performedByUserId), performedByUsername,
-                "Permission '" + permissionType.name() + "' revoked from role '" + role.getName() + "'.");
     }
 
     @Override

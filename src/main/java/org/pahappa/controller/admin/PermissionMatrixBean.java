@@ -27,52 +27,58 @@ public class PermissionMatrixBean implements Serializable {
     @Inject
     private LoginBean loginBean;
 
-    private List<Role> allRoles;
-    private Map<Long, Set<PermissionType>> permissionsMap; // Key: Role ID, Value: Set of assigned permissions
+    private List<RolePermissionRow> permissionRows;
+    private List<Map.Entry<String, List<PermissionType>>> groupedPermissionsList;
 
-    // NEW: A map to hold permissions grouped by their category for the UI
-    private Map<String, List<PermissionType>> groupedPermissions;
+    /**
+     * A helper class to represent a single row in the permission matrix,
+     * holding a map of permissions to their boolean selected state.
+     */
+    public static class RolePermissionRow implements Serializable {
+        private Role role;
+        private Map<PermissionType, Boolean> permissions;
+
+        public RolePermissionRow(Role role, Map<PermissionType, Boolean> permissions) {
+            this.role = role;
+            this.permissions = permissions;
+        }
+
+        public Role getRole() { return role; }
+        public Map<PermissionType, Boolean> getPermissions() { return permissions; }
+        public void setPermissions(Map<PermissionType, Boolean> permissions) { this.permissions = permissions; }
+    }
 
     @PostConstruct
     public void init() {
-        allRoles = roleService.getAllRoles();
+        permissionRows = new ArrayList<>();
         loadPermissions();
         groupPermissionsForDisplay();
     }
 
     private void loadPermissions() {
-        permissionsMap = new HashMap<>();
-        for (Role role : allRoles) {
-            permissionsMap.put(role.getId(), roleService.getPermissionsForRole(role.getId()));
+        for (Role role : roleService.getAllRoles()) {
+            Set<PermissionType> currentPermissions = roleService.getPermissionsForRole(role.getId());
+            Map<PermissionType, Boolean> permissionMap = new LinkedHashMap<>();
+
+            // Initialize the map for every possible permission
+            for (PermissionType perm : PermissionType.values()) {
+                permissionMap.put(perm, currentPermissions.contains(perm));
+            }
+
+            permissionRows.add(new RolePermissionRow(role, permissionMap));
         }
     }
 
-    /**
-     * NEW: This method groups the flat list of all permissions into a map
-     * structured by category, which is perfect for the new UI.
-     */
+
     private void groupPermissionsForDisplay() {
-        groupedPermissions = Arrays.stream(PermissionType.values())
+        Map<String, List<PermissionType>> grouped = Arrays.stream(PermissionType.values())
                 .sorted(Comparator.comparing(PermissionType::getDisplayName)) // Sort alphabetically within groups
                 .collect(Collectors.groupingBy(
                         PermissionType::getCategory, // Group by the new 'category' field
                         LinkedHashMap::new,          // Use a LinkedHashMap to preserve insertion order of categories
                         Collectors.toList()          // Collect permissions into a list for each category
                 ));
-    }
-
-    public void togglePermission(Role role, PermissionType permission) {
-        if (role == null || permission == null) {
-            return;
-        }
-        Set<PermissionType> currentPermissions = permissionsMap.get(role.getId());
-        if (currentPermissions != null) {
-            if (currentPermissions.contains(permission)) {
-                currentPermissions.remove(permission);
-            } else {
-                currentPermissions.add(permission);
-            }
-        }
+        groupedPermissionsList = new ArrayList<>(grouped.entrySet());
     }
 
     public void savePermissions() {
@@ -85,21 +91,20 @@ public class PermissionMatrixBean implements Serializable {
         String performedByUsername = currentUser.getUsername();
 
         try {
-            for (Role role : allRoles) {
-                Set<PermissionType> originalPermissions = roleService.getPermissionsForRole(role.getId());
-                Set<PermissionType> newPermissions = permissionsMap.get(role.getId());
+            for (RolePermissionRow row : permissionRows) {
+                Long roleId = row.getRole().getId();
+                Set<PermissionType> originalPermissions = roleService.getPermissionsForRole(roleId);
 
-                // Grant new permissions
-                for (PermissionType perm : newPermissions) {
-                    if (!originalPermissions.contains(perm)) {
-                        roleService.assignPermissionToRole(role.getId(), perm, performedByUserId, performedByUsername);
-                    }
-                }
+                // Check every permission in the map submitted from the view
+                for (Map.Entry<PermissionType, Boolean> submittedPerm : row.getPermissions().entrySet()) {
+                    PermissionType perm = submittedPerm.getKey();
+                    boolean isSelected = submittedPerm.getValue();
+                    boolean wasSelected = originalPermissions.contains(perm);
 
-                // Revoke old permissions
-                for (PermissionType perm : originalPermissions) {
-                    if (!newPermissions.contains(perm)) {
-                        roleService.revokePermissionFromRole(role.getId(), perm, performedByUserId, performedByUsername);
+                    if (isSelected && !wasSelected) {
+                        roleService.assignPermissionToRole(roleId, perm, performedByUserId, performedByUsername);
+                    } else if (!isSelected && wasSelected) {
+                        roleService.revokePermissionFromRole(roleId, perm, performedByUserId, performedByUsername);
                     }
                 }
             }
@@ -115,7 +120,6 @@ public class PermissionMatrixBean implements Serializable {
     }
 
     // --- Getters ---
-    public List<Role> getAllRoles() { return allRoles; }
-    public Map<Long, Set<PermissionType>> getPermissionsMap() { return permissionsMap; }
-    public Map<String, List<PermissionType>> getGroupedPermissions() { return groupedPermissions; }
+    public List<RolePermissionRow> getPermissionRows() { return permissionRows; }
+    public List<Map.Entry<String, List<PermissionType>>> getGroupedPermissionsList() { return groupedPermissionsList; }
 }
