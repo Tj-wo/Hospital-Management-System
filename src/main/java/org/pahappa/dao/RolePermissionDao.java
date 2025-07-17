@@ -26,7 +26,21 @@ public class RolePermissionDao extends BaseDao<RolePermission, Long> {
 
     public RolePermission findByRoleIdAndPermissionType(Long roleId, PermissionType permissionType) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            String hql = "FROM RolePermission rp WHERE rp.role.id = :roleId AND rp.permission = :permissionType AND rp.deleted = false";
+            // ADDED: JOIN FETCH rp.role to prevent LazyInitializationException in the service layer when logging the revocation.
+            String hql = "FROM RolePermission rp JOIN FETCH rp.role WHERE rp.role.id = :roleId AND rp.permission = :permissionType AND rp.deleted = false";
+            return session.createQuery(hql, RolePermission.class)
+                    .setParameter("roleId", roleId)
+                    .setParameter("permissionType", permissionType)
+                    .uniqueResultOptional()
+                    .orElse(null);
+        }
+    }
+
+    public RolePermission findByRoleIdAndPermissionTypeIncludingDeleted(Long roleId, PermissionType permissionType) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // This query finds the permission regardless of its 'deleted' status.
+            // ADDED: JOIN FETCH rp.role to prevent LazyInitializationException in the service layer.
+            String hql = "FROM RolePermission rp JOIN FETCH rp.role WHERE rp.role.id = :roleId AND rp.permission = :permissionType";
             return session.createQuery(hql, RolePermission.class)
                     .setParameter("roleId", roleId)
                     .setParameter("permissionType", permissionType)
