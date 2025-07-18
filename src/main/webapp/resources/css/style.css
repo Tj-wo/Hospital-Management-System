@@ -193,7 +193,7 @@ body {
     padding: 2rem 1.5rem;
 }
 
-.login-card h:form {
+.login-card form {
     width: 100%;
     max-width: 400px;
 }
@@ -1235,13 +1235,13 @@ body {
 @media (min-width: 577px) {
     .login-wrapper {
         flex-direction: row;
-        max-width: 1200px;
-        min-height: 700px;
+        max-width: 960px;
+        min-height: 550px;
     }
 
     .login-showcase {
-        flex: 1;
-        padding: 4rem;
+        flex: 3;
+        padding: 3rem;
         text-align: left;
     }
 
@@ -1250,8 +1250,8 @@ body {
     }
 
     .login-card {
-        flex: 1;
-        padding: 3rem;
+        flex: 2;
+        padding: 2.5rem;
     }
 
     .login-header h3 {
@@ -1303,6 +1303,8 @@ body {
     }
 }
 
+
+
 /* For large tablets and small desktops (min-width: 993px) */
 @media (min-width: 993px) {
     .app-layout {
@@ -1319,16 +1321,31 @@ body {
         margin-left: 280px;
     }
 
-    .mobile-nav-toggle {
-        display: none;
-    }
-
+    .mobile-nav-toggle,
     .mobile-overlay {
         display: none;
     }
 
-    .dashboard-row-charts-tables {
+    /* --- Dashboard Layout Enhancements --- */
+
+    /* 1. Add vertical spacing between all dashboard rows for better separation. */
+    .dashboard-grid > div {
+        margin-bottom: 2rem;
+    }
+    .dashboard-grid > div:last-child {
+        margin-bottom: 0;
+    }
+
+    .dashboard-row-charts-tables,
+    .dashboard-other-tables {
         display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 0;
+    }
+
+    .side-charts-container {
+        display: grid !important; /* Override inline flex style for consistency */
         grid-template-columns: 1fr 1fr;
         gap: 2rem;
     }
@@ -1349,17 +1366,3 @@ body {
     }
 }
 
-/* For larger desktops (min-width: 1201px) */
-@media (min-width: 1201px) {
-    .login-wrapper {
-        max-width: 1200px;
-    }
-
-    .main-content {
-        padding: 2.5rem;
-    }
-
-    .card-content {
-        padding: 2.5rem;
-    }
-}
